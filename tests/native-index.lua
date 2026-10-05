@@ -77,6 +77,77 @@ assert(placements > 5 and M:DirectoryCounts("zone", "").npc == placements, "ungr
 M.settings.groupNPCs = true
 assert(#M:Query("zone", "npc", "All", "alchemy", "directory") == 1, "titles must be searchable")
 assert(#M:Query("zone", "npc", "All", "food", "directory") == 1, "innkeepers must answer food searches")
+
+-- Sub-groups refine categories from titles, tags and levels.
+local function keys(record) return table.concat(M:RecordSubgroups(record), ",") end
+assert(keys(byID[11]) == "trainer:alchemy" and keys(byID[12]) == "trainer:warrior", keys(byID[11]) .. "/" .. keys(byID[12]))
+assert(keys(byID[16]):find("vendor:armor", 1, true) and keys(byID[16]):find("vendor:repair", 1, true))
+assert(keys(byID[10]) == "service:innkeeper,service:quest", "records may sit in several sub-groups")
+assert(keys({ kind = "npc", category = "Trainers", title = "Grand Wizard", tags = { "trainer" } }) == "trainer:other",
+    "unmatched records fall into the category's catch-all")
+assert(keys({ kind = "npc", category = "Trainers", title = "Journeyman Blacksmith", tags = {} }) == "trainer:blacksmithing")
+assert(keys({ kind = "npc", category = "Trainers", title = "Fishing Trainer", tags = {} }) == "trainer:fishing")
+assert(keys({ kind = "npc", category = "Vendors", title = "Fishing Supplies", tags = {} }) == "supplies:fishing")
+assert(keys({ kind = "npc", category = "Combat", level = 34, tags = {} }) == "level:31")
+assert(keys({ kind = "location", category = "Objects", tags = { "herb" } }) == "object:herb")
+assert(keys({ kind = "location", category = "Mailboxes", tags = { "mailbox" } }) == "", "categories without sub-groups")
+assert(M:FindSubgroup("fishing trainer").key == "trainer:fishing")
+assert(M:FindSubgroup("blacksmith").key == "trainer:blacksmithing", "a profession name means its trainer")
+assert(M:FindSubgroup("Blacksmithing supplies").key == "supplies:blacksmithing")
+assert(M:FindSubgroup("weapons").key == "vendor:weapons" and M:FindSubgroup("herbs").key == "object:herb")
+assert(M:FindSubgroup("bankers").key == "service:bank" and M:FindSubgroup("xyzzy") == nil and M:FindSubgroup("") == nil)
+M.kind, M.category, M.subgroup = "npc", "Trainers", "trainer:alchemy"
+assert(#M:Query("zone", "npc", "Trainers", "", "directory") == 1, "the active sub-group filters results")
+assert(#M:Query("zone", "npc", "All", "", "directory") == 5, "a sub-group of another category is ignored")
+counts = M:DirectoryCounts("zone", "")
+assert(counts.subgroups["trainer:alchemy"] == 1 and counts.subgroups["trainer:warrior"] == 1
+    and counts.subgroups["service:innkeeper"] == 1, "sub-group counts follow the grouped rows")
+M.subgroup = nil
+
+if not M.window then M:CreateWindow() end
+local w = M.window
+local savedScope, savedZone = M.scope, M.zoneMap
+M.scope, M.zoneMap = "zone", nil
+M.kind = "npc"
+M:UpdateCategories()
+assert(M.categories.npc[4] == "Trainers" and w.subgroupButtons[4]:IsShown() and not w.subgroupButtons[1]:IsShown(),
+    "only categories with sub-groups offer the picker")
+w.categoryButtons[4]:Click()
+assert(M.category == "Trainers" and #M.results == 2)
+w.subgroupButtons[4]:Click()
+assert(w.subpicker:IsShown() and w.subpicker.category == "Trainers")
+local texts = {}
+for _, data in ipairs(w.subpicker.data) do table.insert(texts, (data.text:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", ""))) end
+texts = table.concat(texts, ";")
+assert(texts:find("All Trainers  (2)", 1, true) and texts:find("Warrior  (1)", 1, true) and texts:find("Alchemy  (1)", 1, true)
+    and texts:find("Class trainers", 1, true) and not texts:find("Fishing", 1, true), "empty sub-groups are hidden: " .. texts)
+w.subpicker.filter:SetText("alch")
+assert(#w.subpicker.data == 3 and w.subpicker.data[3].key == "trainer:alchemy", "the filter narrows the picker")
+w.subpicker.rows[3]:Click()
+assert(not w.subpicker:IsShown() and M.subgroup == "trainer:alchemy" and #M.results == 1)
+assert(M.results[1].record.npcID == 11)
+assert(w.categoryButtons[4]:GetText() == "Trainers: Alchemy (1)", w.categoryButtons[4]:GetText())
+assert(w.filters:GetText():find("Alchemy", 1, true), "the breadcrumb names the sub-group")
+w.subgroupButtons[4]:Click()
+w.subpicker.rows[1]:Click()
+assert(M.subgroup == nil and #M.results == 2, "the All row clears the sub-group")
+w:Show()
+w.subgroupButtons[4]:Click()
+for _, key in ipairs({ "options", "reviewFrame", "copyFrame", "detailsFrame", "itemFrame", "modelFrame" }) do
+    if M[key] then M[key]:Hide() end
+end
+w:GetScript("OnKeyDown")(w, "ESCAPE")
+assert(not w.subpicker:IsShown() and w:IsShown(), "Escape closes the sub-group picker first ")
+M.subgroup = "trainer:warrior"
+w.categoryButtons[4]:Click()
+assert(M.subgroup == nil, "clicking the category clears its sub-group")
+M:JumpToSubgroup("alchemy trainer")
+assert(M.kind == "npc" and M.category == "Trainers" and M.subgroup == "trainer:alchemy" and #M.results == 1)
+M:JumpToSubgroup("warrior")
+assert(M.subgroup == "trainer:warrior" and M.results[1].record.npcID == 12)
+M.kind, M.category, M.subgroup = "all", "All", nil
+M.scope, M.zoneMap = savedScope, savedZone
+M:UpdateCategories()
 if not M.window then M:CreateWindow() end
 M:Query("zone", "npc", "All", "alchemy", "directory")
 M.selected, M.offset = 1, 0

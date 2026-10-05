@@ -153,6 +153,28 @@ continents; Enter picks the first matching zone.
   sessions. `/monstrator reset` (or **Reset window & filters** in Settings) restores
   the defaults.
 
+### Sub-groups
+
+The **>** button beside a category opens its sub-groups, each with a result count for
+the current place and search (empty sub-groups are hidden; type to filter):
+
+- **Trainers**: each class, each profession (Fishing, Blacksmithing, First Aid...),
+  weapon masters and riding.
+- **Vendors**: food & drink, general goods, weapons, armor, ammunition, reagents,
+  poisons, bags, mounts & pets, faction quartermasters, repairs, and supplies for
+  every profession.
+- **Services**: innkeepers, bankers, auctioneers, stable and guild masters, spirit
+  healers, battlemasters and quest givers.
+- **Transit**, **NPCs & creatures** (by level range and rare/elite/boss rank),
+  **Instances**, location **Transit** and **Objects & nodes** (herbs, mining nodes,
+  chests, fishing pools, anvils, forges, cooking fires).
+
+Sub-groups are worked out from each NPC's subtitle (`<Fishing Trainer>`), tags, level
+and rank, so no stored data changes. An NPC can sit in more than one (an armorer that
+also repairs). Click the category itself to clear the sub-group.
+`/monstrator find fishing trainer` jumps straight to it, widening to the whole world
+when your current zone has none.
+
 The results heading shows `place / type / category`. Row tooltips and the Details
 column show the zone, continent, coordinates, distance and a `/way` command you can
 paste into TomTom.
@@ -414,6 +436,7 @@ on first install are normal, not evidence of a cold-start bug.
 | `/monstrator collect` | Toggle automatic local collection |
 | `/monstrator zone [NAME]` | Browse a zone by (partial) name; no name follows your position |
 | `/monstrator region [NAME]` | Browse a continent, e.g. `kalimdor`; no name uses your continent |
+| `/monstrator find TEXT` | Open the sub-group matching TEXT, e.g. `fishing trainer`, `blacksmithing supplies`, `herbs` |
 | `/monstrator items [NAME]` | Open the item lookup, optionally searching for NAME or an item ID |
 | `/monstrator model` | Open the 3D model viewer for the selected NPC |
 | `/monstrator scan [add ID/NAME \| remove ID/NAME \| list \| on \| off \| rares \| sound \| clear \| test]` | Open the NPC scan window, or manage the watch list, alerts and sighting log |

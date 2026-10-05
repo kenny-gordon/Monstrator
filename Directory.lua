@@ -11,6 +11,13 @@ local function append(index, key, entry)
     table.insert(index[key], entry)
 end
 
+local function hasSubgroup(entry, key)
+    for _, value in ipairs(entry.subgroups or {}) do
+        if value == key then return true end
+    end
+    return false
+end
+
 function M:EnsureIndex()
     if not self.index then self:BuildIndex() end
 end
@@ -34,7 +41,7 @@ function M:IndexRecord(record)
         return nil
     end
     if record.verification == "pending" then return true end
-    local entry = { record = record, text = self:RecordSearchText(record) }
+    local entry = { record = record, text = self:RecordSearchText(record), subgroups = self:RecordSubgroups(record) }
     self.index.byKey[record.key] = entry
     table.insert(self.index.all, entry)
     append(self.index.byMap, record.mapID, entry)
@@ -367,6 +374,8 @@ function M:Query(scope, kind, category, query, view)
     self.results = self.results or {}
     wipe(self.results)
     local region = scope == "region" and self:ScopeRegion()
+    local subgroupDef = self:ActiveSubgroup(kind, category)
+    local subgroup = subgroupDef and subgroupDef.key
     if view == "directory" and (scope ~= "zone" or mapID) then
         self:IndexDatabase(scope == "zone" and mapID or nil)
     elseif view == "favorites" then
@@ -420,6 +429,7 @@ function M:Query(scope, kind, category, query, view)
                 and (scope ~= "zone" or r.mapID == mapID)
                 and (not region or self:MapRegion(r.mapID) == region)
                 and (category == "All" or r.category == category) and matches(entry.text, query)
+                and (not subgroup or hasSubgroup(entry, subgroup))
                 and (not npcFilter or (r.npcID and npcFilter[r.npcID])) then
                 table.insert(self.results, entry)
             end
@@ -432,7 +442,7 @@ end
 
 function M:DirectoryCounts(scope, query)
     self:EnsureIndex()
-    local counts = { all = 0, npc = 0, location = 0, uniqueNPCs = 0, categories = {} }
+    local counts = { all = 0, npc = 0, location = 0, uniqueNPCs = 0, categories = {}, subgroups = {} }
     local identities, objects = {}, {}
     local mapID = scope == "zone" and self:ScopeMap() or self:PlayerMap()
     local region = scope == "region" and self:ScopeRegion()
@@ -464,6 +474,7 @@ function M:DirectoryCounts(scope, query)
             local categories = counts.categories[r.kind]
             if not categories then categories = {}; counts.categories[r.kind] = categories end
             categories[r.category] = (categories[r.category] or 0) + 1
+            for _, key in ipairs(entry.subgroups or {}) do counts.subgroups[key] = (counts.subgroups[key] or 0) + 1 end
             end
         end
     end

@@ -234,6 +234,9 @@ SlashCmdList.MONSTRATOR = function(input)
         elseif argument == "" then M:SyncClientData()
         else M:Error(L["Use /monstrator sync or /monstrator sync world."]) end
     elseif command == "zone" or command == "region" then M:JumpToPlace(command, argument)
+    elseif command == "find" then
+        if argument == "" then M:Error(L["Use /monstrator find TEXT, e.g. fishing trainer, weapons or herbs."]); return end
+        M:JumpToSubgroup(argument)
     elseif command == "reset" then M:ResetView()
     elseif command == "items" or command == "item" then M:ShowItemLookup(argument)
     elseif command == "model" then M:ShowSelectedModel()
@@ -256,7 +259,7 @@ SlashCmdList.MONSTRATOR = function(input)
         M:RefreshIfVisible()
         M:Notice(L["Local journal cleared. Favorites retained."])
     elseif command == "help" then
-        M:Notice("/monstrator [diagnostic | issues | profile | sync [world] | zone [NAME] | region [NAME] | items [NAME] | model | scan [add|remove|list|on|off|rares|sound|test] | reset | journal | npcs | audit | tags | capture | discover | debug | minimap | collect | limit N | landmark NAME | export | clear CONFIRM]")
+        M:Notice("/monstrator [diagnostic | issues | profile | sync [world] | zone [NAME] | region [NAME] | find TEXT | items [NAME] | model | scan [add|remove|list|on|off|rares|sound|test] | reset | journal | npcs | audit | tags | capture | discover | debug | minimap | collect | limit N | landmark NAME | export | clear CONFIRM]")
     elseif command == "" then M:Toggle()
     else M:Error(L["Unknown command. Use /monstrator help."]) end
 end

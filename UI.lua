@@ -67,7 +67,7 @@ function M:ShowHelp()
         content:SetSize(550, 440)
         scroll:SetScrollChild(content)
         f.body = label(content,
-            table.concat({ L["help.browse"], L["help.results"], L["help.database"], L["help.sort"], L["help.review"], L["help.items"], L["help.scan"], L["help.keyboard"], L["help.commands"] }, "\n\n"),
+            table.concat({ L["help.browse"], L["help.subgroups"], L["help.results"], L["help.database"], L["help.sort"], L["help.review"], L["help.items"], L["help.scan"], L["help.keyboard"], L["help.commands"] }, "\n\n"),
             0, 0, 15)
         f.body:SetWidth(540)
         f.body:SetJustifyH("LEFT")
@@ -510,10 +510,13 @@ function M:Render()
         if category then
             local categories = counts.categories[self.kind] or {}
             local amount = category == "All" and counts[self.kind] or (categories[category] or 0)
-            local text = L[category] .. " (" .. amount .. ")"
+            local sub = self.category == category and self:ActiveSubgroup()
+            local text = sub and (L[category] .. ": " .. L[sub.label] .. " (" .. ((counts.subgroups or {})[sub.key] or 0) .. ")")
+                or (L[category] .. " (" .. amount .. ")")
             if b.renderText ~= text then b:SetText(text); b.renderText = text end
         end
     end
+    if f.subpicker:IsShown() then self:RenderSubgroupPicker(true) end
     local queue = self.clientData.worldQueue
     local coverage = queue and (L["Scanning zones: %d/%d"]):format(queue.next - 1, #self.clientMapCatalog.maps)
         or (self.clientData.worldScanned and L["World scan finished"]) or nil
@@ -527,9 +530,10 @@ function M:Render()
     local placeText = (L["place:" .. self.scope]):format(self:PlaceName())
     if f.placeButton.renderText ~= placeText then f.placeButton:SetText(placeText); f.placeButton.renderText = placeText end
     if f.renderScope ~= self.scope or f.renderKind ~= self.kind or f.renderCategory ~= self.category
+        or f.renderSubgroup ~= self.subgroup
         or f.renderFilterView ~= self.view or f.renderPlace ~= place then
         f.filters:SetText(self:BreadcrumbText())
-        f.renderFilterView, f.renderPlace = self.view, place
+        f.renderFilterView, f.renderPlace, f.renderSubgroup = self.view, place, self.subgroup
         for key, b in pairs(f.scopeButtons) do b.activeMarker:SetShown(self.scope == key) end
         for key, b in pairs(f.kindButtons) do b.activeMarker:SetShown(self.kind == key) end
         for i, b in ipairs(f.categoryButtons) do
@@ -878,14 +882,30 @@ function M:CreateWindow()
         location = control("Static locations", 28, -402, function() self.kind = "location"; self.category = "All"; self:UpdateCategories() end),
     }
     section("Categories", -434)
-    f.categoryButtons = {}
+    f.categoryButtons, f.subgroupButtons = {}, {}
     for i = 1, 6 do
         local b = control("All", 28, -450 - (i - 1) * 28, function()
-            self.category = self.categories[self.kind][i]
+            self.category, self.subgroup = self.categories[self.kind][i], nil
+            if f.subpicker then f.subpicker:Hide() end
             self:ChangeView("directory")
-        end)
+        end, 180)
         selectionMarker(b)
         f.categoryButtons[i] = b
+        local more = control(">", 212, -450 - (i - 1) * 28, function()
+            local category = self.categories[self.kind][i]
+            if category then self:ToggleSubgroupPicker(category) end
+        end, 24)
+        more:SetScript("OnEnter", function(b)
+            self.focusIndex = nil
+            if GameTooltip then
+                GameTooltip:SetOwner(b, "ANCHOR_RIGHT")
+                GameTooltip:SetText(L["Sub-groups"])
+                GameTooltip:AddLine(L["Narrow this category, e.g. Trainers > Fishing or Vendors > Weapons."], 1, 1, 1, true)
+                GameTooltip:Show()
+            end
+        end)
+        more:SetScript("OnLeave", function() if GameTooltip then GameTooltip:Hide() end end)
+        f.subgroupButtons[i] = more
     end
     for _, group in ipairs({ f.scopeButtons, f.viewButtons, f.kindButtons }) do
         for _, b in pairs(group) do selectionMarker(b) end
@@ -982,6 +1002,7 @@ function M:CreateWindow()
     f.pageUp = control("^", 768, -162, function() scrollRows(-#f.rows) end, 22)
     f.pageDown = control("v", 768, -548, function() scrollRows(#f.rows) end, 22)
     f.picker = self:CreatePlacePicker(f)
+    f.subpicker = self:CreateSubgroupPicker(f)
     f:EnableMouseWheel(true)
     f:SetScript("OnMouseWheel", function(_, delta)
         scrollRows(-delta * 3)
@@ -1081,6 +1102,7 @@ function M:CreateWindow()
         end
         local handled = true
         if key == "ESCAPE" and f.picker:IsShown() then f.picker:Hide()
+        elseif key == "ESCAPE" and f.subpicker:IsShown() then f.subpicker:Hide()
         elseif key == "ESCAPE" then f:Hide()
         elseif key == "TAB" then
             if f.search:HasFocus() then handled = false else focusNext() end
@@ -1117,6 +1139,7 @@ function M:CreateWindow()
         self.searchPending = nil
         f.search:ClearFocus()
         f.picker:Hide()
+        f.subpicker:Hide()
         GameTooltip:Hide()
     end)
     self.window = f
@@ -1128,6 +1151,7 @@ function M:BreadcrumbText()
     if self.view ~= "directory" then return L[self.view] .. " - " .. L[self.scope] end
     if self.npcFilter then return "|cffd6a64b" .. self.npcFilter.label .. "|r  /  " .. self:PlaceName() end
     return self:PlaceName() .. "  /  " .. L[self.kind] .. "  /  " .. L[self.category]
+        .. (self:ActiveSubgroup() and ("  /  " .. L[self:ActiveSubgroup().label]) or "")
 end
 
 function M:SetNPCFilter(ids, label)
@@ -1190,7 +1214,9 @@ function M:PlacePickerRows(filter)
     return rows
 end
 
-function M:CreatePlacePicker(f)
+-- Shared overlay used by the place and sub-group pickers: it covers the results panel with a filter box,
+-- a scrolling list of rows and a status line. `onPick(data)` runs when a row is clicked.
+local function createOverlay(self, f, headingText, hintText, onPick, render)
     local p = CreateFrame("Frame", nil, f, "BackdropTemplate")
     p:SetPoint("TOPLEFT", 256, -104)
     p:SetSize(540, 520)
@@ -1205,32 +1231,17 @@ function M:CreatePlacePicker(f)
     if UnitFactionGroup("player") == "Horde" then shade:SetColorTexture(0.1, 0.03, 0.03, 1)
     else shade:SetColorTexture(0.02, 0.045, 0.09, 1) end
     p:EnableMouse(true)
-    local heading = label(p, "Choose zone or region", 14, -12, 14)
-    heading:SetWidth(440)
-    heading:SetJustifyH("LEFT")
+    p.heading = label(p, headingText, 14, -12, 14)
+    p.heading:SetWidth(440)
+    p.heading:SetJustifyH("LEFT")
     button(p, "X", 496, -8, 32, function() p:Hide() end)
     p.filter = edit(p, 20, -38, 500)
-    p.filterHint = label(p.filter, "Filter zones, e.g. barrens or kalimdor", 4, -5, 12)
+    p.filterHint = label(p.filter, hintText, 4, -5, 12)
     p.filterHint:SetTextColor(0.65, 0.65, 0.65)
     p.filter:SetScript("OnTextChanged", function()
         p.filterHint:SetShown(p.filter:GetText() == "")
         p.offset = 0
-        if p:IsShown() then self:RenderPlacePicker(true) end
-    end)
-    p.filter:SetScript("OnEnterPressed", function()
-        local filter = p.filter:GetText():lower()
-        if filter == "" then return end
-        -- Prefer a zone whose own name matches; otherwise the matching region itself.
-        local zone, region
-        for _, data in ipairs(p.data or {}) do
-            local name = data.id and data.name and data.name:lower()
-            if name and name:find(filter, 1, true) then
-                if data.scope == "zone" and not zone then zone = data end
-                if data.scope == "region" and not region then region = data end
-            end
-        end
-        local first = zone or region
-        if first then self:SelectPlace(first.scope, first.id) end
+        if p:IsShown() then render(true) end
     end)
     p.filter:SetScript("OnEscapePressed", function() p:Hide() end)
     p.rows = {}
@@ -1247,7 +1258,7 @@ function M:CreatePlacePicker(f)
         row.text:SetMaxLines(1)
         row.text:SetJustifyH("LEFT")
         selectionMarker(row)
-        row:SetScript("OnClick", function(b) if b.data then self:SelectPlace(b.data.scope, b.data.id) end end)
+        row:SetScript("OnClick", function(b) if b.data and not b.data.section then onPick(b.data) end end)
         p.rows[i] = row
     end
     p.status = label(p, "", 20, -500, 11)
@@ -1257,16 +1268,13 @@ function M:CreatePlacePicker(f)
     p:EnableMouseWheel(true)
     p:SetScript("OnMouseWheel", function(_, delta)
         p.offset = math.max(0, math.min(math.max(0, #(p.data or {}) - #p.rows), (p.offset or 0) - delta * 3))
-        self:RenderPlacePicker()
+        render()
     end)
     p:Hide()
     return p
 end
 
-function M:RenderPlacePicker(rebuild)
-    local p = self.window and self.window.picker
-    if not p then return end
-    if rebuild or not p.data then p.data = self:PlacePickerRows(p.filter:GetText()) end
+local function renderOverlayRows(p)
     p.offset = math.max(0, math.min(p.offset or 0, math.max(0, #p.data - #p.rows)))
     for i, row in ipairs(p.rows) do
         local data = p.data[p.offset + i]
@@ -1274,10 +1282,133 @@ function M:RenderPlacePicker(rebuild)
         row:SetShown(data ~= nil)
         if data then
             row.text:SetText(data.text)
-            if data.header then row.text:SetTextColor(1, 0.82, 0.25) else row.text:SetTextColor(0.9, 0.91, 0.95) end
-            row.activeMarker:SetShown(data.active)
+            if data.section then row.text:SetTextColor(0.7, 0.72, 0.78)
+            elseif data.header then row.text:SetTextColor(1, 0.82, 0.25)
+            else row.text:SetTextColor(0.9, 0.91, 0.95) end
+            row.activeMarker:SetShown(data.active == true)
         end
     end
+end
+
+function M:CreatePlacePicker(f)
+    local p = createOverlay(self, f, "Choose zone or region", "Filter zones, e.g. barrens or kalimdor",
+        function(data) self:SelectPlace(data.scope, data.id) end,
+        function(rebuild) self:RenderPlacePicker(rebuild) end)
+    p.filter:SetScript("OnEnterPressed", function()
+        local filter = p.filter:GetText():lower()
+        if filter == "" then return end
+        -- Prefer a zone whose own name matches; otherwise the matching region itself.
+        local zone, region
+        for _, data in ipairs(p.data or {}) do
+            local name = data.id and data.name and data.name:lower()
+            if name and name:find(filter, 1, true) then
+                if data.scope == "zone" and not zone then zone = data end
+                if data.scope == "region" and not region then region = data end
+            end
+        end
+        local first = zone or region
+        if first then self:SelectPlace(first.scope, first.id) end
+    end)
+    return p
+end
+
+-- Rows for the sub-group picker of one category: an "All" row, then section headings and every
+-- sub-group that has results in the current scope and search (the active one is always listed).
+function M:SubgroupPickerRows(category, filter)
+    filter = string.lower(filter or "")
+    local counts = self.directoryCounts or { categories = {}, subgroups = {} }
+    local subcounts = counts.subgroups or {}
+    local total = (counts.categories[self.kind] or {})[category] or 0
+    local rows = { { text = (L["All %s"]):format(L[category]) .. "  |cff9aa3b5(" .. total .. ")|r", header = true,
+        active = self.category == category and not self:ActiveSubgroup(self.kind, category), category = category } }
+    local section
+    for _, def in ipairs(self.subgroups[self.kind .. ":" .. category] or {}) do
+        if def.section then section = { text = L[def.section], section = true }
+        else
+            local amount = subcounts[def.key] or 0
+            local active = self.subgroup == def.key and self.category == category
+            local name = L[def.label]
+            if (amount > 0 or active) and (filter == "" or name:lower():find(filter, 1, true)
+                or def.key:find(filter, 1, true) or (section and section.text:lower():find(filter, 1, true))) then
+                if section then table.insert(rows, section); section = nil end
+                table.insert(rows, { key = def.key, category = category, name = name, active = active,
+                    text = "    " .. name .. "  |cff9aa3b5(" .. amount .. ")|r" })
+            end
+        end
+    end
+    return rows
+end
+
+function M:CreateSubgroupPicker(f)
+    local p = createOverlay(self, f, "Choose a sub-group", "Filter, e.g. fishing or blacksmith",
+        function(data) self:SelectSubgroup(data.category, data.key) end,
+        function(rebuild) self:RenderSubgroupPicker(rebuild) end)
+    p.filter:SetScript("OnEnterPressed", function()
+        for _, data in ipairs(p.data or {}) do
+            if data.key then self:SelectSubgroup(data.category, data.key); return end
+        end
+    end)
+    return p
+end
+
+function M:RenderSubgroupPicker(rebuild)
+    local p = self.window and self.window.subpicker
+    if not p or not p.category then return end
+    if rebuild or not p.data then p.data = self:SubgroupPickerRows(p.category, p.filter:GetText()) end
+    renderOverlayRows(p)
+    local groups = 0
+    for _, data in ipairs(p.data) do if data.key then groups = groups + 1 end end
+    p.status:SetText(groups == 0 and L["No sub-group has results here. Try a wider scope or clear the search."]
+        or (L["%d sub-groups | Mouse wheel scrolls | Enter picks the first match"]):format(groups))
+end
+
+function M:ToggleSubgroupPicker(category)
+    local f = self.window
+    local p = f and f.subpicker
+    if not p then return end
+    if p:IsShown() and p.category == category then p:Hide(); return end
+    f.picker:Hide()
+    p.category, p.offset, p.data = category, 0, nil
+    p.heading:SetText((L["%s: choose a sub-group"]):format(L[category]))
+    p.filter:SetText("")
+    p:Show()
+    self:RenderSubgroupPicker(true)
+    p.filter:SetFocus()
+end
+
+function M:SelectSubgroup(category, key)
+    self.category, self.subgroup = category, key
+    if self.window and self.window.subpicker then self.window.subpicker:Hide() end
+    self.offset, self.selected = 0, 1
+    self:ChangeView("directory")
+end
+
+-- /monstrator find TEXT: open the matching sub-group (widening to the whole world when the current place has
+-- none), or fall back to a plain search.
+function M:JumpToSubgroup(text)
+    if not self.window then self:CreateWindow() end
+    self.window:SetScale(self.settings.frameScale)
+    self.window:Show()
+    local def = self:FindSubgroup(text)
+    if not def then
+        self.window.search:SetText(text or "")
+        self:Notice((L["No sub-group matches \"%s\"; searching for it instead."]):format(text or ""))
+        return
+    end
+    self.npcFilter = nil
+    self.kind = def.kind
+    self:UpdateCategories()
+    self.window.search:SetText("")
+    self.searchPending = nil
+    self:SelectSubgroup(def.category, def.key)
+    if #(self.results or {}) == 0 and self.scope ~= "global" then self:SelectPlace("global") end
+    self:Notice((L["Showing %s."]):format(L[def.category] .. ": " .. L[def.label]))
+end
+function M:RenderPlacePicker(rebuild)
+    local p = self.window and self.window.picker
+    if not p then return end
+    if rebuild or not p.data then p.data = self:PlacePickerRows(p.filter:GetText()) end
+    renderOverlayRows(p)
     local zones = 0
     for _, data in ipairs(p.data) do if data.scope == "zone" and data.id then zones = zones + 1 end end
     local status = zones == 0 and (p.filter:GetText() ~= "" and L["No zone or region matches this filter."]
@@ -1290,6 +1421,7 @@ function M:TogglePlacePicker()
     local p = self.window and self.window.picker
     if not p then return end
     if p:IsShown() then p:Hide(); return end
+    if self.window.subpicker then self.window.subpicker:Hide() end
     p.offset = 0
     p.filter:SetText("")
     p:Show()
@@ -1433,7 +1565,10 @@ function M:UpdateCategories()
         local category = self.categories[self.kind][i]
         b:SetShown(category ~= nil)
         if category then b:SetText(L[category]); b.renderText = nil end
+        self.window.subgroupButtons[i]:SetShown(category ~= nil and self.subgroups[self.kind .. ":" .. category] ~= nil)
     end
+    self.subgroup = nil
+    self.window.subpicker:Hide()
     self.window.renderScope = nil
     self:ChangeView("directory")
 end
