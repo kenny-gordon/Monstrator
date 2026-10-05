@@ -36,6 +36,7 @@ execute(fs.readFileSync(path.join(__dirname, 'items.lua'), 'utf8'), 'items.lua')
 execute(fs.readFileSync(path.join(__dirname, 'native-db.lua'), 'utf8'), 'native-db.lua');
 execute(fs.readFileSync(path.join(__dirname, 'ui-refactor.lua'), 'utf8'), 'ui-refactor.lua');
 execute(fs.readFileSync(path.join(__dirname, 'scanner.lua'), 'utf8'), 'scanner.lua');
+execute(fs.readFileSync(path.join(__dirname, 'submission.lua'), 'utf8'), 'submission.lua');
 
 // Locales: every file loads only for its own client locale, translates keys the addon actually uses, and keeps
 // the same format specifiers as English so string.format can never fail in another language.
@@ -228,6 +229,94 @@ try {
   if (fs.existsSync(mapsPath)) fs.unlinkSync(mapsPath);
   if (fs.existsSync(assignmentsPath)) fs.unlinkSync(assignmentsPath);
   fs.rmdirSync(temporary);
+}
+
+// Submissions: an independent double-precision implementation (WoW's Lua 5.1 number model) must match the
+// fengari-run addon code, and the maintainer review must accept, hold and reject the right records.
+{
+  const SEAL_VECTOR = '654b3b0b1531361376cd9a8b08a4f965';
+  const lanes = [[2147483629, 1000003], [2147483587, 1000033], [2147483579, 1000037], [2147483563, 1000039]];
+  const sealHash = (text) => {
+    const bytes = Buffer.from(text, 'utf8');
+    return lanes.map(([mod, base], i) => {
+      const lane = i + 1;
+      let h = lane * 7919;
+      const feed = (data) => { for (const b of data) h = (h * base + b + lane) % mod; };
+      feed(Buffer.from('monstrator-seal-v1')); feed(bytes); feed(Buffer.from(String(bytes.length)));
+      return h.toString(16).padStart(8, '0');
+    }).join('');
+  };
+  lua.lua_getglobal(state, to_luastring('SUBMISSION_VECTOR_OUT'));
+  const vector = to_jsstring(lua.lua_tostring(state, -1));
+  lua.lua_getglobal(state, to_luastring('SUBMISSION_SAMPLE'));
+  const sample = to_jsstring(lua.lua_tostring(state, -1));
+  lua.lua_pop(state, 2);
+  assert.equal(sealHash('Monstrator'), vector, 'seal hash must agree across Lua runtimes');
+  assert.equal(vector, SEAL_VECTOR, 'the seal algorithm must never change; existing seals would break');
+
+  const esc = (v) => String(v).replace(/[%|;\r\n]/g, (c) => '%' + c.charCodeAt(0).toString(16).toUpperCase().padStart(2, '0'));
+  const line = (r) => [r.key, 'npc', r.npcID, esc(r.name), r.category || 'Vendors', r.mapID, Math.floor(r.x * 100 + 0.5),
+    Math.floor(r.y * 100 + 0.5), (r.tags || []).join(','), 'local:MERCHANT_SHOW', '1.60.1.70205', 'enUS',
+    r.verification || 'user-confirmed', 'confirmed', 1, 1700000000, '', '', ''].join('|');
+  const submission = (submitter, records, { breakRecord, breakOverall } = {}) => {
+    const lines = ['MONSTRATOR SUBMISSION v1', 'addon=1.0.0', 'build=70205', 'locale=enUS', 'submitter=' + submitter,
+      'created=1700000000', 'records=' + records.length];
+    records.forEach((r, i) => {
+      const canonical = line(r);
+      const seal = sealHash(canonical + '|' + submitter);
+      lines.push('R|' + canonical + '|' + (breakRecord === i ? seal.replace(/^./, (c) => (c === '0' ? '1' : '0')) : seal));
+    });
+    const body = lines.join('\n') + '\n';
+    lines.push('seal=' + (breakOverall ? '0'.repeat(32) : sealHash(body)), 'END');
+    return lines.join('\r\n');
+  };
+  const db = require('../tools/monstrator-db.cjs');
+  const npcs = db.readNative(path.join(root, 'Data', 'Native'), 'Npc');
+  let known;
+  for (const [id, raw] of npcs) {
+    const row = db.decodeRow('Npc', raw);
+    const map = row.spawns && Object.keys(row.spawns)[0];
+    if (map && row.name && !/[|%;]/.test(row.name)) { known = { npcID: id, name: row.name, mapID: Number(map), x: row.spawns[map][0][0], y: row.spawns[map][0][1] }; break; }
+  }
+  const work = fs.mkdtempSync(path.join(os.tmpdir(), 'monstrator-review-test-'));
+  const inbox = path.join(work, 'inbox');
+  const source = path.join(work, 'source');
+  fs.mkdirSync(inbox);
+  const fresh = { npcID: 999999, name: 'Forever | Only; Vendor', mapID: 1429, x: 33.3, y: 44.4, tags: ['vendor'] };
+  try {
+    const records = [{ key: 'local:1', ...fresh }];
+    if (known) records.push({ key: 'local:2', ...known });
+    fs.writeFileSync(path.join(inbox, '1-alpha.txt'), 'Issue body\n```\n' + submission('aaaaaaaaaaaaaaaa', records) + '\n```\n');
+    fs.writeFileSync(path.join(inbox, '2-forged.txt'), submission('bbbbbbbbbbbbbbbb', [{ key: 'local:1', ...fresh, x: 90 }], { breakRecord: 0 }));
+    fs.writeFileSync(path.join(inbox, '3-edited.txt'), submission('cccccccccccccccc', [{ key: 'local:1', ...fresh }], { breakOverall: true }));
+    fs.writeFileSync(path.join(inbox, '4-game.txt'), sample);
+    const review = (...args) => spawnSync(process.execPath, ['--stack-size=65500', path.join(root, 'tools', 'monstrator-db.cjs'), 'review', ...args],
+      { encoding: 'utf8', env: { ...process.env, MONSTRATOR_SOURCE_DIR: source } });
+    let run = review(inbox);
+    assert.equal(run.status, 2, 'rejections give a non-zero exit code: ' + run.stderr);
+    assert.match(run.stdout, /3-edited\.txt: whole submission rejected - overall seal does not match/);
+    assert.match(run.stdout, /2-forged\.txt record 1: 999999 .* seal broken/);
+    assert.match(run.stdout, /1-alpha\.txt record 1: 999999 Forever \| Only; Vendor - .*not in the database \(1\/2 reporters\)/, run.stdout);
+    if (known) assert.match(run.stdout, /1-alpha\.txt record 2: .* - consistent with database/);
+    assert.doesNotMatch(run.stdout, /4-game\.txt.*(seal broken|whole submission rejected)/, 'in-game submissions verify in the tool');
+    assert.match(run.stdout, /4-game\.txt record \d: \d+ Seal \| Tester; 100% - captured before seals existed/);
+    assert.equal(fs.existsSync(source), false, 'a dry run writes nothing');
+
+    fs.writeFileSync(path.join(inbox, '5-beta.txt'), submission('dddddddddddddddd', [{ key: 'local:7', ...fresh, x: 33.8 }]));
+    run = review(inbox, '--apply');
+    assert.equal(run.status, 0, run.stderr);
+    assert.match(run.stdout, /999999 Forever \| Only; Vendor - corroborated by 2 reporters/, 'a second player corroborates new data');
+    const discoveries = fs.readFileSync(path.join(source, 'Discoveries.lua'), 'utf8');
+    assert.match(discoveries, /\[999999\] = \{/);
+    assert.match(discoveries, /name = "Forever \| Only; Vendor"/);
+    const ledger = JSON.parse(fs.readFileSync(path.join(source, 'SubmissionLedger.json'), 'utf8'));
+    assert.equal(Object.keys(ledger.submissions).length, 4, 'every readable submission is recorded once');
+    run = review(inbox);
+    assert.match(run.stdout, /1-alpha\.txt: already reviewed, skipped/, 'resubmitting the same text is ignored');
+    assert.match(run.stdout, /Reviewed 0 new submission/);
+  } finally {
+    fs.rmSync(work, { recursive: true, force: true });
+  }
 }
 console.log('PASS: Lua/UI behavior, native database index/overlay/standalone/audit, 10 locales, zone browsing, grouping, incremental map indexes, native-map providers, journal editing, import/CSV validation' +
   (process.env.MONSTRATOR_DBC2CSV ? ', and real DBC2CSV failure-safety checks.' : '.'));

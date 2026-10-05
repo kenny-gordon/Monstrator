@@ -221,6 +221,7 @@ SlashCmdList.MONSTRATOR = function(input)
         M.fullNotice = nil
         M:Notice(L["Observation limit: "] .. limit)
     elseif command == "export" then M:ShowExport()
+    elseif command == "submit" then M:ShowSubmission()
     elseif command == "issues" then M:ShowIssues()
     elseif command == "profile" then M:ProfileSearch()
     elseif command == "sync" then
@@ -259,7 +260,7 @@ SlashCmdList.MONSTRATOR = function(input)
         M:RefreshIfVisible()
         M:Notice(L["Local journal cleared. Favorites retained."])
     elseif command == "help" then
-        M:Notice("/monstrator [diagnostic | issues | profile | sync [world] | zone [NAME] | region [NAME] | find TEXT | items [NAME] | model | scan [add|remove|list|on|off|rares|sound|test] | reset | journal | npcs | audit | tags | capture | discover | debug | minimap | collect | limit N | landmark NAME | export | clear CONFIRM]")
+        M:Notice("/monstrator [diagnostic | issues | profile | sync [world] | zone [NAME] | region [NAME] | find TEXT | items [NAME] | model | scan [add|remove|list|on|off|rares|sound|test] | reset | journal | npcs | audit | tags | capture | discover | debug | minimap | collect | limit N | landmark NAME | export | submit | clear CONFIRM]")
     elseif command == "" then M:Toggle()
     else M:Error(L["Unknown command. Use /monstrator help."]) end
 end

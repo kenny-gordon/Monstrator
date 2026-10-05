@@ -6,6 +6,10 @@
 //   node tools\monstrator-db.cjs harvest [SavedVariables] [--include-pending]
 //                                                          fold in-game sightings + exact NPC scan sightings
 //                                                          into Data\Source\Discoveries.lua
+//   node tools\monstrator-db.cjs review <file|folder>... [--apply] [--min-reporters N] [--accept-held]
+//                                                          check player submissions (/monstrator submit): reject
+//                                                          broken seals, hold new/unusual data until N players agree,
+//                                                          --apply merges accepted records into Discoveries
 //   node tools\monstrator-db.cjs overlay                   build Data\Native\Overlay.lua from Discoveries + Corrections
 //   node tools\monstrator-db.cjs verify [--determinism [importer args]]  schema, references, hashes (and re-import compare)
 //   node tools\monstrator-db.cjs diff <other Data\Native>   added/removed/changed IDs per kind
@@ -24,7 +28,7 @@ const { spawnSync } = require('node:child_process');
 
 const root = path.resolve(__dirname, '..');
 const nativeDir = path.join(root, 'Data', 'Native');
-const sourceDir = path.join(root, 'Data', 'Source');
+const sourceDir = process.env.MONSTRATOR_SOURCE_DIR ? path.resolve(process.env.MONSTRATOR_SOURCE_DIR) : path.join(root, 'Data', 'Source');
 const KINDS = ['Npc', 'Object', 'Item', 'Quest'];
 const LAYOUT = {
   Npc: ['name', 'subName', 'npcFlags', 'minLevel', 'maxLevel', 'friendlyToFaction', 'spawns'],
@@ -253,73 +257,245 @@ function findSavedVariables() {
   return found;
 }
 
+const discoveryFile = path.join(sourceDir, 'Discoveries.lua');
+const ledgerFile = path.join(sourceDir, 'SubmissionLedger.json');
+const section = (title, list) => { if (list.length) { console.log(`\n${title} (${list.length}):`); list.slice(0, 50).forEach((l) => console.log('  ' + l)); } };
+
+function readDiscoveries() {
+  const discoveries = readSource(discoveryFile, {});
+  discoveries.Npc = Object.fromEntries(entries(discoveries.Npc));
+  return discoveries;
+}
+
+function writeDiscoveries(discoveries, origin) {
+  fs.mkdirSync(sourceDir, { recursive: true });
+  fs.writeFileSync(discoveryFile, `-- Forever discoveries from in-game Monstrator journals, merged by tools\\monstrator-db.cjs ${origin}.\r\n`
+    + '-- Safe to edit by hand; harvest/review merge into it and overlay folds it into Data\\Native\\Overlay.lua.\r\n'
+    + 'return ' + writeLuaTable(discoveries).replace(/\n/g, '\r\n') + '\r\n', 'utf8');
+}
+
+const usableNpc = (record) => record && record.kind === 'npc' && Number.isInteger(Number(record.npcID)) && Number(record.npcID) > 0
+  && typeof record.name === 'string' && record.name !== '' && Number.isInteger(record.mapID) && record.mapID > 0
+  && Number.isFinite(record.x) && Number.isFinite(record.y) && record.x >= 0 && record.x <= 100 && record.y >= 0 && record.y <= 100;
+
+// How a record compares with the shipped database: null when consistent, otherwise the reason to look closer.
+function compareWithDatabase(base, record) {
+  const id = Number(record.npcID);
+  const known = base.has(id) ? decodeRow('Npc', base.get(id)) : null;
+  if (!known) return { kind: 'new', text: `${id} ${record.name} (map ${record.mapID}) is not in the database` };
+  if (known.name && known.name !== record.name) return { kind: 'name', text: `${id} reported as "${record.name}", database has "${known.name}"` };
+  if (!known.spawns || !known.spawns[record.mapID]) return { kind: 'map', text: `${id} ${record.name}: map ${record.mapID} not in database` };
+  const gap = nearest(known.spawns[record.mapID], record.x, record.y);
+  if (gap > DRIFT) return { kind: 'drift', text: `${id} ${record.name}: map ${record.mapID} ${fmt(record.x)},${fmt(record.y)} is ${fmt(gap)}% from nearest database spawn` };
+  return null;
+}
+
+function mergeNpc(discoveries, record) {
+  const id = Number(record.npcID);
+  const entry = discoveries.Npc[id] = discoveries.Npc[id] || { name: record.name, spawns: {} };
+  entry.spawns = normalizeSpawns(entry.spawns);
+  entry.name = record.name;
+  if (record.title) entry.title = record.title;
+  if (record.level) {
+    entry.minLevel = Math.min(entry.minLevel ?? record.level, record.level);
+    entry.maxLevel = Math.max(entry.maxLevel ?? record.level, record.level);
+  }
+  let flags = entry.npcFlags || 0;
+  for (const tag of Object.values(record.tags || {})) flags |= TAG_FLAGS[tag] || 0;
+  flags |= EVENT_FLAGS[record.source] || 0;
+  if (flags) entry.npcFlags = flags;
+  entry.sightings = (entry.sightings || 0) + (record.sightings || 1);
+  entry.lastSeen = Math.max(entry.lastSeen || 0, record.lastSeen || 0);
+  entry.build = record.build || entry.build;
+  return addPoint(entry.spawns, record.mapID, record.x, record.y);
+}
+
+// Runs Submission.lua (the same code the addon uses) so seals are computed identically.
+function submissionLua(prelude, expr) {
+  const module = fs.readFileSync(path.join(root, 'Submission.lua'), 'utf8');
+  return evalLua(`${prelude}\nlocal __M = {}\n(function(...)\n${module}\nend)(nil, __M)`, 'Submission.lua', expr);
+}
+
+// Seal status of every journal entry and scan sighting in a SavedVariables file.
+function savedVariableSeals(source) {
+  return submissionLua(source, `(function()
+    local settings = type(Monstrator_Settings) == "table" and Monstrator_Settings or {}
+    local function status(record)
+      if type(record) ~= "table" then return "invalid" end
+      if record.seal == nil then return "unsealed" end
+      return record.seal == __M.RecordSeal(record, settings.submitterID) and "sealed" or "tampered"
+    end
+    local out = { obs = {}, scans = {} }
+    local obs = type(Monstrator_Observations) == "table" and Monstrator_Observations.entries or {}
+    for key, record in pairs(obs) do out.obs[tostring(key)] = status(record) end
+    for i, hit in ipairs(type(settings.scanLog) == "table" and settings.scanLog or {}) do
+      local record = __M.ScanRecord(__M, hit)
+      out.scans[i] = record and status(record) or "skip"
+    end
+    return out
+  end)()`);
+}
+
 function cmdHarvest(args) {
   const includePending = args.includes('--include-pending');
   const files = args.filter((a) => !a.startsWith('--'));
   const inputs = files.length ? files.map((f) => path.resolve(f)) : findSavedVariables();
   if (!inputs.length) fail('no SavedVariables\\Monstrator.lua found; pass its path');
   const base = readNative(nativeDir, 'Npc');
-  const discoveryFile = path.join(sourceDir, 'Discoveries.lua');
-  const discoveries = readSource(discoveryFile, {});
-  discoveries.Npc = Object.fromEntries(entries(discoveries.Npc));
-  const report = { used: 0, skipped: 0, scans: 0, newNPCs: new Set(), newMaps: [], drift: [], points: 0 };
+  const discoveries = readDiscoveries();
+  const report = { used: 0, skipped: 0, scans: 0, tampered: 0, newNPCs: new Set(), newMaps: [], drift: [], points: 0 };
   for (const file of inputs) {
     const source = fs.readFileSync(file, 'utf8');
+    const seals = savedVariableSeals(source);
     const obs = evalLua(source, rel(file), 'Monstrator_Observations');
-    const records = Object.values((obs && obs.entries) || {});
+    const records = Object.entries((obs && obs.entries) || {}).map(([key, record]) => ({ ...record, seal: seals.obs[key] }));
     // NPC scan sightings with an exact vignette position are first-party spawn data too (usually rares).
     const settings = evalLua(source, rel(file), 'Monstrator_Settings');
-    for (const hit of Object.values((settings && settings.scanLog) || {})) {
-      if (!hit || !hit.exact) continue;
+    entries((settings && settings.scanLog) || {}).forEach(([index, hit]) => {
+      if (!hit || !hit.exact) return;
       report.scans++;
       records.push({ kind: 'npc', npcID: hit.npcID, name: hit.name, mapID: hit.mapID, x: hit.x, y: hit.y,
-        level: hit.level, lastSeen: hit.time, verification: 'user-confirmed', source: 'scan:vignette' });
-    }
+        level: hit.level, lastSeen: hit.time, verification: 'user-confirmed', source: 'scan:vignette',
+        seal: seals.scans[index - 1] });
+    });
     for (const record of records) {
-      const id = Number(record.npcID);
-      const usable = record.kind === 'npc' && Number.isInteger(id) && id > 0 && typeof record.name === 'string'
-        && Number.isInteger(record.mapID) && Number.isFinite(record.x) && Number.isFinite(record.y)
-        && record.x >= 0 && record.x <= 100 && record.y >= 0 && record.y <= 100
+      if (record.seal === 'tampered') { report.tampered++; continue; }
+      const usable = usableNpc(record)
         && (record.verification === 'user-confirmed' || (includePending && record.verification === 'pending'));
       if (!usable) { report.skipped++; continue; }
       report.used++;
-      const entry = discoveries.Npc[id] = discoveries.Npc[id] || { name: record.name, spawns: {} };
-      entry.spawns = normalizeSpawns(entry.spawns);
-      entry.name = record.name;
-      if (record.title) entry.title = record.title;
-      if (record.level) {
-        entry.minLevel = Math.min(entry.minLevel ?? record.level, record.level);
-        entry.maxLevel = Math.max(entry.maxLevel ?? record.level, record.level);
-      }
-      let flags = entry.npcFlags || 0;
-      for (const tag of Object.values(record.tags || {})) flags |= TAG_FLAGS[tag] || 0;
-      flags |= EVENT_FLAGS[record.source] || 0;
-      if (flags) entry.npcFlags = flags;
-      entry.sightings = (entry.sightings || 0) + (record.sightings || 1);
-      entry.lastSeen = Math.max(entry.lastSeen || 0, record.lastSeen || 0);
-      entry.build = record.build || entry.build;
-      if (addPoint(entry.spawns, record.mapID, record.x, record.y)) report.points++;
-      const known = base.has(id) ? decodeRow('Npc', base.get(id)) : null;
-      if (!known) report.newNPCs.add(`${id} ${record.name} (map ${record.mapID})`);
-      else if (!known.spawns || !known.spawns[record.mapID]) report.newMaps.push(`${id} ${record.name}: map ${record.mapID} not in database`);
-      else {
-        const gap = nearest(known.spawns[record.mapID], record.x, record.y);
-        if (gap > DRIFT) report.drift.push(`${id} ${record.name}: map ${record.mapID} ${fmt(record.x)},${fmt(record.y)} is ${fmt(gap)}% from nearest database spawn`);
-      }
+      if (mergeNpc(discoveries, record)) report.points++;
+      const issue = compareWithDatabase(base, record);
+      if (!issue) continue;
+      if (issue.kind === 'new') report.newNPCs.add(issue.text);
+      else if (issue.kind === 'drift') report.drift.push(issue.text);
+      else report.newMaps.push(issue.text);
     }
   }
-  fs.mkdirSync(sourceDir, { recursive: true });
-  fs.writeFileSync(discoveryFile, '-- Forever discoveries harvested from in-game Monstrator journals by tools\\monstrator-db.cjs harvest.\r\n'
-    + '-- Safe to edit by hand; harvest merges into it and overlay folds it into Data\\Native\\Overlay.lua.\r\n'
-    + 'return ' + writeLuaTable(discoveries).replace(/\n/g, '\r\n') + '\r\n', 'utf8');
+  writeDiscoveries(discoveries, 'harvest');
   console.log(`Harvested ${report.used} observations from ${inputs.length} file(s), including ${report.scans} exact NPC scan sightings (${report.skipped} skipped: not NPC, `
     + `${includePending ? 'invalid' : 'pending - use --include-pending'}); ${report.points} new points.`);
+  if (report.tampered) console.log(`Rejected ${report.tampered} record(s) whose seal no longer matches (edited outside the game).`);
   console.log(`Discoveries now: ${Object.keys(discoveries.Npc).length} NPCs in ${rel(discoveryFile)}`);
-  const section = (title, list) => { if (list.length) { console.log(`\n${title} (${list.length}):`); list.slice(0, 50).forEach((l) => console.log('  ' + l)); } };
   section('NPCs not in the database (Forever-only)', [...report.newNPCs]);
-  section('Known NPCs seen on a new map', report.newMaps);
+  section('Known NPCs seen on a new map or under another name', report.newMaps);
   section(`Possible coordinate drift (> ${DRIFT}% from every known spawn)`, report.drift);
   console.log('\nNext: node tools\\monstrator-db.cjs overlay');
+}
+
+// ---------------------------------------------------------------- review (player submissions)
+const SUBMISSION_HEADER = 'MONSTRATOR SUBMISSION v1';
+const AGREE = 1.0; // map % - reports this close from different players corroborate each other
+
+function submissionFiles(args) {
+  const files = [];
+  for (const arg of args) {
+    const full = path.resolve(arg);
+    if (!fs.existsSync(full)) fail(`not found: ${arg}`);
+    if (fs.statSync(full).isDirectory()) {
+      for (const name of fs.readdirSync(full).sort()) if (/\.(txt|md|lua)$/i.test(name)) files.push(path.join(full, name));
+    } else files.push(full);
+  }
+  return files;
+}
+
+// A file may hold several pasted submissions (for example an exported issue thread).
+function splitSubmissions(text) {
+  const parts = text.replace(/\r\n?/g, '\n').split(new RegExp(`(?=^\\s*${SUBMISSION_HEADER}\\s*$)`, 'm'));
+  return parts.filter((part) => part.includes(SUBMISSION_HEADER));
+}
+
+function parseSubmission(text, label) {
+  const parsed = submissionLua('', `(function()
+    local result, reason = __M.ParseSubmission(${luaLiteral(text)})
+    return { result = result, reason = reason }
+  end)()`);
+  if (!parsed.result) return { label, error: parsed.reason || 'unreadable' };
+  const result = parsed.result;
+  result.label = label;
+  result.records = Object.values(result.records || {}).map((r) => ({ ...r, tags: Object.values(r.tags || {}) }));
+  return result;
+}
+
+function readLedger() {
+  if (!fs.existsSync(ledgerFile)) return { submissions: {}, reports: [] };
+  const ledger = JSON.parse(fs.readFileSync(ledgerFile, 'utf8'));
+  ledger.submissions = ledger.submissions || {};
+  ledger.reports = ledger.reports || [];
+  return ledger;
+}
+
+function cmdReview(args) {
+  const apply = args.includes('--apply');
+  const acceptHeld = args.includes('--accept-held');
+  const minAt = args.indexOf('--min-reporters');
+  const minReporters = minAt >= 0 ? Number(args[minAt + 1]) : 2;
+  if (!Number.isInteger(minReporters) || minReporters < 1) fail('--min-reporters needs a whole number >= 1');
+  const paths = args.filter((a, i) => !a.startsWith('--') && !(minAt >= 0 && i === minAt + 1));
+  if (!paths.length) fail('usage: review <file|folder>... [--apply] [--min-reporters N] [--accept-held]');
+  const base = readNative(nativeDir, 'Npc');
+  const ledger = readLedger();
+  const rejected = [], held = [], accepted = [], fresh = [];
+  for (const file of submissionFiles(paths)) {
+    const blocks = splitSubmissions(fs.readFileSync(file, 'utf8'));
+    if (!blocks.length) { rejected.push(`${rel(file)}: no submission found`); continue; }
+    blocks.forEach((block, n) => {
+      const where = file.startsWith(root + path.sep) ? rel(file) : file;
+      const label = blocks.length > 1 ? `${where}#${n + 1}` : where;
+      const sub = parseSubmission(block, label);
+      if (sub.error) { rejected.push(`${label}: whole submission rejected - ${sub.error}`); return; }
+      if (ledger.submissions[sub.seal] || fresh.some((s) => s.seal === sub.seal)) {
+        console.log(`${label}: already reviewed, skipped`); return;
+      }
+      fresh.push(sub);
+    });
+  }
+  // Corroboration counts distinct reporters, including reports kept from earlier reviews.
+  const reports = [...ledger.reports];
+  for (const sub of fresh) for (const r of sub.records) if (r.status !== 'tampered' && usableNpc(r)) {
+    reports.push({ submitter: sub.header.submitter, npcID: Number(r.npcID), name: r.name, mapID: r.mapID, x: r.x, y: r.y });
+  }
+  const reporters = (r) => new Set(reports.filter((o) => o.npcID === Number(r.npcID) && o.name === r.name && o.mapID === r.mapID
+    && Math.hypot(o.x - r.x, o.y - r.y) <= AGREE).map((o) => o.submitter)).size;
+  for (const sub of fresh) {
+    sub.records.forEach((r, i) => {
+      const tag = `${sub.label} record ${i + 1}: ${r.npcID ? r.npcID + ' ' : ''}${r.name || '?'}`;
+      if (r.status === 'tampered') { rejected.push(`${tag} - seal broken (edited after capture)`); return; }
+      if (r.kind === 'location') { held.push({ r, sub, why: `${tag} - location: add by hand to Data\\Source\\Corrections.lua if it checks out` }); return; }
+      if (!usableNpc(r)) { rejected.push(`${tag} - invalid NPC/map/coordinates`); return; }
+      const count = reporters(r);
+      const reasons = [];
+      if (r.status === 'unsealed') reasons.push('captured before seals existed');
+      if (r.verification !== 'user-confirmed') reasons.push('unconfirmed encounter position');
+      if (r.edited) reasons.push('position moved by hand during review');
+      const issue = compareWithDatabase(base, r);
+      if (issue) reasons.push(issue.text);
+      if (!reasons.length || count >= minReporters) {
+        accepted.push({ r, sub, why: `${tag} - ${reasons.length ? `corroborated by ${count} reporters (${reasons.join('; ')})` : 'consistent with database'}` });
+      } else held.push({ r, sub, why: `${tag} - ${reasons.join('; ')} (${count}/${minReporters} reporters)` });
+    });
+  }
+  console.log(`Reviewed ${fresh.length} new submission(s): ${accepted.length} accepted, ${held.length} held, ${rejected.length} rejected.`);
+  section('Rejected', rejected);
+  section('Held for maintainer review (more reports or --accept-held)', held.map((h) => h.why));
+  section('Accepted', accepted.map((a) => a.why));
+  if (!apply) { console.log('\nDry run. Re-run with --apply to merge accepted records into Data\\Source\\Discoveries.lua.'); return rejected.length ? 2 : 0; }
+  const discoveries = readDiscoveries();
+  let points = 0;
+  for (const item of [...accepted, ...(acceptHeld ? held.filter((h) => h.r.kind === 'npc') : [])]) {
+    if (mergeNpc(discoveries, item.r)) points++;
+  }
+  writeDiscoveries(discoveries, 'review');
+  const today = new Date().toISOString().slice(0, 10);
+  for (const sub of fresh) {
+    ledger.submissions[sub.seal] = { submitter: sub.header.submitter, created: Number(sub.header.created) || null,
+      build: sub.header.build || null, records: sub.records.length, reviewed: today };
+  }
+  ledger.reports = reports;
+  fs.writeFileSync(ledgerFile, JSON.stringify(ledger, null, 2).replace(/\n/g, '\r\n') + '\r\n', 'utf8');
+  console.log(`\nMerged ${points} new point(s) into ${rel(discoveryFile)}; ledger ${rel(ledgerFile)} updated.`);
+  console.log('Next: node tools\\monstrator-db.cjs overlay');
+  return 0;
 }
 
 // ---------------------------------------------------------------- overlay
@@ -640,16 +816,16 @@ function cmdPackage(args = []) {
 }
 
 // ---------------------------------------------------------------- main
-module.exports = { decodeRow, encodeRow, decodeSpawns, encodeSpawns, normalizeSpawns, LAYOUT };
+module.exports = { decodeRow, encodeRow, decodeSpawns, encodeSpawns, normalizeSpawns, readNative, LAYOUT };
 if (require.main !== module) return;
 const [command, ...rest] = process.argv.slice(2);
 const commands = {
   import: cmdImport, harvest: cmdHarvest, overlay: cmdOverlay, verify: cmdVerify, diff: cmdDiff, stats: cmdStats,
-  package: cmdPackage,
+  package: cmdPackage, review: (args) => { process.exitCode = cmdReview(args) || 0; },
   build: (args) => { cmdImport(args); cmdOverlay(); cmdVerify([]); },
 };
 if (!commands[command]) {
-  console.log(fs.readFileSync(__filename, 'utf8').split('\n').slice(1, 18).map((l) => l.replace(/^\/\/ ?/, '')).join('\n'));
+  console.log(fs.readFileSync(__filename, 'utf8').split('\n').slice(1, 21).map((l) => l.replace(/^\/\/ ?/, '')).join('\n'));
   process.exit(command ? 1 : 0);
 }
 commands[command](rest);

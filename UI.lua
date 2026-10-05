@@ -67,7 +67,7 @@ function M:ShowHelp()
         content:SetSize(550, 440)
         scroll:SetScrollChild(content)
         f.body = label(content,
-            table.concat({ L["help.browse"], L["help.subgroups"], L["help.results"], L["help.database"], L["help.sort"], L["help.review"], L["help.items"], L["help.scan"], L["help.keyboard"], L["help.commands"] }, "\n\n"),
+            table.concat({ L["help.browse"], L["help.subgroups"], L["help.results"], L["help.database"], L["help.sort"], L["help.review"], L["help.items"], L["help.scan"], L["help.share"], L["help.keyboard"], L["help.commands"] }, "\n\n"),
             0, 0, 15)
         f.body:SetWidth(540)
         f.body:SetJustifyH("LEFT")
@@ -418,8 +418,9 @@ function M:ShowSettings()
             self.settings.observationLimit, self.fullNotice = n, nil
             self:Notice(L["Observation limit updated."])
         end)
-        button(f, "Export journal", 20, -280, 180, function() self:ShowExport() end)
-        button(f, "Close", 220, -280, 180, function() f:Hide() end)
+        button(f, "Export journal", 20, -280, 125, function() self:ShowExport() end)
+        button(f, "Share discoveries", 150, -280, 140, function() self:ShowSubmission() end)
+        button(f, "Close", 295, -280, 115, function() f:Hide() end)
         button(f, "Manage journal", 20, -320, 180, function()
             f:Hide()
             self:Toggle("journal")

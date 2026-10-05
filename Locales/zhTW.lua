@@ -137,3 +137,5 @@ L["Bankers"] = "???"
 L["Flight masters"] = "?????"
 L["Herbs"] = "??"
 L["Mining nodes"] = "??"
+-- Submissions
+L["Share discoveries"] = "????"

@@ -180,5 +180,60 @@ being hidden by a later incremental append.
 6. Record the evidence and compatibility limitations. Do not mark wandering
    NPCs as static without justification.
 
-No automated submissions, peer sharing, uploads or public repository/project
-IDs are configured. Local observation export is for manual review only.
+There are no automatic uploads or peer sharing. Players send corrections by
+hand as sealed submissions (below), and a maintainer always reviews them.
+
+## Discovery submissions
+
+`/monstrator submit` (or **Share discoveries** in Settings) produces a
+plain-text block for the player to copy into the submission issue form:
+
+```
+MONSTRATOR SUBMISSION v1
+addon=1.0.0
+build=70205
+locale=enUS
+submitter=<random 16-hex id>
+created=<unix time>
+records=<N>
+R|<19 canonical fields>|<record seal or ->
+...
+seal=<hash of every line above plus a trailing newline>
+END
+```
+
+It includes confirmed placements, pending NPC sightings (always held for
+review) and exact scan sightings. The canonical fields are key, kind, npcID, name,
+category, mapID, x, y, tags, source, build, locale, verification, precision,
+sightings, lastSeen, level, classification and edited. Coordinates are written
+in hundredths, and `% | ; CR LF` are percent-escaped.
+
+**Seals.** Every record is sealed when the addon captures it, using the
+submitter ID. Merging a repeat sighting reseals it only if the seal was still
+intact. When a player moves a pending record by more than 0.5 during review,
+it is marked `edited`. The whole block also carries an overall seal.
+
+**Threat model.** A WoW addon cannot hold a secret, so the seals are
+*tamper-evident*, not tamper-proof. They catch hand edits to the
+SavedVariables file or the pasted text. They do not stop someone who
+re-implements the algorithm. The real defences are on the review side:
+
+- The overall seal must be valid, or the whole submission is rejected.
+- A tampered record is rejected.
+- Unsealed (legacy), unconfirmed, edited and location records are held.
+- An NPC record is accepted automatically only if it matches the database
+  (same name and map, within 1%). It is also accepted if at least
+  `--min-reporters` (default 2) distinct submitters agree within 1%.
+- `Data\Source\SubmissionLedger.json` records every reviewed submission seal,
+  so a resubmitted block cannot count twice.
+
+Maintainer workflow:
+
+```
+node tools\monstrator-db.cjs review <file-or-folder>            # dry run report
+node tools\monstrator-db.cjs review <file-or-folder> --apply    # merge into Discoveries
+node tools\monstrator-db.cjs review <...> --apply --accept-held # after manual checks
+node tools\monstrator-db.cjs overlay
+```
+
+`harvest` reads the local SavedVariables and also rejects tampered records.

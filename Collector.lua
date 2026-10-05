@@ -16,6 +16,8 @@ function M:AddObservation(record)
             and existing.kind == record.kind and existing.name == record.name
             and existing.mapID == record.mapID
             and math.abs(existing.x - record.x) < 0.05 and math.abs(existing.y - record.y) < 0.05 then
+            -- Only reseal intact records; an edited SavedVariables entry must stay detectably broken.
+            local intact = self:RecordSealValid(existing)
             existing.lastSeen = record.lastSeen
             existing.sightings = (existing.sightings or 1) + 1
             if existing.category == "Combat" and record.category ~= "Combat" then existing.category = record.category end
@@ -27,6 +29,7 @@ function M:AddObservation(record)
                 for _, savedTag in ipairs(existing.tags) do if tag == savedTag then found = true end end
                 if not found then table.insert(existing.tags, tag) end
             end
+            if intact then self:SealRecord(existing) end
             self:RefreshIfVisible()
             return existing
         end
@@ -43,6 +46,7 @@ function M:AddObservation(record)
     end
     record.key = "local:" .. self.observations.nextID
     self.observations.nextID = self.observations.nextID + 1
+    self:SealRecord(record)
     self.observations.entries[record.key] = record
     self:RefreshIfVisible()
     return record
@@ -161,10 +165,14 @@ function M:Review(record, action, x, y, category, tagText)
         local tags, reason = self:ParseTags(tagText or table.concat(record.tags, ","))
         if not tags then self:Error(reason); return false end
         local alreadyIndexed = self.index and self.index.byKey[record.key] ~= nil
+        -- Hand-moved or previously broken records are flagged so the maintainer review holds them.
+        if math.abs(record.x - x) > 0.5 or math.abs(record.y - y) > 0.5
+            or (record.seal ~= nil and not self:RecordSealValid(record)) then record.edited = true end
         record.x, record.y, record.category = x, y, category
         record.tags = tags
         record.verification = "user-confirmed"
         record.precision = "confirmed"
+        self:SealRecord(record)
         if not self.index or alreadyIndexed then self:BuildIndex() else self:IndexRecord(record) end
         self:Notice(L["User-confirmed placement saved. This does not independently verify a static spawn."])
     else self:Error(L["Unknown review action."]); return false end

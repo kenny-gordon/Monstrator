@@ -271,9 +271,12 @@ function M:ScanAlert(hit)
         if mapID then hit.mapID, hit.x, hit.y = mapID, x, y end
     end
     local log = self.settings.scanLog
-    table.insert(log, 1, { npcID = hit.npcID, name = hit.name, reason = hit.reason, source = hit.source,
+    local _, build = GetBuildInfo()
+    local entry = { npcID = hit.npcID, name = hit.name, reason = hit.reason, source = hit.source,
         mapID = hit.mapID, x = hit.x, y = hit.y, exact = hit.exact or nil, time = time(), level = hit.level,
-        classification = hit.classification })
+        classification = hit.classification, build = tostring(build), locale = GetLocale() }
+    self:SealScanHit(entry)
+    table.insert(log, 1, entry)
     for i = #log, LOG_LIMIT + 1, -1 do log[i] = nil end
     local headline = self:ScanHeadline(hit)
     self:Notice("|cffff5533" .. headline .. "|r  " .. self:ScanDetail(hit))

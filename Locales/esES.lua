@@ -138,3 +138,5 @@ L["Bankers"] = "Banqueros"
 L["Flight masters"] = "Maestros de vuelo"
 L["Herbs"] = "Hierbas"
 L["Mining nodes"] = "Vetas"
+-- Submissions
+L["Share discoveries"] = "Compartir descubrimientos"

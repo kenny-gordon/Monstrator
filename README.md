@@ -324,6 +324,26 @@ back to it. Everything is saved in `Monstrator_Settings` (`scanWatch`,
 first-party spawn data: `tools\monstrator-db.cjs harvest` folds them into
 `Data\Source\Discoveries.lua`, so rares found in game end up in the database.
 
+## Sharing discoveries
+
+To send corrections or new NPCs to the project:
+
+1. Turn on local collection and interact with NPCs. Confirming placements in
+   the review view makes them count for more.
+2. Run `/monstrator submit`, or click **Share discoveries** in Settings.
+3. Press Ctrl+C to copy the whole block, from `MONSTRATOR SUBMISSION v1` to
+   `END`.
+4. Paste it into a new **Discovery submission** issue.
+
+The block holds only NPC/location records, your client build and locale, and
+a random anonymous submitter ID. It contains no character, realm or account
+names. Each record and the whole block are sealed, so edited text is detected
+and rejected. A maintainer reviews every submission with
+`tools\monstrator-db.cjs review`. A record is accepted only if it matches the
+database or at least two independent players report it. See
+[DATA_SCHEMA.md](DATA_SCHEMA.md#discovery-submissions) for the format and the
+threat model.
+
 ## Building the NPC catalog
 
 **NPC discovery** in Settings, or `/monstrator discover`, separately enables
@@ -444,6 +464,7 @@ on first install are normal, not evidence of a cold-start bug.
 | `/monstrator sync` | Refresh current-map flight/landmark data and retry failed providers |
 | `/monstrator journal` | Manage pending and confirmed journal entries |
 | `/monstrator audit` | Compare journal observations with the database (new NPCs, moved spawns, new services) |
+| `/monstrator submit` | Show a sealed submission block of your discoveries to paste into a submission issue |
 | `/monstrator npcs` | NPC inventory grouped by NPC ID |
 | `/monstrator tags` | Show canonical review tags |
 | `/monstrator capture` | Capture the selected NPC at your approximate encounter position |

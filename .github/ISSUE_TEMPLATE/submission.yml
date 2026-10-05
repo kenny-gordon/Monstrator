@@ -1,0 +1,27 @@
+name: Discovery submission
+description: Share NPC and location corrections collected in game with Monstrator.
+title: "[Submission] "
+labels: ["submission"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        In game, run `/monstrator submit` (or click **Share discoveries** in Settings).
+        Copy the whole block, from `MONSTRATOR SUBMISSION v1` to `END`, and paste it below without editing it.
+        Records are sealed, so an edited block is rejected automatically.
+        The block contains no character, realm or account names.
+  - type: textarea
+    id: submission
+    attributes:
+      label: Submission block
+      description: Paste the exact text produced by the addon.
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notes (optional)
+      description: Anything the reviewer should know, such as an NPC that moved or a wrong name.
+    validations:
+      required: false
