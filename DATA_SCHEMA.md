@@ -91,8 +91,6 @@ records its origin (correction or discovery), and discoveries are labeled
 **Forever discovery**. `verify` decodes overlaid rows through the real runtime and applies the same
 schema and reference checks as imported rows.
 
-Database records use `reference:monstrator:` keys (`reference:monstrator:o<id>:...` for objects).
-
 `referenceEnabled` (shown as **Monstrator database** in Settings) defaults on.
 Evidence: Confirmed excludes database records, and Evidence: Database records
 isolates them. Turning the setting off also hides database favorites without

@@ -318,9 +318,20 @@ end
 function M:ApplyScanTarget()
     local b = self.scanTargetButton
     if not b then return end
-    if inCombat() then self.scanTargetPending = true; return end
-    self.scanTargetPending = nil
     local name = self.scanTargetName
+    if inCombat() then
+        self.scanTargetPending = true
+        -- The macro still targets the previous NPC until combat ends; alpha and text are not protected, so say so.
+        if b:IsShown() and b.appliedName ~= name then
+            b:SetAlpha(0.4)
+            b:SetText(L["After combat"])
+        end
+        return
+    end
+    self.scanTargetPending = nil
+    b.appliedName = name
+    b:SetAlpha(1)
+    b:SetText(L["Target"])
     if name then
         b:SetAttribute("type", "macro")
         b:SetAttribute("macrotext", "/targetexact " .. name)

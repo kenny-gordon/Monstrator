@@ -104,6 +104,15 @@ assert(M.scanAlert.name:GetText() == "Combat Rare" and attributes.macrotext == n
 InCombatLockdown = function() return false end
 fire(nil, "PLAYER_REGEN_ENABLED")
 assert(attributes.macrotext == "/targetexact Combat Rare" and not M.scanTargetPending)
+assert(target:GetText() == "Target")
+InCombatLockdown = function() return true end
+M:SetScanTarget("Other Rare")
+assert(attributes.macrotext == "/targetexact Combat Rare" and target:GetText() == "After combat",
+    "a stale secure button is labelled until combat ends")
+InCombatLockdown = function() return false end
+fire(nil, "PLAYER_REGEN_ENABLED")
+assert(attributes.macrotext == "/targetexact Other Rare" and target:GetText() == "Target")
+M:SetScanTarget("Combat Rare")
 M.scanAlert.close:Click()
 assert(not M.scanAlert:IsShown() and not target:IsShown(), "closing the alert hides the target button")
 

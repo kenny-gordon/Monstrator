@@ -6,11 +6,11 @@
 ## Notes-esES: Directorio de PNJ, lugares y objetos para WoW Forever con base de datos propia.
 ## Notes-ruRU: Справочник НИП, мест и предметов для WoW Forever со встроенной базой данных.
 ## Notes-esMX: Directorio de PNJ, lugares y objetos para WoW Forever con base de datos propia.
-## Notes-ptBR: Diret?rio de PNJs, locais e itens para WoW Forever com banco de dados pr?prio.
+## Notes-ptBR: Diretório de PNJs, locais e itens para WoW Forever com banco de dados próprio.
 ## Notes-itIT: Elenco di PNG, luoghi e oggetti per WoW Forever con database integrato.
-## Notes-koKR: ?? ??????? ?? WoW Forever? NPC, ?? ? ??? ????.
-## Notes-zhCN: ?????? WoW Forever NPC?????????
-## Notes-zhTW: ?????? WoW Forever NPC?????????
+## Notes-koKR: 자체 데이터베이스를 갖춘 WoW Forever용 NPC, 장소 및 아이템 디렉터리.
+## Notes-zhCN: WoW Forever 的 NPC、地点和物品目录，内置自有数据库。
+## Notes-zhTW: WoW Forever 的 NPC、地點與物品目錄，內建自有資料庫。
 ## Author: Metalbullz
 ## Version: 1.0.0
 ## OptionalDeps: TomTom

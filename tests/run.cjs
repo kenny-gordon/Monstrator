@@ -48,6 +48,7 @@ execute(fs.readFileSync(path.join(__dirname, 'submission.lua'), 'utf8'), 'submis
   const specifiers = (text) => (text.match(/%[-\d.]*[sdf]/g) || []).join(' ');
   const locales = toc.split(/\r?\n/).filter((line) => /^Locales[\\/]\w+\.lua$/.test(line)).map((line) => line.slice(8, -4));
   assert.deepEqual(locales.slice().sort(), ['deDE', 'enUS', 'esES', 'frFR', 'itIT', 'koKR', 'ptBR', 'ruRU', 'zhCN', 'zhTW']);
+  for (const line of toc.split(/\r?\n/).filter((l) => l.startsWith('## Notes-'))) assert.ok(!line.includes('?'), 'TOC notes damaged: ' + line.slice(0, 16));
   let reference;
   for (const locale of locales.filter((name) => name !== 'enUS')) {
     const source = fs.readFileSync(path.join(root, 'Locales', locale + '.lua'), 'utf8');
@@ -62,6 +63,12 @@ execute(fs.readFileSync(path.join(__dirname, 'submission.lua'), 'utf8'), 'submis
       const unescaped = key.replace(/\\\\/g, '\\');
       assert.ok(english.has(key) || codeText.includes('"' + key + '"'), locale + ': unused key ' + unescaped);
       assert.equal(specifiers(value), specifiers(english.get(key) || key), locale + ': format specifiers differ for ' + key);
+      // A lossy (non-UTF-8) write turns every non-ASCII character into '?'.
+      const marks = (text) => (text.match(/\?/g) || []).length;
+      assert.ok(marks(value) <= marks(english.get(key) || key), locale + ': text lost to "?" for ' + key);
+      if (/^(koKR|zhCN|zhTW|ruRU)$/.test(locale) && /[A-Za-z]{4}/.test((english.get(key) || key).replace(/\/\S+|%\S+|\|c\w{8}|Monstrator|TomTom|WoW Forever|NPC/g, ''))) {
+        assert.ok(/[^\x00-\x7F]/.test(value), locale + ': untranslated or damaged text for ' + key);
+      }
     }
     for (const [client, expected] of [['enUS', 0], [locale, keys.length]].concat(locale === 'esES' ? [['esMX', keys.length]] : [])) {
       lua.lua_pushstring(state, to_luastring(source));

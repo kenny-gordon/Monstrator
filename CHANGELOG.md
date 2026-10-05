@@ -12,4 +12,5 @@ First release for WoW Forever (interface 16001, client 1.60.1).
 - **Journal**: opt-in local discovery with review before any placement is confirmed, plus favorites and an audit against the database.
 - **Discovery submissions**: `/monstrator submit` creates a sealed, anonymous text block for the submission issue form. The maintainer `review` tool rejects tampered blocks and requires corroboration from independent reporters.
 - **Localization**: the full UI and help are available in enUS, deDE, frFR, esES/esMX, ptBR, itIT, ruRU, koKR, zhCN and zhTW.
-- **Interface**: a help window organized by topic, and scan alerts that always draw above other windows.
+- **Interface**: a help window organized by topic, and scan alerts that always draw above other windows. If a new alert arrives during combat, the Target button reads "After combat" until it can safely switch NPCs.
+- **Project**: a user guide (README), a contributor and release guide (CONTRIBUTING), and the MIT license. Translations with damaged characters were repaired, and tests now guard against that damage.

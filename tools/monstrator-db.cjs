@@ -661,20 +661,23 @@ return { errors = errors, errorCount = errors.n or 0, warnings = warnings, stats
     for (const [k, v] of warnings) console.log(`  ${v} x ${k}`);
   }
   if (args.includes('--determinism')) {
-    const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'monstrator-determinism-'));
-    console.log('Re-importing into ' + temp + ' ...');
     const generator = m && path.resolve(root, m.generator || '');
     if (!m || !fs.existsSync(generator)) fail('--determinism needs an imported database with a known generator');
-    // Arguments after --determinism (e.g. the source folder) are forwarded to the importer.
-    const importArgs = args.slice(args.indexOf('--determinism') + 1);
-    const run = spawnSync(process.execPath, ['--stack-size=65500', generator, ...importArgs],
-      { env: { ...process.env, MONSTRATOR_NATIVE_OUT: temp }, encoding: 'utf8' });
-    if (run.status !== 0) errors.push('determinism re-import failed: ' + (run.stderr || run.stdout).slice(-500));
-    else for (const name of ['manifest.json', ...KINDS.map((k) => `${k}s.lua`)]) {
-      const a = path.join(nativeDir, name), b = path.join(temp, name);
-      if (!fs.existsSync(b) || sha256(fs.readFileSync(a)) !== sha256(fs.readFileSync(b))) errors.push(`determinism: ${name} differs on re-import`);
+    const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'monstrator-determinism-'));
+    console.log('Re-importing into ' + temp + ' ...');
+    try {
+      // Arguments after --determinism (e.g. the source folder) are forwarded to the importer.
+      const importArgs = args.slice(args.indexOf('--determinism') + 1);
+      const run = spawnSync(process.execPath, ['--stack-size=65500', generator, ...importArgs],
+        { env: { ...process.env, MONSTRATOR_NATIVE_OUT: temp }, encoding: 'utf8' });
+      if (run.status !== 0) errors.push('determinism re-import failed: ' + (run.stderr || run.stdout).slice(-500));
+      else for (const name of ['manifest.json', ...KINDS.map((k) => `${k}s.lua`)]) {
+        const a = path.join(nativeDir, name), b = path.join(temp, name);
+        if (!fs.existsSync(b) || sha256(fs.readFileSync(a)) !== sha256(fs.readFileSync(b))) errors.push(`determinism: ${name} differs on re-import`);
+      }
+    } finally {
+      fs.rmSync(temp, { recursive: true, force: true });
     }
-    fs.rmSync(temp, { recursive: true, force: true });
     if (!errors.some((e) => e.startsWith('determinism'))) console.log('Determinism: re-import is byte-identical.');
   }
   if (result.errorCount > errors.length) errors.push(`... ${result.errorCount} schema errors in total`);
@@ -766,7 +769,7 @@ function cmdPackage(args = []) {
     }
   })(root);
   // Every file the TOC loads must ship.
-  for (const line of toc.split(/\r?\n/)) if (/\.lua$/i.test(line.trim()) && !line.startsWith('#') && !files.includes(line.trim())) fail(`TOC file missing from package: ${line.trim()}`);
+  for (const line of toc.split(/\r?\n/)) if (/\.lua$/i.test(line.trim()) && !line.trim().startsWith('#') && !files.includes(line.trim())) fail(`TOC file missing from package: ${line.trim()}`);
   const m = manifest();
   const imported = new Set(KINDS.map((k) => path.join('Data', 'Native', `${k}s.lua`)));
   const contents = new Map();
@@ -824,8 +827,9 @@ const commands = {
   package: cmdPackage, review: (args) => { process.exitCode = cmdReview(args) || 0; },
   build: (args) => { cmdImport(args); cmdOverlay(); cmdVerify([]); },
 };
-if (!commands[command]) {
+const wantsHelp = (a) => a === '-h' || a === '--help' || a === 'help';
+if (!commands[command] || rest.some(wantsHelp)) {
   console.log(fs.readFileSync(__filename, 'utf8').split('\n').slice(1, 21).map((l) => l.replace(/^\/\/ ?/, '')).join('\n'));
-  process.exit(command ? 1 : 0);
+  process.exit(!command || wantsHelp(command) || commands[command] ? 0 : 1);
 }
 commands[command](rest);
