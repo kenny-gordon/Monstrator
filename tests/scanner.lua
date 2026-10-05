@@ -39,6 +39,8 @@ assert(#s.scanLog == 1 and s.scanLog[1].npcID == 502 and s.scanLog[1].reason == 
 assert(s.scanLog[1].mapID == 1 and s.scanLog[1].x and not s.scanLog[1].exact, "sightings record the (approximate) encounter position")
 assert(M.scanAlert:IsShown() and M.scanAlert.name:GetText() == "Mirelow")
 assert(M.scanAlert.heading:GetText() == "RARE SPOTTED")
+assert(M.scanAlert.strata == "FULLSCREEN_DIALOG", "alerts draw above the directory and scan windows")
+assert(not M.scanTargetButton or M.scanTargetButton.strata == M.scanAlert.strata, "Target button shares the alert strata")
 assert(attributes.macrotext == "/targetexact Mirelow" and target:IsShown(), "the secure target button follows the alert")
 assert(sounds == 0, "sound respects the setting")
 assert(warnings == 1, "alerts post a raid warning")

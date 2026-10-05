@@ -69,6 +69,7 @@ function methods:SetTextColor(r, g, b)
     self.color = { r, g, b }
 end
 function methods:SetPropagateKeyboardInput(value) self.propagates = value end
+function methods:SetFrameStrata(strata) self.strata = strata end
 function methods:IsShown() return self.shown end
 function methods:Show()
     local old = self.shown; self.shown = true

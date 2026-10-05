@@ -336,7 +336,9 @@ function M:CreateScanAlert()
     local f = CreateFrame("Frame", "MonstratorScanAlert", UIParent, "BackdropTemplate")
     f:SetSize(380, 114)
     f:SetPoint("TOP", UIParent, "TOP", 0, -150)
-    f:SetFrameStrata("HIGH")
+    -- Alerts must sit above every Monstrator window (HIGH/DIALOG), not underneath them.
+    f:SetFrameStrata("FULLSCREEN_DIALOG")
+    f:SetToplevel(true)
     W.backdrop(f)
     f.portrait = f:CreateTexture(nil, "ARTWORK")
     f.portrait:SetPoint("TOPLEFT", 14, -14)
@@ -362,7 +364,7 @@ function M:CreateScanAlert()
     if ok and target then
         target:SetSize(84, 24)
         target:SetPoint("TOPLEFT", UIParent, "TOP", -190 + 14, -150 - 80)
-        target:SetFrameStrata("HIGH")
+        target:SetFrameStrata("FULLSCREEN_DIALOG")
         target:SetFrameLevel((f:GetFrameLevel() or 1) + 10)
         target:SetText(L["Target"])
         if target.RegisterForClicks then target:RegisterForClicks("AnyUp", "AnyDown") end
@@ -383,6 +385,7 @@ function M:ShowScanAlert(hit)
     f.portrait:SetTexture(SCAN_ICON)
     if hit.unit and SetPortraitTexture then pcall(SetPortraitTexture, f.portrait, hit.unit) end
     f:Show()
+    f:Raise()
     self:SetScanTarget(hit.name)
 end
 
