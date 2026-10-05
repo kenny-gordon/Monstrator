@@ -154,4 +154,19 @@ for _, key in ipairs({ "settings", "observations", "data", "clientData", "dbInde
     M[key] = saved[key]
 end
 M.confirmedNPCCountIndex = nil
+
+-- Translated button labels that are too wide shrink to fit instead of being cut off.
+do
+    local b = M.Widgets.button(UIParent, "Long translated label", 0, 0, 60)
+    local spec = M.fonts[#M.fonts]
+    assert(spec.fit == 46, "helper buttons track the room available for their label")
+    local measured = 92
+    spec.font.GetStringWidth = function() return measured end
+    b:SetText("Ansicht zuruecksetzen")
+    assert(spec.font.fontSize == 8, "an over-wide label shrinks (never below 8pt)")
+    measured = 30
+    b:SetText("OK")
+    assert(spec.font.fontSize == spec.size * M.settings.textScale, "a label that fits keeps its full size")
+    b:Hide()
+end
 print("UI refactor regression assertions passed")

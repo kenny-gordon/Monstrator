@@ -26,11 +26,25 @@ local function applyWindowBackdrop(frame, faction)
     end
 end
 
-local function trackFont(font)
+-- Shrinks a font (never below 8pt) until its text fits `spec.fit` pixels; translated labels vary a lot in length.
+local function applyFont(spec, scale)
+    local size = spec.size * scale
+    spec.font:SetFont(spec.path, size, spec.flags)
+    if spec.fit and spec.font.GetStringWidth then
+        local width = spec.font:GetStringWidth()
+        if type(width) == "number" and width > spec.fit then
+            spec.font:SetFont(spec.path, math.max(8, size * spec.fit / width), spec.flags)
+        end
+    end
+end
+
+local function trackFont(font, fit)
     M.fonts = M.fonts or {}
     local path, height, flags = font:GetFont()
-    table.insert(M.fonts, { font = font, path = path, size = height, flags = flags })
-    if M.settings then font:SetFont(path, height * M.settings.textScale, flags) end
+    local spec = { font = font, path = path, size = height, flags = flags, fit = fit }
+    table.insert(M.fonts, spec)
+    if M.settings or fit then applyFont(spec, M.settings and M.settings.textScale or 1) end
+    return spec
 end
 
 local label, button
@@ -87,8 +101,14 @@ button = function(parent, text, x, y, width, callback)
     b:SetSize(width or 150, 24)
     b:SetPoint("TOPLEFT", x, y)
     b:SetText(L[text])
-    b:GetFontString():SetMaxLines(1)
-    trackFont(b:GetFontString())
+    local fontString = b:GetFontString()
+    fontString:SetMaxLines(1)
+    local spec = trackFont(fontString, (width or 150) - 14)
+    local setText = b.SetText
+    b.SetText = function(self, value)
+        setText(self, value)
+        applyFont(spec, M.settings and M.settings.textScale or 1)
+    end
     b:SetScript("OnClick", callback)
     return b
 end
@@ -500,9 +520,7 @@ function M:Render()
     coverage = (coverage and (coverage .. "\n") or "") .. self:DataSourceSummary()
     if f.renderCoverage ~= coverage then f.coverage:SetText(coverage); f.renderCoverage = coverage end
     if self.appliedTextScale ~= self.settings.textScale then
-        for _, spec in ipairs(self.fonts or {}) do
-            spec.font:SetFont(spec.path, spec.size * self.settings.textScale, spec.flags)
-        end
+        for _, spec in ipairs(self.fonts or {}) do applyFont(spec, self.settings.textScale) end
         self.appliedTextScale = self.settings.textScale
     end
     local place = self.view == "directory" and (self:PlaceName() .. (self.npcFilter and self.npcFilter.label or "")) or ""
