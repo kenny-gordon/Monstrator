@@ -1,0 +1,41 @@
+## Interface: 16001
+## Title: Monstrator
+## Notes: NPC, location and item directory for WoW Forever with its own built-in database.
+## Notes-deDE: NPC-, Orts- und Gegenstandsverzeichnis für WoW Forever mit eigener Datenbank.
+## Notes-frFR: Répertoire de PNJ, de lieux et d'objets pour WoW Forever avec sa propre base de données.
+## Notes-esES: Directorio de PNJ, lugares y objetos para WoW Forever con base de datos propia.
+## Notes-ruRU: Справочник НИП, мест и предметов для WoW Forever со встроенной базой данных.
+## Author: Metalbullz
+## Version: 1.0.0
+## OptionalDeps: TomTom
+## SavedVariables: Monstrator_Settings, Monstrator_Favorites, Monstrator_Observations
+
+Core.lua
+Locales\enUS.lua
+Locales\deDE.lua
+Locales\frFR.lua
+Locales\esES.lua
+Locales\ptBR.lua
+Locales\itIT.lua
+Locales\ruRU.lua
+Locales\koKR.lua
+Locales\zhCN.lua
+Locales\zhTW.lua
+Data.lua
+ClientMapCatalog.lua
+ExtractedObjectData.lua
+ExtractedObjects.lua
+ClientData.lua
+NativeDB.lua
+Data\Native\Npcs.lua
+Data\Native\Objects.lua
+Data\Native\Items.lua
+Data\Native\Quests.lua
+Data\Native\Overlay.lua
+NativeIndex.lua
+Directory.lua
+Collector.lua
+Navigation.lua
+UI.lua
+ItemLookup.lua
+Scanner.lua

@@ -1,0 +1,54 @@
+{
+  "generator": "tools/importers/questiedb.cjs",
+  "source": {
+    "name": "QuestieDB",
+    "version": "1.0.4",
+    "flavor": "Forever",
+    "commit": "365537a340473291f5af3b7a53a5eca94e2a5f1a",
+    "homepage": "https://github.com/Questie/QuestieDB",
+    "credits": "QuestieDB and Questie contributors. Code: Logonz Data: Muehe/TheCrux(BreakBB)/Drejjmit/Dyaxler/Cheeq/TechnoHunter/Yttrium/Everyone else",
+    "license": "No license file published by the source; imported data is credited, not relicensed."
+  },
+  "spawnPoints": {
+    "npc": 59768,
+    "object": 48746
+  },
+  "objectClassPoints": {
+    "anvil": 223,
+    "chest": 1317,
+    "cooking": 712,
+    "fishing": 134,
+    "forge": 80,
+    "herb": 10817,
+    "mailbox": 54,
+    "meeting_stone": 18,
+    "ore": 13783,
+    "quest": 9203
+  },
+  "files": {
+    "Npcs.lua": {
+      "kind": "Npc",
+      "entries": 10121,
+      "bytes": 1158567,
+      "sha256": "994407e2365145c13e93e54061bef80b7720175b8bd426d22966ecbe889875f4"
+    },
+    "Objects.lua": {
+      "kind": "Object",
+      "entries": 6586,
+      "bytes": 799780,
+      "sha256": "f8db392ac87d7b930d901ac694c891b2b19f6ace814d84a91e3257eb0bc24c2b"
+    },
+    "Items.lua": {
+      "kind": "Item",
+      "entries": 14899,
+      "bytes": 1728963,
+      "sha256": "e6188a3eed079f8fd09cb09feba409880dcce0495259fa45055d3cf760dee5bf"
+    },
+    "Quests.lua": {
+      "kind": "Quest",
+      "entries": 4256,
+      "bytes": 211734,
+      "sha256": "6100e2d2473bd4f78200f6ebaca41822036153f4519d49ac0631ec291f53bde9"
+    }
+  }
+}

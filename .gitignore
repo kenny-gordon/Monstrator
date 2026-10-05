@@ -1,0 +1,6 @@
+# Build output (regenerate with: node tools\monstrator-db.cjs package [--standalone])
+dist/
+
+# Local tooling
+node_modules/
+*.log
