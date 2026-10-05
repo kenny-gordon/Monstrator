@@ -5,6 +5,12 @@
 ## Notes-frFR: Répertoire de PNJ, de lieux et d'objets pour WoW Forever avec sa propre base de données.
 ## Notes-esES: Directorio de PNJ, lugares y objetos para WoW Forever con base de datos propia.
 ## Notes-ruRU: Справочник НИП, мест и предметов для WoW Forever со встроенной базой данных.
+## Notes-esMX: Directorio de PNJ, lugares y objetos para WoW Forever con base de datos propia.
+## Notes-ptBR: Diret?rio de PNJs, locais e itens para WoW Forever com banco de dados pr?prio.
+## Notes-itIT: Elenco di PNG, luoghi e oggetti per WoW Forever con database integrato.
+## Notes-koKR: ?? ??????? ?? WoW Forever? NPC, ?? ? ??? ????.
+## Notes-zhCN: ?????? WoW Forever NPC?????????
+## Notes-zhTW: ?????? WoW Forever NPC?????????
 ## Author: Metalbullz
 ## Version: 1.0.0
 ## OptionalDeps: TomTom

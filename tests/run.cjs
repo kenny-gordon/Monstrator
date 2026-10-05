@@ -55,6 +55,9 @@ execute(fs.readFileSync(path.join(__dirname, 'submission.lua'), 'utf8'), 'submis
     const keys = [...source.matchAll(keyPattern)];
     reference = reference || keys.map((m) => m[1]).join('|');
     assert.equal(keys.map((m) => m[1]).join('|'), reference, locale + ' must translate the same keys as the other locales');
+    const translated = new Set(keys.map((m) => m[1]));
+    const untranslated = [...english.keys()].filter((key) => !translated.has(key));
+    assert.deepEqual(untranslated, [], locale + ' must translate every enUS string');
     for (const [, key, value] of keys) {
       const unescaped = key.replace(/\\\\/g, '\\');
       assert.ok(english.has(key) || codeText.includes('"' + key + '"'), locale + ': unused key ' + unescaped);

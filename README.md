@@ -20,8 +20,9 @@ process memory.
 
 ### Localization
 
-The UI ships in **10 locales**: enUS, deDE, frFR, esES/esMX, ptBR, itIT, ruRU,
-koKR, zhCN and zhTW (`Locales\`). Missing strings fall back to English. NPC,
+The UI and help ship in **10 locales**: enUS, deDE, frFR, esES/esMX, ptBR, itIT, ruRU,
+koKR, zhCN and zhTW (`Locales\`). The test suite requires every English string
+to be translated in all of them. NPC,
 item and zone names come from the database and the client and stay in English
 where the source is English; search keywords (food, flight, repair...) are
 English aliases.
