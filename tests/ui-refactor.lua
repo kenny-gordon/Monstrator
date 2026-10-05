@@ -35,12 +35,33 @@ M.results = { { record = reference, placementCount = 3 } }
 
 M.ShowCopy = function() error("Help must not use the export/copy dialog") end
 M:ShowHelp()
-assert(M.helpFrame:IsShown() and M.helpFrame ~= M.copyFrame)
-assert(M.helpFrame.body:GetText():find("Pending observations", 1, true))
-assert(M.helpFrame.body.fontSize >= 15, "help must have a readable base font")
-assert(M.helpFrame.body.width >= 500, "help needs a spacious reading area")
-M.helpFrame:GetScript("OnKeyDown")(M.helpFrame, "ESCAPE")
-assert(not M.helpFrame:IsShown())
+local help = M.helpFrame
+assert(help:IsShown() and help ~= M.copyFrame)
+assert(#help.topicRows == #M.helpTopics and help.topic == 1, "help opens on the first topic")
+assert(help.heading:GetText() == "Getting started")
+assert(help.lines[1].bullet:IsShown() and not help.lines[1].text:GetText():find("\226\128\162", 1, true),
+    "bullet glyph is drawn separately for a hanging indent")
+assert(help.lines[1].text.fontSize >= 15, "help must have a readable base font")
+assert(help.lines[1].text.width >= 480, "help needs a spacious reading area")
+help.topicRows[5]:Click()
+assert(help.topic == 5 and help.heading:GetText() == "Review journal")
+local found = false
+for _, item in ipairs(help.lines) do
+    if item.text:IsShown() and item.text:GetText():find("Pending observations", 1, true) then found = true end
+end
+assert(found, "review topic explains pending observations")
+assert(help.topicRows[5].selection.shown and not help.topicRows[1].selection.shown)
+help.topicRows[#M.helpTopics]:Click()
+assert(help.lines[1].text:GetText():find("^|cffffd100/monstrator|r"), "commands render as a highlighted list")
+assert(not help.lines[1].bullet:IsShown())
+for _, topic in ipairs(M.helpTopics) do
+    assert(M.L[topic[2]] ~= topic[2], "help topic text exists: " .. topic[2])
+end
+help:GetScript("OnKeyDown")(help, "ESCAPE")
+assert(not help:IsShown())
+M:ShowHelp()
+assert(help.topic == #M.helpTopics, "help reopens on the last topic")
+help:Hide()
 M.ShowCopy = showCopy
 
 M:ShowEntryDetails({ record = reference })

@@ -47,35 +47,114 @@ local function trackFont(font, fit)
     return spec
 end
 
-local label, button
+local label, button, panel
 
-function M:ShowHelp()
+M.helpTopics = {
+    { "Getting started", "help.browse" }, { "Sub-groups", "help.subgroups" },
+    { "Results and sorting", "help.results" }, { "Database", "help.database" },
+    { "Review journal", "help.review" }, { "Item lookup", "help.items" },
+    { "NPC scan", "help.scan" }, { "Share discoveries", "help.share" },
+    { "Keyboard", "help.keyboard" }, { "Commands", "help.commands" },
+}
+
+local HELP_BULLET = "\226\128\162 "
+local HELP_TEXT_WIDTH = 500
+
+function M:ShowHelpTopic(index)
+    local f = self.helpFrame
+    local topic = self.helpTopics[index] or self.helpTopics[1]
+    index = self.helpTopics[index] and index or 1
+    f.topic = index
+    f.heading:SetText(L[topic[1]])
+    for i, row in ipairs(f.topicRows) do
+        row.selection:SetShown(i == index)
+        row.label:SetTextColor(i == index and 1 or 0.85, i == index and 0.82 or 0.86, i == index and 0 or 0.9)
+    end
+    local y, count = 0, 0
+    for line in (L[topic[2]] .. "\n"):gmatch("(.-)\r?\n") do
+        if line ~= "" then
+            count = count + 1
+            local item = f.lines[count]
+            if not item then
+                item = { bullet = label(f.content, "", 0, 0, 15), text = label(f.content, "", 0, 0, 15) }
+                item.bullet:SetText(HELP_BULLET)
+                item.bullet:SetTextColor(1, 0.82, 0)
+                item.text:SetJustifyH("LEFT")
+                item.text:SetJustifyV("TOP")
+                f.lines[count] = item
+            end
+            local body = line:sub(1, #HELP_BULLET) == HELP_BULLET and line:sub(#HELP_BULLET + 1)
+            local command, description = line:match("^(/.-) %- (.+)$")
+            local indent = body and 18 or 0
+            item.bullet:SetShown(body and true or false)
+            item.bullet:SetPoint("TOPLEFT", 0, -y)
+            item.text:SetPoint("TOPLEFT", indent, -y)
+            item.text:SetWidth(HELP_TEXT_WIDTH - indent)
+            if command then
+                item.text:SetText("|cffffd100" .. command .. "|r  |cffb8bec8" .. description .. "|r")
+            else
+                item.text:SetText(body or line)
+                item.text:SetTextColor(0.92, 0.93, 0.96)
+            end
+            item.text:Show()
+            y = y + (item.text:GetStringHeight() or 18) + (command and 7 or 12)
+        end
+    end
+    for i = count + 1, #f.lines do
+        f.lines[i].bullet:Hide()
+        f.lines[i].text:Hide()
+    end
+    f.content:SetHeight(math.max(1, y))
+    f.scroll:SetVerticalScroll(0)
+end
+
+function M:ShowHelp(index)
     if not self.helpFrame then
         local f = CreateFrame("Frame", nil, UIParent, "BackdropTemplate")
-        f:SetSize(640, 540)
+        f:SetSize(760, 520)
         f:SetPoint("CENTER")
         f:SetFrameStrata("DIALOG")
+        f:SetToplevel(true)
         applyWindowBackdrop(f)
-        f.title = label(f, "Directory help", 22, -20, 20)
-        f.title:SetWidth(550)
+        f.title = label(f, "Directory help", 22, -18, 20)
+        f.title:SetWidth(600)
         f.title:SetJustifyH("LEFT")
-        button(f, "Close", 548, -12, 72, function() f:Hide() end)
+        button(f, "Close", 664, -14, 76, function() f:Hide() end)
+
+        local nav = panel(f, "Help", 16, -54, 184, 450)
+        f.topicRows = {}
+        for i, topic in ipairs(self.helpTopics) do
+            local row = CreateFrame("Button", nil, nav)
+            row:SetSize(172, 30)
+            row:SetPoint("TOPLEFT", 6, -44 - (i - 1) * 33)
+            row.selection = row:CreateTexture(nil, "BACKGROUND")
+            row.selection:SetAllPoints()
+            row.selection:SetColorTexture(1, 0.82, 0, 0.16)
+            local hover = row:CreateTexture(nil, "HIGHLIGHT")
+            hover:SetAllPoints()
+            hover:SetColorTexture(1, 1, 1, 0.08)
+            row.label = label(row, topic[1], 10, -8, 13)
+            row.label:SetWidth(156)
+            row.label:SetJustifyH("LEFT")
+            row.label:SetMaxLines(1)
+            row:SetScript("OnClick", function() self:ShowHelpTopic(i) end)
+            f.topicRows[i] = row
+        end
+
+        f.heading = label(f, "", 216, -62, 18)
+        f.heading:SetTextColor(1, 0.82, 0)
+        local rule = f:CreateTexture(nil, "ARTWORK")
+        rule:SetColorTexture(1, 0.82, 0, 0.35)
+        rule:SetPoint("TOPLEFT", 216, -88)
+        rule:SetSize(510, 1)
         local scroll = CreateFrame("ScrollFrame", nil, f, "UIPanelScrollFrameTemplate")
-        scroll:SetPoint("TOPLEFT", 24, -62)
-        scroll:SetPoint("BOTTOMRIGHT", -44, 24)
+        scroll:SetPoint("TOPLEFT", 216, -100)
+        scroll:SetPoint("BOTTOMRIGHT", -38, 18)
         local content = CreateFrame("Frame", nil, scroll)
-        content:SetSize(550, 440)
+        content:SetSize(HELP_TEXT_WIDTH, 1)
         scroll:SetScrollChild(content)
-        f.body = label(content,
-            table.concat({ L["help.browse"], L["help.subgroups"], L["help.results"], L["help.database"], L["help.sort"], L["help.review"], L["help.items"], L["help.scan"], L["help.share"], L["help.keyboard"], L["help.commands"] }, "\n\n"),
-            0, 0, 15)
-        f.body:SetWidth(540)
-        f.body:SetJustifyH("LEFT")
-        f.body:SetJustifyV("TOP")
-        f.body:SetTextColor(0.92, 0.93, 0.96)
-        local bodyHeight = math.max(430, f.body:GetStringHeight() or 430)
-        f.body:SetHeight(bodyHeight)
-        content:SetHeight(bodyHeight)
+        f.scroll, f.content, f.lines = scroll, content, {}
+
         f:EnableKeyboard(true)
         f:SetPropagateKeyboardInput(true)
         f:SetScript("OnKeyDown", function(_, key)
@@ -85,6 +164,7 @@ function M:ShowHelp()
         self.helpFrame = f
     end
     self.helpFrame:Show()
+    self:ShowHelpTopic(index or self.helpFrame.topic or 1)
 end
 
 label = function(parent, text, x, y, size)
@@ -124,7 +204,7 @@ local function edit(parent, x, y, width, text)
     return box
 end
 
-local function panel(parent, title, x, y, width, height)
+panel = function(parent, title, x, y, width, height)
     local frame = CreateFrame("Frame", nil, parent, "BackdropTemplate")
     frame:SetPoint("TOPLEFT", x, y)
     frame:SetSize(width, height)

@@ -139,3 +139,11 @@ L["Herbs"] = "Ervas"
 L["Mining nodes"] = "Veios"
 -- Submissions
 L["Share discoveries"] = "Compartilhar descobertas"
+-- Help topics
+L["Directory help"] = "Ajuda do diret?rio"
+L["Getting started"] = "Primeiros passos"
+L["Results and sorting"] = "Resultados e ordena??o"
+L["Database"] = "Banco de dados"
+L["NPC scan"] = "Varredura de PNJ"
+L["Keyboard"] = "Teclado"
+L["Commands"] = "Comandos"
