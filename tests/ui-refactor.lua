@@ -126,9 +126,12 @@ end
 assert(info.icon.width == 48 and info.name.fontSize == 17, "the selected NPC has a larger portrait and name")
 assert(M.window.rows[1].icon.texture == M:EntryIcon(reference))
 assert(info.icon.texture == M.window.rows[1].icon.texture, "list and details use the same category icon")
-assert(M.window.rows[1].iconBorder.atlas == "auctionhouse-itemicon-small-border"
-    and info.iconBorder.atlas == M.window.rows[1].iconBorder.atlas,
-    "rows and selected entries share the Auction House's restrained square border")
+assert(M.window.rows[1].iconBorder.atlas == "auctionhouse-itemicon-small-border",
+    "list icons keep the Auction House's restrained square border")
+assert(info.iconBorder.template == "BackdropTemplate" and info.iconBorder.width == info.icon.width + 4
+    and info.iconBorder.backdrop.edgeFile == "Interface\\Tooltips\\UI-Tooltip-Border"
+    and info.iconBorder.backdrop.edgeSize == 8 and not info.iconBorder.backdrop.bgFile,
+    "selected portrait uses a thin sliced native edge without magnified AH corners or an opaque background")
 assert(M.window.rows[1].iconBorder.width == M.window.rows[1].icon.width * 16 / 14,
     "icon borders preserve the Auction House template's proportions")
 assert(not M.window.rows[1].icon.portraitMask and not M.window.rows[1].icon.portraitBorder,

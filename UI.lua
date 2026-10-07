@@ -252,20 +252,30 @@ function M:SetEntryArtwork(texture, record)
     resolvePortrait()
 end
 
-local function entrySlot(parent, x, y, size)
+local function entrySlot(parent, x, y, size, detail)
     local icon = parent:CreateTexture(nil, "ARTWORK")
     icon:SetPoint("TOPLEFT", x, y)
     icon:SetSize(size, size)
     icon:SetTexCoord(0.07, 0.93, 0.07, 0.93)
-    local border = parent:CreateTexture(nil, "OVERLAY")
-    if C_Texture and C_Texture.GetAtlasInfo and C_Texture.GetAtlasInfo("auctionhouse-itemicon-small-border") then
-        border:SetPoint("TOPLEFT", x - size / 14, y + size / 14)
-        border:SetSize(size * 16 / 14, size * 16 / 14)
-        border:SetAtlas("auctionhouse-itemicon-small-border")
+    local border
+    if detail then
+        -- A sliced edge stays thin at portrait size; the small AH atlas magnifies its corners.
+        border = CreateFrame("Frame", nil, parent, "BackdropTemplate")
+        border:SetPoint("TOPLEFT", x - 2, y + 2)
+        border:SetSize(size + 4, size + 4)
+        border:SetBackdrop({ edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border", edgeSize = 8 })
+        border:SetBackdropBorderColor(0.5, 0.45, 0.35, 1)
     else
-        border:SetPoint("TOPLEFT", x - size * 0.18, y + size * 0.18)
-        border:SetSize(size * 1.36, size * 1.36)
-        border:SetTexture("Interface\\Buttons\\UI-Quickslot2")
+        border = parent:CreateTexture(nil, "OVERLAY")
+        if C_Texture and C_Texture.GetAtlasInfo and C_Texture.GetAtlasInfo("auctionhouse-itemicon-small-border") then
+            border:SetPoint("TOPLEFT", x - size / 14, y + size / 14)
+            border:SetSize(size * 16 / 14, size * 16 / 14)
+            border:SetAtlas("auctionhouse-itemicon-small-border")
+        else
+            border:SetPoint("TOPLEFT", x - size * 0.18, y + size * 0.18)
+            border:SetSize(size * 1.36, size * 1.36)
+            border:SetTexture("Interface\\Buttons\\UI-Quickslot2")
+        end
     end
     icon.slotBorder = border
     icon.portraitTexture = parent:CreateTexture(nil, "ARTWORK")
@@ -1552,7 +1562,7 @@ function M:CreateWindow()
 
     f.info = {}
     f.info.parchment = parchment ~= nil and parchment ~= false
-    f.info.icon, f.info.iconBorder = entrySlot(f, 824, -151, 48)
+    f.info.icon, f.info.iconBorder = entrySlot(f, 824, -151, 48, true)
     f.info.name = label(f, "", 886, -146, 17)
     f.info.name:SetWidth(204)
     f.info.name:SetHeight(48)

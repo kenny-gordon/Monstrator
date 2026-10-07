@@ -93,8 +93,9 @@ herbalism icon. Containers use a native box icon. If the client rejects an icon
 asset, Monstrator reports it once and shows a question mark instead of a blank slot.
 All directory artwork uses the same square Auction House border: creature portraits,
 object icons and fallbacks have consistent framing with no separate gold rings.
-The client atlas `auctionhouse-itemicon-small-border` is used when available,
-with a native square-slot fallback on clients without it.
+List icons use `auctionhouse-itemicon-small-border` when available, with a
+native square-slot fallback on clients without it. The larger selected portrait
+uses a thin sliced native edge rather than enlarging the small border's corners.
 Creature portrait camera angles come from the client and can vary
 for animals; **3D model** provides a rotatable view when a portrait is unclear.
 

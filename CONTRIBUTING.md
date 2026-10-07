@@ -185,6 +185,8 @@ Use the same square frame for portraits and static icons; do not add
 separate circular masks or gold rings to directory NPCs. Keep herb artwork
 keyed by canonical object ID rather than localized names. Rejected static
 assets must produce a visible fallback and a once-per-asset diagnostic.
+For the larger selected artwork, use a sliced native tooltip edge with no
+background; do not magnify the small Auction House atlas's corners.
 
 Design research also examined
 [Journalator's tabbed display](https://github.com/TheMouseNest/Journalator)
