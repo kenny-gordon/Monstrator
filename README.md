@@ -50,16 +50,11 @@ Two release builds exist:
 
 The directory inherits the Forever client's native portrait-window frame:
 centered title, circular map portrait, close control and native bottom tabs.
-Its area trail uses the native map's breadcrumb controls: **World → continent
-→ zone**. Click World or the continent to broaden the scope; click the current
-zone (or the active continent) to open the area picker. A pinned zone shows its
-own continent, not the player's. The active segment is highlighted, and the
-trail updates as you move between zones in follow mode.
-The area trail uses compact, content-sized segments with native label insets
-and bar height, rather than stretching each name across a fixed-width slab.
-Long localized names are fitted within the header; changing text scale updates
-the segment sizes. Unused home/overflow controls inherited from the template
-are hidden so they cannot overlap the directory's navigation.
+The header has a simple subtitle and player-position readout; no map-style
+breadcrumb strip is used. Area browsing lives in the left **Browse** panel:
+choose **Zone**, **Region** or **World**, or click the area name to open the
+searchable area picker. Normal opening follows your current zone and sorts
+nearest first; explicit area commands and Favorites/Journal remain available.
 **All entries** offers direct category shortcuts to services, vendors, trainers,
 transit and objects rather than an empty category list. Their **>** controls open
 the relevant sub-groups directly; choosing NPCs or Static locations shows that
@@ -67,12 +62,17 @@ type's complete category list. Browse counts represent matching rows.
 Textured browsing panels sit beside a quest-parchment Details page with dark
 ink and section headings. If the parchment atlas is unavailable, Monstrator
 reports it and retains the dark readable layout. No third-party artwork is bundled.
-Navigation is the primary red action; map preview sits beside it. Secondary
+Navigation and map preview are native primary buttons in a separate dark
+action tray beneath the parchment. Secondary
 actions, filters and footer utilities use neutral text with native hover/focus
 highlights instead of a grid of red buttons. Gold result names emphasize the
 selected row; evidence remains in colored row badges, tooltips and Details.
 The selected entry has a larger portrait, and parchment sections use fine
 dividers rather than heavy gold heading bars.
+The tray packs only applicable actions into consecutive rows, so static
+locations do not leave blank spaces for NPC-only controls. Hover an action to
+see its full label. Controls no longer sit on the parchment's torn bottom edge.
+Result paging uses native scrollbar arrow artwork, not text carets.
 Parchment text uses shadow-free dark ink and extra line spacing; long distance
 labels can wrap in the result list rather than being limited to one line.
 NPC results and selected entries use real creature portraits when the client

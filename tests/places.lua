@@ -67,54 +67,10 @@ assert(#catalog[2].zones == 2 and catalog[2].zones[1].name == "Durotar" and cata
 M.scope, M.view = "zone", "directory"
 M.window:Show()
 M:Refresh()
-local trail = M.window.areaTrail
-assert(trail.template == "NavBarTemplate" and trail.buttons.zone.template == "NavButtonTemplate",
-    "area selection uses the native map's breadcrumb artwork")
-assert(trail.buttons.global:GetText() == "World" and trail.buttons.region:GetText() == "Kalimdor"
-    and trail.buttons.zone:GetText() == "Mulgore", "trail reflects the browsed zone's actual hierarchy")
-assert(trail.buttons.zone.selected:IsShown() and not trail.buttons.region.selected:IsShown())
-assert(trail.buttons.region.x == trail.buttons.global.x + trail.buttons.global.width
-    and trail.buttons.zone.x == trail.buttons.region.x + trail.buttons.region.width,
-    "native breadcrumbs abut instead of overlapping the next label")
-assert(trail.buttons.region.text.x == 20 and trail.buttons.zone.text.x == 20,
-    "breadcrumb labels retain the client's native inset")
-assert(not trail.home:IsShown() and not trail.overflow:IsShown(),
-    "unused template home/overflow controls must not sit behind custom breadcrumbs")
-assert(trail.width < 300 and trail.height == 34, "short area names make a compact native-height trail, not stretched slabs")
-local zoneText = trail.buttons.zone.text
-local measure = zoneText.GetUnboundedStringWidth
-zoneText.GetUnboundedStringWidth = function() return 1000 end
-trail.buttons.zone.layoutName = nil
-M:RenderAreaTrail()
-assert(trail.width <= 630 and trail.buttons.zone.width <= 203,
-    "long localized names are fitted within the header instead of overlapping player position")
-zoneText.GetUnboundedStringWidth = measure
-trail.buttons.zone.layoutName = nil
-local scale = M.settings.textScale
-M.settings.textScale = 1.5
-M:RenderAreaTrail()
-local largeWidth = trail.width
-M.settings.textScale = scale
-M:RenderAreaTrail()
-assert(trail.width < largeWidth, "content-sized navigation responds to text-scale changes")
-local measures = {}
-for key, b in pairs(trail.buttons) do
-    measures[key] = b.text.GetUnboundedStringWidth
-    b.text.GetUnboundedStringWidth = function() return 1000 end
-    b.layoutName = nil
-end
-M:RenderAreaTrail()
-assert(trail.width <= 630, "even three long localized labels cannot intrude on header utilities")
-for key, b in pairs(trail.buttons) do
-    b.text.GetUnboundedStringWidth = measures[key]
-    b.layoutName = nil
-end
-M:RenderAreaTrail()
-assert(trail.buttons.global:GetFrameLevel() > trail.buttons.region:GetFrameLevel()
-    and trail.buttons.region:GetFrameLevel() > trail.buttons.zone:GetFrameLevel(),
-    "native arrow tips draw above the following segment")
-assert(trail.buttons.zone.x + trail.buttons.zone.width + 21 <= trail.width,
-    "the final native arrow stays inside the trail, away from player position")
+assert(M.window.areaTrail == nil and M.RenderAreaTrail == nil,
+    "directory must not construct or render the removed map breadcrumb strip")
+assert(M.window.subtitle:GetText() == M.L["WoW Forever NPC & location directory - by Metalbullz"],
+    "the header is a simple native-style subtitle rather than a second navigation surface")
 local picker = M.window.picker
 assert(not picker:IsShown())
 M.window.placeButton:Click()
@@ -126,7 +82,6 @@ picker.filter:GetScript("OnEnterPressed")()
 assert(not picker:IsShown() and M.scope == "zone" and M.zoneMap == 2)
 assert(M.window.placeButton:GetText():find("Durotar", 1, true) and M.window.filters:GetText():find("Durotar", 1, true))
 assert(#M.results == 1 and M.results[1].record.name == "Razor Keeper")
-assert(trail.buttons.zone:GetText() == "Durotar", "pinned-zone changes update the native area segment")
 M.window.scopeButtons.region:Click()
 assert(M.scope == "region" and #M.results == 3 and M.window.placeButton:GetText():find("Kalimdor", 1, true))
 M.window.placeButton:Click()
@@ -134,8 +89,8 @@ for _, row in ipairs(picker.rows) do
     if row.data and row.data.scope == "region" and row.data.id == 20 then row:Click() end
 end
 assert(M.regionMap == 20 and #M.results == 1)
-assert(trail.buttons.region:GetText() == "Eastern Kingdoms" and not trail.buttons.zone:IsShown(),
-    "region browsing must not pretend the player's zone is selected")
+assert(M.window.placeButton:GetText():find("Eastern Kingdoms", 1, true),
+    "sidebar identifies the browsed region rather than the player's zone")
 M.window.placeButton:Click()
 picker.filter:SetText("kalim")
 picker.filter:GetScript("OnEnterPressed")()
@@ -181,13 +136,13 @@ M.window.rows[1]:GetScript("OnEnter")(M.window.rows[1])
 SlashCmdList.MONSTRATOR("reset")
 assert(M.scope == "zone" and M.zoneMap == nil and M.settings.windowX == 0 and M.settings.zoneMap == 0)
 M:SelectPlace("zone", 3)
-trail.buttons.region:Click()
+M.selected = 1
+M:Render()
+info.zone:Click()
 assert(M.scope == "region" and M.regionMap == 20,
-    "continent breadcrumb widens the pinned zone's continent, not the player's continent")
-trail.buttons.global:Click()
-assert(M.scope == "global" and not trail.buttons.region:IsShown() and not trail.buttons.zone:IsShown())
-assert(trail.width == trail.buttons.global.width + 21,
-    "world scope does not retain the empty continent/zone strip")
+    "Browse region widens the selected zone's continent, not the player's continent")
+M.window.scopeButtons.global:Click()
+assert(M.scope == "global", "sidebar still provides world browsing after removing header navigation")
 M.window:Hide()
 M.settings.sortOrder, M.settings.evidenceFilter = "level", "pending"
 M.window.search:SetText("old search")
@@ -195,14 +150,14 @@ M:Toggle()
 assert(M.scope == "zone" and not M.zoneMap and not M.regionMap and M.kind == "all" and M.category == "All")
 assert(M.view == "directory" and M.settings.sortOrder == "distance" and M.settings.evidenceFilter == "all"
     and M.window.search:GetText() == "", "normal reopening shows all nearby entries rather than old distant filters")
-assert(#M.results == 2 and M.window.areaTrail.buttons.zone:GetText() == "Mulgore")
+assert(#M.results == 2 and M.window.placeButton:GetText():find("Mulgore", 1, true))
 playerMap = 2
 M:Refresh()
 assert(#M.results == 1 and M.results[1].record.name == "Razor Keeper"
-    and trail.buttons.zone:GetText() == "Durotar", "local opening follows the player when changing zones")
+    and M.window.placeButton:GetText():find("Durotar", 1, true), "local opening follows the player when changing zones")
 M.window:Hide()
 SlashCmdList.MONSTRATOR("zone elwynn")
-assert(M.scope == "zone" and M.zoneMap == 3 and trail.buttons.zone:GetText() == "Elwynn Forest",
+assert(M.scope == "zone" and M.zoneMap == 3 and M.window.placeButton:GetText():find("Elwynn Forest", 1, true),
     "an explicit zone command must override the ordinary nearby landing view")
 M.window:Hide()
 M:Toggle("favorites")

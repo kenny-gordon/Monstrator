@@ -287,7 +287,6 @@ local function trackFont(font, fit)
 end
 
 local label, button, panel
-local AREA_TEXT_WIDTH = 173
 
 M.helpTopics = {
     { "Getting started", "help.browse" }, { "Sub-groups", "help.subgroups" },
@@ -448,17 +447,12 @@ button = function(parent, text, x, y, width, callback, listIcon)
     return b
 end
 
-local function quietButton(b, parchment)
+local function quietButton(b)
     for _, region in ipairs({ b.Left, b.Middle, b.Right }) do region:Hide() end
     b:SetHighlightTexture("Interface\\QuestFrame\\UI-QuestTitleHighlight", "ADD")
     local font = b.labelFont
-    if parchment then
-        font:SetTextColor(0.3, 0.16, 0.06)
-        font:SetShadowOffset(0, 0)
-    else
-        font:SetTextColor(0.86, 0.84, 0.78)
-    end
-    b.quiet, b.parchmentInk = true, parchment == true
+    font:SetTextColor(0.86, 0.84, 0.78)
+    b.quiet = true
 end
 
 local function edit(parent, x, y, width, text)
@@ -976,7 +970,6 @@ function M:Render()
     local place = self.view == "directory" and (self:PlaceName() .. (self.npcFilter and self.npcFilter.label or "")) or ""
     local placeText = (L["place:" .. self.scope]):format(self:PlaceName())
     if f.placeButton.renderText ~= placeText then f.placeButton:SetText(placeText); f.placeButton.renderText = placeText end
-    self:RenderAreaTrail()
     if f.renderScope ~= self.scope or f.renderKind ~= self.kind or f.renderCategory ~= self.category
         or f.renderSubgroup ~= self.subgroup
         or f.renderFilterView ~= self.view or f.renderPlace ~= place then
@@ -1234,59 +1227,11 @@ function M:CreateWindow()
     f.PortraitContainer.portrait:SetTexture("Interface\\Icons\\INV_Misc_Map02")
     f.TitleContainer.TitleText:SetText("MONSTRATOR")
     trackFont(f.TitleContainer.TitleText)
-    f.areaTrail = CreateFrame("Frame", nil, f, "NavBarTemplate")
-    f.areaTrail:SetPoint("TOPLEFT", 70, -30)
-    f.areaTrail:SetSize(630, 34)
-    f.areaTrail.home:Hide()
-    f.areaTrail.overflow:Hide()
-    f.areaTrail.overlay:SetFrameLevel(f.areaTrail:GetFrameLevel() + 1)
-    f.areaTrail.buttons = {}
-    f.areaTrail.navList, f.areaTrail.freeButtons = {}, {}
-    local function areaButton(key, callback)
-        local b = CreateFrame("Button", nil, f.areaTrail, "NavButtonTemplate")
-        b:SetSize(80, 30)
-        b:SetFrameLevel(f.areaTrail:GetFrameLevel() + 5 - #f.areaTrail.navList)
-        b.MenuArrowButton:Hide()
-        b.listFunc = function() return nil end
-        table.insert(f.areaTrail.navList, b)
-        b.text:ClearAllPoints()
-        b.text:SetPoint("LEFT", 20, 0)
-        b.text:SetJustifyH("LEFT")
-        b.text:SetWidth(AREA_TEXT_WIDTH)
-        b.text:SetHeight(24)
-        b.text:SetMaxLines(1)
-        b.text:SetWordWrap(false)
-        b.text:SetNonSpaceWrap(false)
-        b.text:SetFont(STANDARD_TEXT_FONT, 12)
-        local spec = trackFont(b.text, AREA_TEXT_WIDTH)
-        local setText = b.SetText
-        b.SetText = function(self, text)
-            setText(self, text)
-            applyFont(spec, M.settings.textScale)
-        end
-        b:SetScript("OnClick", callback)
-        b:SetScript("OnEnter", function(owner)
-            GameTooltip:SetOwner(owner, "ANCHOR_BOTTOM")
-            GameTooltip:SetText(owner.areaName or L["World"])
-            GameTooltip:AddLine(L["Choose zone or region"], 1, 1, 1, true)
-            GameTooltip:AddLine(L["WoW Forever NPC & location directory - by Metalbullz"], 0.7, 0.72, 0.78, true)
-            GameTooltip:Show()
-        end)
-        b:SetScript("OnLeave", function() GameTooltip:Hide() end)
-        f.areaTrail.buttons[key] = b
-        b.areaFont = spec
-        return b
-    end
-    areaButton("global", function() self:SelectPlace("global") end)
-    areaButton("region", function()
-        if self.scope == "region" then self:TogglePlacePicker()
-        else
-            local map = self:ScopeMap()
-            local region = map and self:MapRegion(map)
-            self:SelectPlace("region", region and region > 0 and region or nil)
-        end
-    end)
-    areaButton("zone", function() self:TogglePlacePicker() end)
+    f.subtitle = label(f, "WoW Forever NPC & location directory - by Metalbullz", 70, -40, 12, 630)
+    f.subtitle:SetWidth(630)
+    f.subtitle:SetMaxLines(1)
+    f.subtitle:SetJustifyH("LEFT")
+    f.subtitle:SetTextColor(0.72, 0.7, 0.64)
     f.position = label(f, "", 710, -40, 12, 202)
     f.position:SetWidth(202)
     f.position:SetMaxLines(1)
@@ -1350,7 +1295,7 @@ function M:CreateWindow()
     if parchment then
         f.detailsPanel.parchment = f.detailsPanel:CreateTexture(nil, "ARTWORK", nil, -8)
         f.detailsPanel.parchment:SetPoint("TOPLEFT", 5, -5)
-        f.detailsPanel.parchment:SetPoint("BOTTOMRIGHT", -5, 5)
+        f.detailsPanel.parchment:SetPoint("BOTTOMRIGHT", -5, 126)
         f.detailsPanel.parchment:SetAtlas("QuestBG-Parchment")
         f.detailsPanel.heading:SetTextColor(0.25, 0.13, 0.04)
     else
@@ -1365,7 +1310,7 @@ function M:CreateWindow()
     local function control(text, x, y, callback, width, listIcon, primary)
         local b = button(f, text, x, y, width or 208, callback, listIcon)
         if not primary then
-            quietButton(b, parchment and x >= 804 and y <= -104 and y >= -624)
+            quietButton(b)
         end
         table.insert(self.focusOrder, b)
         b:SetScript("OnEnter", function() self.focusIndex = nil end)
@@ -1546,8 +1491,21 @@ function M:CreateWindow()
         self.offset = math.max(0, math.min(math.max(0, #(self.results or {}) - #f.rows), self.offset + delta))
         self:Render()
     end
-    f.pageUp = control("^", 768, -162, function() scrollRows(-#f.rows) end, 22)
-    f.pageDown = control("v", 768, -548, function() scrollRows(#f.rows) end, 22)
+    local function pageButton(direction, y, delta)
+        local b = CreateFrame("Button", nil, f)
+        b:SetPoint("TOPLEFT", 768, y)
+        b:SetSize(22, 22)
+        local asset = "Interface\\Buttons\\UI-ScrollBar-Scroll" .. direction .. "Button-"
+        b:SetNormalTexture(asset .. "Up")
+        b:SetPushedTexture(asset .. "Down")
+        b:SetHighlightTexture(asset .. "Highlight", "ADD")
+        b:SetScript("OnClick", function() scrollRows(delta) end)
+        b:SetScript("OnEnter", function() self.focusIndex = nil end)
+        table.insert(self.focusOrder, b)
+        return b
+    end
+    f.pageUp = pageButton("Up", -162, -#f.rows)
+    f.pageDown = pageButton("Down", -548, #f.rows)
     f.picker = self:CreatePlacePicker(f)
     f.subpicker = self:CreateSubgroupPicker(f)
     f:EnableMouseWheel(true)
@@ -1655,7 +1613,22 @@ function M:CreateWindow()
     f.info.map = control("map.view", 958, -508, function()
         local entry = self.results and self.results[self.selected]
         if entry then self:ViewRecordOnMap(entry.record) end
-    end, 132)
+    end, 132, nil, true)
+    f.info.actions = { f.info.navigate, f.info.map, f.info.favorite, f.info.zone,
+        f.info.model, f.info.items, f.detailsButton, f.info.watch }
+    f.info.actionRule = f:CreateTexture(nil, "ARTWORK")
+    f.info.actionRule:SetPoint("TOPLEFT", 818, -502)
+    f.info.actionRule:SetSize(272, 1)
+    f.info.actionRule:SetColorTexture(0.55, 0.45, 0.3, 0.35)
+    for _, b in ipairs(f.info.actions) do
+        b:SetScript("OnEnter", function(owner)
+            self.focusIndex = nil
+            GameTooltip:SetOwner(owner, "ANCHOR_BOTTOM")
+            GameTooltip:SetText(owner:GetText())
+            GameTooltip:Show()
+        end)
+        b:SetScript("OnLeave", function() GameTooltip:Hide() end)
+    end
     f.coverage = label(f, "", 818, -534, 11)
     f.coverage:SetWidth(272)
     f.coverage:SetHeight(30)
@@ -1784,42 +1757,6 @@ function M:BreadcrumbText()
     if self.npcFilter then return "|cffd6a64b" .. self.npcFilter.label .. "|r  /  " .. self:PlaceName() end
     return self:PlaceName() .. "  /  " .. L[self.kind] .. "  /  " .. L[self.category]
         .. (self:ActiveSubgroup() and ("  /  " .. L[self:ActiveSubgroup().label]) or "")
-end
-
-function M:RenderAreaTrail()
-    local trail = self.window.areaTrail
-    local regionName, zoneName
-    if self.scope == "zone" then
-        local map = self:ScopeMap()
-        if map then regionName = select(2, self:MapRegion(map)) end
-        zoneName = self:PlaceName()
-    elseif self.scope == "region" then
-        regionName = self:PlaceName()
-    end
-    local names = { global = L["World"], region = regionName, zone = zoneName }
-    local offset = 0
-    for _, key in ipairs({ "global", "region", "zone" }) do
-        local b = trail.buttons[key]
-        local text = names[key]
-        b:SetShown(text ~= nil)
-        if text and b.areaName ~= text then b:SetText(text); b.areaName = text end
-        if text then
-            if b.areaScale ~= self.settings.textScale or b.layoutName ~= text then
-                b.text:SetWidth(AREA_TEXT_WIDTH)
-                applyFont(b.areaFont, self.settings.textScale)
-                local width = b.text.GetUnboundedStringWidth and b.text:GetUnboundedStringWidth()
-                if type(width) ~= "number" then width = b.text:GetStringWidth() end
-                b:SetWidth(math.min(AREA_TEXT_WIDTH, width) + 30)
-                b.text:SetWidth(b:GetWidth() - 30)
-                b.areaScale, b.layoutName = self.settings.textScale, text
-            end
-            b:ClearAllPoints()
-            b:SetPoint("TOPLEFT", offset, -2)
-            offset = offset + b:GetWidth()
-        end
-        b.selected:SetShown(key == self.scope)
-    end
-    trail:SetWidth(offset + 21)
 end
 
 function M:SetNPCFilter(ids, label)
@@ -2173,6 +2110,15 @@ function M:RenderDetailsPane()
     info.model:SetShown(r ~= nil and r.npcID ~= nil)
     info.items:SetShown(r ~= nil and r.npcID ~= nil and self:ItemProvider() ~= nil)
     self:RenderWatchButton()
+    local actionIndex = 0
+    for _, control in ipairs(info.actions) do
+        if control:IsShown() then
+            control:ClearAllPoints()
+            control:SetPoint("TOPLEFT", 818 + (actionIndex % 2) * 140, -508 - math.floor(actionIndex / 2) * 30)
+            actionIndex = actionIndex + 1
+        end
+    end
+    info.actionRule:SetShown(r ~= nil)
     if not r then
         info.name:SetText(L["Nothing selected"])
         info.title:SetText("")

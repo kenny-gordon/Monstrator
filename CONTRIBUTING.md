@@ -161,15 +161,17 @@ Notes:
 
 The directory uses `PortraitFrameTemplate` and `PanelTabButtonTemplate` from
 [Forever's shared panel templates](https://github.com/Gethe/wow-ui-source/blob/forever/Interface/AddOns/Blizzard_SharedXML/Mainline/SharedUIPanelTemplates.xml).
-Area navigation references `NavBarTemplate` and `NavButtonTemplate` from
-[Forever's native navigation bar](https://github.com/Gethe/wow-ui-source/blob/forever/Interface/AddOns/Blizzard_FrameXML/Mainline/NavigationBar.xml).
-Monstrator uses its existing area picker for choosing zones, not the map's
+Area navigation stays in the Browse sidebar and searchable area picker.
+Do not recreate the removed map breadcrumb strip or depend on the map's
 internal navigation data or menu implementation. Normal opening is a current-zone
 landing view; explicit zone/region commands must remain exempt from that reset.
 The parchment atlas is `QuestBG-Parchment`, defined in
 [Forever's quest templates](https://github.com/Gethe/wow-ui-source/blob/forever/Interface/AddOns/Blizzard_UIPanels_Game/Mainline/QuestFrameTemplates.xml).
 The textured background is `Interface\FrameGeneral\UI-Background-Rock`.
 These are client-owned references, not bundled assets.
+Keep the selected-entry parchment separate from the dark action tray. Pack
+visible actions without gaps and preserve native buttons for navigation/map
+preview; secondary actions must retain keyboard focus and full-label tooltips.
 
 NPC artwork resolves a creature display ID through the documented
 `PlayerModel:SetCreature` / `GetDisplayInfo` methods, then uses

@@ -99,11 +99,12 @@ assert(M.window.resultsPanel.backdrop.bgFile == "Interface\\FrameGeneral\\UI-Bac
 assert(M.window.detailsPanel.parchment.atlas == "QuestBG-Parchment",
     "selected entry uses the client's quest parchment, not bundled artwork")
 local info = M.window.info
-assert(not info.navigate.quiet and info.navigate.Left:IsShown(), "only the primary navigation action keeps red button artwork")
-for _, b in ipairs({ info.map, info.favorite, info.zone, info.model, info.items, info.watch, M.window.detailsButton }) do
-    assert(b.quiet and b.parchmentInk and not b.Left:IsShown() and not b.Middle:IsShown() and not b.Right:IsShown(),
-        "secondary parchment actions use quiet native highlights instead of red button tiles")
-    assert(b.labelFont.color[1] < 0.4 and b.labelFont.shadowX == 0, "parchment actions use shadow-free dark ink")
+assert(not info.navigate.quiet and info.navigate.Left:IsShown(), "primary navigation keeps native button artwork")
+assert(not info.map.quiet and info.map.Left:IsShown(), "map preview is a recognizable native primary button")
+for _, b in ipairs({ info.favorite, info.zone, info.model, info.items, info.watch, M.window.detailsButton }) do
+    assert(b.quiet and not b.Left:IsShown() and not b.Middle:IsShown() and not b.Right:IsShown(),
+        "secondary actions sit on a separate dark native tray rather than the parchment edge")
+    assert(b.labelFont.color[1] > 0.7 and b:GetScript("OnEnter"), "tray actions have readable light text and full-label tooltips")
 end
 assert(info.map.y == info.navigate.y and info.map.x > info.navigate.x,
     "map preview sits beside the primary navigation action")
@@ -111,8 +112,10 @@ local actions = { info.navigate, info.map, info.favorite, info.zone, info.model,
 for i, a in ipairs(actions) do
     for j = i + 1, #actions do
         local b = actions[j]
-        assert(a.x + a.width <= b.x or b.x + b.width <= a.x
-            or a.y - a.height >= b.y or b.y - b.height >= a.y, "details action hit areas must not overlap")
+        if a:IsShown() and b:IsShown() then
+            assert(a.x + a.width <= b.x or b.x + b.width <= a.x
+                or a.y - a.height >= b.y or b.y - b.height >= a.y, "visible details action hit areas must not overlap")
+        end
     end
 end
 for _, b in ipairs({ M.window.sort, M.window.evidence, M.window.itemsButton,
@@ -163,6 +166,9 @@ assert(not M.window.coverage:IsShown() and not M.window.onboarding:IsShown()
     and M.window.status:GetScript("OnEnter"), "diagnostic summaries are available in the footer tooltip")
 assert(M.window.resultFocus:GetText() == M.L["Keyboard"] and M.window.resultFocus:GetScript("OnEnter"),
     "keyboard results control must not be mistaken for setting a combat focus target")
+assert(M.window.pageUp.normalTexture == "Interface\\Buttons\\UI-ScrollBar-ScrollUpButton-Up"
+    and M.window.pageDown.normalTexture == "Interface\\Buttons\\UI-ScrollBar-ScrollDownButton-Up",
+    "result paging uses native scrollbar arrow artwork rather than caret text")
 M.window.search:SetFocus()
 M.window.resultFocus:Click()
 assert(not M.window.search:HasFocus() and not M.focusIndex, "keyboard button releases search input for result navigation")
@@ -251,6 +257,22 @@ assert(not M.window.pageUp:IsShown() and not M.window.pageDown:IsShown(),
 assert(not info.scroll.ScrollBar:IsShown(), "short empty-state instructions need no scroll arrows")
 assert(not info.navigate:IsShown() and info.body:GetText():find("Select a result", 1, true))
 assert(not info.map:IsShown(), "map preview is unavailable without a selected coordinate record")
+assert(not info.actionRule:IsShown(), "empty details must not show a detached action divider")
+M.results = { { record = { key = "synthetic:ui-location", name = "Synthetic Mailbox", kind = "location",
+    category = "Mailboxes", mapID = 1, x = 10, y = 20, tags = {}, verification = "curated", precision = "confirmed" } } }
+M:Render()
+local visibleActions = 0
+for _, b in ipairs(info.actions) do
+    if b:IsShown() then
+        assert(b.x == 818 + (visibleActions % 2) * 140 and b.y == -508 - math.floor(visibleActions / 2) * 30,
+            "visible actions pack into consecutive rows with no creature-only gaps")
+        visibleActions = visibleActions + 1
+    end
+end
+assert(visibleActions == 5 and not info.model:IsShown() and not info.watch:IsShown(),
+    "location action tray only contains applicable actions")
+assert(info.navigate.y - info.navigate.height > info.favorite.y
+    and info.actionRule.y > info.navigate.y, "action tray has separation and consistent row spacing")
 M.results = { { record = reference, placementCount = 3 } }
 M:Render()
 local originalHeight = rawget(info.body, "GetStringHeight")
