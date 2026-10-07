@@ -62,7 +62,7 @@ for `tools\convert-db2.ps1`.
 | `verify [--determinism [importer args]]` | Schema, references, coordinates and manifest hashes; `--determinism` re-imports and compares bytes |
 | `diff <other Data\Native>` | Added, removed and changed IDs per kind |
 | `stats` | Database summary |
-| `audit [--compare dir] [--pfquest dir] [--output report.json]` | Exact structural/relationship issues for base and effective overlays; optional full candidate comparison and independent Vanilla NPC-name comparison |
+| `audit [--compare dir] [--pfquest dir] [--wowhead manifest.json] [--queue queue.json] [--output report.json]` | Exact structural/relationship issues for base and effective overlays; optional candidate, Vanilla NPC-name and offline Wowhead factual comparisons |
 | `package [--standalone]` | Build `dist\Monstrator-<version>[-standalone].zip` with a generated `CREDITS.md` |
 | `build [import args]` | `import`, then `overlay`, then `verify` |
 
@@ -111,6 +111,69 @@ Vanilla, TBC, modern Classic and Forever are not interchangeable. Differences
 from pfQuest's Vanilla names do not justify reverting modern NPC renames.
 Only Forever observations or explicit compatible corrections can establish a
 server placement; ordinary reference records remain unverified.
+
+### Offline Wowhead comparison
+
+```powershell
+New-Item -ItemType Directory -Force C:\Reviews
+node .\tools\monstrator-db.cjs audit --wowhead .\Data\Source\WowheadFacts.json --output C:\Reviews\wowhead-audit.json --queue C:\Reviews\unreviewed.json
+```
+
+The reference manifest stores the limited, already-reviewed facts, not a copy of
+Wowhead's database. Re-running the tool requires no network or AI. The included
+32-reference sample is **not full database verification**: it flags NPC 89's
+maximum level (local 50 versus reference 60), one TBC edition mismatch and three
+missing local quests. These are review findings, not authorized corrections.
+
+An input manifest has `schemaVersion: 1` and an `entries` array. Each entry
+identifies a version-labelled English URL, exact `kind` (`Npc`, `Item`, `Quest`
+or `Object`), numeric `id` and actual `checkedAt` date (`YYYY-MM-DD`). Choose
+either reviewed facts with field-level evidence:
+
+```json
+{
+  "schemaVersion": 1,
+  "entries": [{
+    "kind": "Npc",
+    "id": 823,
+    "url": "https://www.wowhead.com/classic/npc=823/deputy-willem",
+    "checkedAt": "2026-10-07",
+    "facts": { "name": "Deputy Willem", "minLevel": 18, "maxLevel": 18 },
+    "evidence": { "name": "page title", "minLevel": "page metadata", "maxLevel": "page metadata" }
+  }]
+}
+```
+
+Or replace `facts`/`evidence` with `"file": "pages\\willem.html"` for an HTML
+snapshot acquired through permitted access. Snapshots must be inside the
+manifest folder (including resolved links). The parser requires a complete
+HTML head, matching canonical identity/edition and recognizable page title.
+It reads names, NPC level ranges and item levels from head metadata only,
+hashes each snapshot and reports blocked/incomplete pages as unavailable.
+Reviewed facts additionally allow item/quest required levels and quest levels.
+It does not extract descriptions, comments, coordinates, drop tables or XML.
+
+Reports compare the **effective** database (including corrections/discoveries),
+with exact per-field values/evidence and per-kind record coverage. A record
+counted as checked has only its supplied fields checked; matched name-only
+records do not certify levels or sources. Classic references still do not
+establish Forever compatibility. Other supported editions (TBC/WotLK) are
+reported separately, never silently compared as Classic.
+
+Exit 2 also means Wowhead review findings remain (conflict, unavailable page,
+edition mismatch or missing local record). Exit 1 remains structural/input
+failure. Reports and queues must be outside the repository and source folders;
+outputs cannot overwrite each other or their input manifest. Existing report
+files can be refreshed; input snapshots are protected too. `--queue` requires
+`--wowhead` and lists IDs lacking a
+readable Classic reference, not every unchecked field or a deletion list.
+
+This tool does not crawl Wowhead or bypass access controls. A tooltip widget is
+for display, not database validation. Any permitted XML/API response would need
+to be converted into evidenced facts before comparison; availability and
+authorization must be checked separately. Blizzard's API covers supported
+official-game data, not Forever's custom content or Wowhead community evidence.
+No audit automatically prunes records or adds a runtime addon dependency.
 
 ### AtlasLoot database enrichment
 

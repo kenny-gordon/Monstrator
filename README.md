@@ -216,6 +216,12 @@ are explicitly tracked for version/availability review, not silently deleted.
 Targeted Wowhead checks and an independent Vanilla-name comparison are references,
 not certification of Forever's custom content. A newer source conversion that
 loses quests is held rather than replacing working data.
+For repeatable offline Wowhead comparisons, run
+`node tools\monstrator-db.cjs audit --wowhead Data\Source\WowheadFacts.json`.
+This compares supplied factual fields, reports coverage/conflicts and makes no
+network requests or deletions. The included 32-reference sample is deliberately
+limited, not a whole-database certification. See [CONTRIBUTING.md](CONTRIBUTING.md)
+for report/unchecked-ID queue commands and permitted reference inputs.
 
 **3D model** (Details pane, or `/mon model`) shows the selected NPC: drag to rotate,
 scroll to zoom, or turn on auto-rotate. If the server never sends a model, the

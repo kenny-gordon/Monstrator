@@ -14,7 +14,7 @@
 //   node tools\monstrator-db.cjs verify [--determinism [importer args]]  schema, references, hashes (and re-import compare)
 //   node tools\monstrator-db.cjs diff <other Data\Native>   added/removed/changed IDs per kind
 //   node tools\monstrator-db.cjs stats                     database summary
-//   node tools\monstrator-db.cjs audit [--compare dir] [--pfquest dir] [--output file.json]
+//   node tools\monstrator-db.cjs audit [--compare dir] [--pfquest dir] [--wowhead manifest.json] [--queue queue.json] [--output file.json]
 //                                                          exact structural issues and external-reference differences
 //   node tools\monstrator-db.cjs package [--standalone]    dist\Monstrator-<version>[-standalone].zip with CREDITS.md;
 //                                                          --standalone ships no imported data
@@ -741,10 +741,30 @@ function cmdAudit(args) {
   const options = {};
   for (let i = 0; i < args.length; i++) {
     const key = args[i];
-    if (!['--compare', '--pfquest', '--output'].includes(key) || !args[i + 1] || args[i + 1].startsWith('--') || options[key]) {
-      fail('usage: audit [--compare Data\\Native] [--pfquest folder] [--output report.json]');
+    if (!['--compare', '--pfquest', '--wowhead', '--queue', '--output'].includes(key) || !args[i + 1] || args[i + 1].startsWith('--') || options[key]) {
+      fail('usage: audit [--compare Data\\Native] [--pfquest folder] [--wowhead manifest.json] [--queue queue.json] [--output report.json]');
     }
     options[key] = path.resolve(args[++i]);
+  }
+  if (options['--queue'] && !options['--wowhead']) fail('--queue requires --wowhead');
+  const real = (file) => fs.existsSync(file) ? fs.realpathSync(file)
+    : path.join(fs.realpathSync(path.dirname(file)), path.basename(file));
+  const keyFor = (file) => process.platform === 'win32' ? real(file).toLowerCase() : real(file);
+  const inside = (folder, file) => {
+    const relative = path.relative(keyFor(folder), keyFor(file));
+    return relative !== '..' && !relative.startsWith('..' + path.sep) && !path.isAbsolute(relative);
+  };
+  const outputs = ['--output', '--queue'].filter((key) => options[key]);
+  for (const output of outputs) {
+    for (const [input, file] of Object.entries(options)) {
+      if (input !== output && keyFor(file) === keyFor(options[output])) fail('Output must not overwrite an input or queue');
+    }
+    if (options['--wowhead'] && inside(path.resolve(__dirname, '..'), options[output])) {
+      fail('Wowhead reports/queues must be outside the repository to protect source files');
+    }
+    for (const input of ['--compare', '--pfquest']) {
+      if (options[input] && inside(options[input], options[output])) fail('Output must not overwrite source-folder contents');
+    }
   }
   const raw = readTables(nativeDir), metadata = manifest();
   const report = { schemaVersion: 1, source: metadata && metadata.source, base: inspect(raw.tables) };
@@ -770,6 +790,30 @@ function cmdAudit(args) {
     }
   }
   report.effective = inspect(effective);
+  if (options['--wowhead']) {
+    const { loadReferences, compareReferences, queueReferences } = require('./wowhead-audit.cjs');
+    const references = loadReferences(options['--wowhead']);
+    for (const output of outputs) {
+      if (references.some((ref) => ref.snapshotFile && keyFor(ref.snapshotFile) === keyFor(options[output]))) {
+        fail('Output must not overwrite a reference snapshot');
+      }
+    }
+    report.wowhead = compareReferences(effective, references);
+    if (options['--queue']) {
+      fs.writeFileSync(options['--queue'], JSON.stringify({ schemaVersion: 1,
+        instruction: 'Review queue only; acquire references through permitted access. Not a crawler input or a deletion list.',
+        entries: queueReferences(effective, references) }, null, 2) + '\n', 'utf8');
+      console.log('Unreviewed Wowhead IDs: ' + options['--queue']);
+    }
+    const s = report.wowhead.summary;
+    console.log(`Wowhead: ${s.matched} matched-field records, ${s.conflicts} conflicts, ${s.unavailable} unavailable, `
+      + `${s.versionMismatch} version mismatches, ${s.missingLocal} missing locally; ${s.comparedFields} fields compared.`);
+    for (const result of report.wowhead.results.filter((result) => result.status === 'conflict')) {
+      for (const field of result.fields.filter((field) => !field.matches)) {
+        console.log(`  review ${result.kind} ${result.id}.${field.field}: local ${JSON.stringify(field.local)} / Wowhead ${JSON.stringify(field.reference)}`);
+      }
+    }
+  }
   const reviewFile = path.join(sourceDir, 'DatabaseReview.json');
   if (fs.existsSync(reviewFile)) report.externalReview = JSON.parse(fs.readFileSync(reviewFile, 'utf8'));
   if (options['--compare']) {
@@ -811,6 +855,7 @@ function cmdAudit(args) {
   }
   if ([...report.base.issues, ...report.effective.issues].some((issue) => issue.severity === 'error')) process.exitCode = 1;
   else if (report.candidate && !report.candidate.safeToReplace) process.exitCode = 2;
+  else if (report.wowhead && report.wowhead.results.some((result) => result.status !== 'matched-fields')) process.exitCode = 2;
 }
 
 // ---------------------------------------------------------------- diff / stats
