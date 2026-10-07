@@ -26,6 +26,7 @@ local function getter(source, field) return function(id) return source[id] and s
 local provider = {
     native = true, version = "1.0.4",
     Npc = { GetAllIds = function() return npcIDs end, name = getter(npcs, "name"), spawns = getter(npcs, "spawns"),
+        mapIDs = getter(npcs, "spawns"),
         subName = getter(npcs, "title"), npcFlags = getter(npcs, "flags"), maxLevel = getter(npcs, "level"),
         friendlyToFaction = getter(npcs, "friendly") },
     Item = { GetAllIds = function() return itemIDs end, name = getter(items, "name"), vendors = getter(items, "vendors"),
@@ -34,7 +35,7 @@ local provider = {
     Object = { name = function(id) if id == 50 then return "Linen Crate" end end,
         spawns = function(id) if id == 50 then return { [1] = { { 50, 50 } } } end end },
     Quest = { name = function(id) if id == 900 then return "Meat Run" end end,
-        startedBy = function(id) if id == 900 then return { { 23 } } end end, questLevel = function() return 6 end },
+        starterNpcs = function(id) if id == 900 then return { 23 } end end, questLevel = function() return 6 end },
 }
 
 M.data.entries, M.observations = {}, { entries = {}, nextID = 1 }
@@ -66,7 +67,13 @@ results = M:SearchItems("", 22)
 assert(#results == 2 and results[1] == 2672 and results[2] == 2589, "NPC item lists must be sorted by name")
 assert(#M:SearchItems("linen", 20) == 0, "NPC item lists must only include that NPC's items")
 
+local errors = {}
+M.Error = function(_, message) errors[#errors + 1] = message end
 local details = M:ItemDetails(2672)
+M:ItemDetails(2672)
+assert(#errors == 1 and errors[1]:find("Native database getter failed for ID 2672", 1, true),
+    "a broken native getter is contained and reported once, never silently ignored")
+M.Error = saved.err
 assert(details.name == "Haunch of Meat" and details.requiredLevel == 5 and details.itemLevel == nil)
 assert(#details.vendor == 2 and #details.drop == 1 and #details.quest == 1 and #details.object == 0)
 

@@ -59,11 +59,7 @@ local function hasFlag(value, bit)
     return value and value % (bit * 2) >= bit
 end
 
-local function read(getter, id)
-    if type(getter) ~= "function" then return end
-    local ok, value = pcall(getter, id)
-    if ok then return value end
-end
+local read = M.ReadNativeField
 
 local function addTag(tags, seen, tag)
     if M.tags[tag] and not seen[tag] then seen[tag] = true; table.insert(tags, tag) end
@@ -138,7 +134,7 @@ function M:StartDatabaseIndex()
         return state.knownMaps[uiMap]
     end
     state.knownMap = knownMap
-    local mapsOf = lib.Npc.mapIDs or lib.Npc.spawns
+    local mapsOf = lib.Npc.mapIDs
     local function step()
         if self.dbIndex ~= state then return end
         local last = math.min(#ids, state.nextIndex + CHUNK - 1)
@@ -205,7 +201,7 @@ function M:IndexDatabaseObjects(state)
     for _, id in ipairs(ids) do
         local class = read(object.class, id)
         if class and objectKinds[class] then
-            local maps = read(object.mapIDs or object.spawns, id)
+            local maps = read(object.mapIDs, id)
             local counted = false
             for uiMap in pairs(type(maps) == "table" and maps or {}) do
                 if state.knownMap(uiMap) then

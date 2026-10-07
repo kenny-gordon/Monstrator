@@ -2,6 +2,7 @@
 
 ## 1.0.0
 
+- **Production cleanup**: removed obsolete third-party provider adapters from the native runtime, consolidated native getter error handling, retained saved-data compatibility, and added editor defaults plus Windows CI for regression tests, database verification and both release builds.
 - **Release hygiene**: package only declared runtime files, documentation and required data attribution; exclude stray reports, backups and scratch files. Added full/standalone archive regression checks.
 - **Offline Wowhead comparator**: reusable saved-HTML/reviewed-fact inputs, exact effective-database field differences, version-aware results, record coverage and an unchecked-ID queue. Included 32 targeted references; discrepancies remain review-only. No network crawler, automatic pruning or runtime dependency.
 

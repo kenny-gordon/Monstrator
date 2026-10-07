@@ -9,11 +9,7 @@ local MAX_RESULTS = 500
 local QUESTION_ICON = "Interface\\Icons\\INV_Misc_QuestionMark"
 local tabs = { "vendor", "drop", "object", "quest" }
 
-local function read(getter, id)
-    if type(getter) ~= "function" then return end
-    local ok, value = pcall(getter, id)
-    if ok then return value end
-end
+local read = M.ReadNativeField
 
 local function safeCall(object, method, ...)
     local fn = object and object[method]
@@ -230,8 +226,8 @@ function M:ResolveItemSources(details, tab)
         for _, questID in ipairs(details.quest) do
             local name = read(lib.Quest.name, questID)
             if type(name) == "string" and name ~= "" then
-                local starters = read(lib.Quest.startedBy, questID)
-                local npcID = type(starters) == "table" and type(starters[1]) == "table" and starters[1][1]
+                local starters = read(lib.Quest.starterNpcs, questID)
+                local npcID = type(starters) == "table" and starters[1]
                 local level = read(lib.Quest.questLevel, questID)
                 local quest = { questID = questID, questName = name, questLevel = type(level) == "number" and level or nil }
                 if npcID then

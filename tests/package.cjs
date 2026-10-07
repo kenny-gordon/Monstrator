@@ -4,6 +4,8 @@ const os = require('node:os');
 const zlib = require('node:zlib');
 const assert = require('node:assert/strict');
 const { spawnSync } = require('node:child_process');
+const { evalLua } = require('../tools/monstrator-db.cjs');
+const { quote } = require('../tools/import-data.cjs');
 
 function readZip(file) {
   const buffer = fs.readFileSync(file), files = new Map();
@@ -66,6 +68,27 @@ try {
       for (const file of runtime) assert.deepEqual(zip.get(key(file)), fs.readFileSync(path.join(root, file)));
       assert.match(zip.get('Monstrator/CREDITS.md').toString(), /GPLv2/);
     }
+    const modules = runtime.map((file) => {
+      const source = zip.get(key(file)).toString('utf8');
+      return `assert(load(${quote(source)}, ${quote(file)}))("Monstrator", M)`;
+    }).join('\n');
+    const loaded = evalLua(fs.readFileSync(path.join(root, 'tests', 'mock.lua'), 'utf8') + '\n' + modules + `
+M:Initialize()
+assert(M.ready, "packaged addon must initialize")
+M:CreateWindow()
+assert(M.window, "packaged addon must create its directory")
+local provider = assert(M:NativeProvider())
+local ids = provider.Npc.GetAllIds()
+assert(#ids > 0 and provider.Npc.name(ids[1]), "packaged native rows must decode")
+local counts = M:NativeSummary()
+__release = { ready = M.ready, counts = counts, items = M:ItemProvider() ~= nil,
+  loot = M.native.lootReference ~= nil }
+`, 'packaged startup', '__release');
+    assert.equal(loaded.ready, true);
+    assert.equal(loaded.items, !standalone);
+    assert.equal(loaded.loot, !standalone);
+    assert.equal(loaded.counts.Npc, standalone ? 7 : 10122);
+    assert.equal(loaded.counts.Item || 0, standalone ? 0 : 14899);
   }
   assert.equal(run('--unknown').status, 1);
   assert.equal(run('--standalone', '--standalone').status, 1);

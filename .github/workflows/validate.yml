@@ -1,0 +1,40 @@
+name: Validate
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install isolated Lua test runtime
+        shell: pwsh
+        run: |
+          $runtime = Join-Path $env:RUNNER_TEMP 'MonstratorTests'
+          npm install --prefix $runtime --no-audit --no-fund fengari@0.1.5
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          "MONSTRATOR_LUA_RUNTIME=$runtime\node_modules\fengari" >> $env:GITHUB_ENV
+      - name: Run tests
+        run: node .\tests\run.cjs
+      - name: Verify shipped database
+        run: node .\tools\monstrator-db.cjs verify
+      - name: Build full release
+        run: node .\tools\monstrator-db.cjs package
+      - name: Build standalone release
+        run: node .\tools\monstrator-db.cjs package --standalone
+      - name: Check tracked files remain unchanged
+        shell: pwsh
+        run: |
+          git diff --exit-code
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $changes = git status --porcelain
+          if ($changes) { throw "Validation modified the checkout: $changes" }

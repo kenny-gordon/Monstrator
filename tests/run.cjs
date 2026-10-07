@@ -21,6 +21,19 @@ function execute(source, name, module = false) {
 }
 execute(fs.readFileSync(path.join(__dirname, 'mock.lua'), 'utf8'), 'mock.lua');
 const toc = fs.readFileSync(path.join(root, 'Monstrator.toc'), 'utf8');
+const runtimeFiles = toc.split(/\r?\n/).map((line) => line.trim()).filter((line) => line && !line.startsWith('#'));
+assert.equal(new Set(runtimeFiles).size, runtimeFiles.length, 'TOC must not load a module twice');
+for (const file of fs.readdirSync(root).filter((name) => name.endsWith('.lua'))) {
+  assert.ok(runtimeFiles.includes(file), 'orphan runtime module: ' + file);
+}
+const version = toc.match(/^## Version:\s*(.+)$/m)[1].trim();
+assert.equal(fs.readFileSync(path.join(root, 'Core.lua'), 'utf8').match(/M\.version = "([^"]+)"/)[1], version);
+assert.equal(fs.readFileSync(path.join(root, 'Data.lua'), 'utf8').match(/dataVersion = "([^"]+)"/)[1], version);
+const runner = fs.readFileSync(__filename, 'utf8');
+for (const file of fs.readdirSync(__dirname).filter((name) => /\.(lua|cjs)$/.test(name) && name !== 'run.cjs')) {
+  assert.ok(runner.includes("'" + file + "'") || runner.includes("'./" + file + "'"),
+    'test not wired into runner: ' + file);
+}
 // Generated native data is large; tests install small native fixtures instead, tests/native-db.lua covers the
 // decoder, and tools\monstrator-db.cjs verify plus the importer's parity check cover the real files.
 for (const file of toc.split(/\r?\n/).filter(line => line.endsWith('.lua') && !/^Data[\\/]Native[\\/]/.test(line))) {

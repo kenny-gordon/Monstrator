@@ -97,6 +97,12 @@ Monstrator's own data). `Data\Native\manifest.json` records the source (name, ve
 counts and SHA-256 of each file, and `verify` rejects any mismatch. A standalone build has no manifest and empty
 base files; `verify` then checks the overlay only.
 
+The native provider exposes `starterNpcs`, `starterObjects`, `finisherNpcs` and
+`finisherObjects` directly for quests. NPC/object `mapIDs` getters expose UI map
+keys without decoding spawn points. Third-party `startedBy`/`finishedBy` shapes
+and area-map conversions are handled only by the offline importer; the runtime
+does not carry those compatibility adapters.
+
 `Data\Native\Overlay.lua` is generated from `Data\Source\Corrections.lua`
 (hand-reviewed) and `Data\Source\Discoveries.lua` (harvested from confirmed
 journal entries and exact NPC scan vignette sightings). Overlay entries add, replace or delete (`false`) rows; each

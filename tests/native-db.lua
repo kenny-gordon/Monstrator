@@ -30,7 +30,7 @@ Q[900] = "Meat Run\t6\t4\t11\t\t10,11\t51"
 local lib = M:NativeProvider()
 assert(lib and lib.native and lib.version == "1.0.4" and M:NativeProvider() == lib, "the native provider must be cached")
 assert(lib.imported and lib.source == "ExampleDB", "imported base data must keep its source for attribution")
-assert(lib.areaMap[1] == 1 and lib.areaMap[1438] == 1438, "native spawns are already UiMap keyed")
+assert(lib.areaMap == nil and lib.addonName == nil, "the native provider must not retain unused addon adapters")
 local ids = lib.Npc.GetAllIds()
 assert(#ids == 9 and ids[1] == 10 and ids[9] == 22, "IDs must be sorted")
 assert(lib.Npc.name(10) == "Innkeeper Kauth" and lib.Npc.subName(10) == "Innkeeper" and lib.Npc.npcFlags(10) == 131)
@@ -48,9 +48,10 @@ assert(lib.Object.spawns(51)[2][1][1] == 1e-05, "exponent-formatted coordinates 
 assert(table.concat(lib.Item.vendors(2672), ",") == "20" and table.concat(lib.Item.questRewards(2672), ",") == "900")
 assert(lib.Item.vendors(2589) == nil and table.concat(lib.Item.objectDrops(2589), ",") == "50")
 assert(lib.Item.itemLevel(2672) == 15 and lib.Item.class(2589) == 7 and lib.Item.startQuest(3000) == 900)
-local starters, finishers = lib.Quest.startedBy(900), lib.Quest.finishedBy(900)
-assert(starters[1][1] == 11 and starters[2] == nil and #finishers[1] == 2 and finishers[2][1] == 51)
-assert(lib.Quest.startedBy(1) == nil and lib.Quest.questLevel(900) == 6 and lib.Quest.requiredLevel(900) == 4)
+assert(lib.Quest.starterNpcs(900)[1] == 11 and lib.Quest.starterObjects(900) == nil
+    and #lib.Quest.finisherNpcs(900) == 2 and lib.Quest.finisherObjects(900)[1] == 51)
+assert(lib.Quest.starterNpcs(1) == nil and lib.Quest.questLevel(900) == 6 and lib.Quest.requiredLevel(900) == 4)
+assert(lib.Quest.startedBy == nil and lib.Quest.finishedBy == nil, "quest fields are read directly without legacy adapters")
 
 -- The directory, item lookup and waypoints run entirely from native data.
 local notices = {}

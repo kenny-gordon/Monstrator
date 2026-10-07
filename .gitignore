@@ -4,3 +4,13 @@ dist/
 # Local tooling
 node_modules/
 *.log
+
+# Editor/OS scratch files and local backups
+*.tmp
+*.bak
+*.orig
+*.swp
+*.swo
+*~
+Thumbs.db
+.DS_Store

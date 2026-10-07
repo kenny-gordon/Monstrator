@@ -20,7 +20,7 @@
 //                                                          --standalone ships no imported data
 //   node tools\monstrator-db.cjs build [import args]       import + overlay + verify
 //
-// Lua files are evaluated with fengari: set MONSTRATOR_LUA_RUNTIME to its folder or `npm install fengari`.
+// Lua files use an isolated fengari runtime; see CONTRIBUTING.md for installation and MONSTRATOR_LUA_RUNTIME.
 const fs = require('node:fs');
 const path = require('node:path');
 const os = require('node:os');
@@ -63,7 +63,11 @@ const entries = (value) => (Array.isArray(value) ? value.map((v, i) => [i + 1, v
 
 function lua() {
   const runtime = process.env.MONSTRATOR_LUA_RUNTIME || 'fengari';
-  try { return require(runtime); } catch { fail('fengari not found; set MONSTRATOR_LUA_RUNTIME or npm install fengari'); }
+  try { return require(runtime); }
+  catch (error) {
+    fail('Unable to load Lua runtime ' + runtime + ': ' + error.message
+      + '. See CONTRIBUTING.md for isolated fengari setup.');
+  }
 }
 
 // Evaluates Lua source and returns `expr` converted to plain JS (tables with 1..n keys become arrays).

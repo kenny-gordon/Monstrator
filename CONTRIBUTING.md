@@ -22,15 +22,17 @@ Data formats are described in [DATA_SCHEMA.md](DATA_SCHEMA.md).
 | `Data\Source\` | Corrections/discoveries built into the overlay; offline source-review manifests (not shipped) |
 | `tools\` | Database toolchain, importers and client-data generators |
 | `tests\` | Test runner, WoW API mocks and behaviour tests |
+| `.github\workflows\validate.yml` | Windows CI: tests, database verification and both release builds |
+| `.editorconfig` | UTF-8, indentation and newline defaults; exact-byte source/licence exceptions |
 
 ## Development setup
 
-The tools and tests need [Node.js](https://nodejs.org/) and the
-[fengari](https://github.com/fengari-lua/fengari) Lua runtime. Install fengari
+The tools and tests use [Node.js 22 or newer](https://nodejs.org/) and
+[fengari 0.1.5](https://github.com/fengari-lua/fengari). Install the Lua runtime
 outside the addon folder so it is never packaged:
 
 ```powershell
-npm install --prefix C:\Temp\MonstratorTests --no-audit --no-fund fengari
+npm install --prefix C:\Temp\MonstratorTests --no-audit --no-fund fengari@0.1.5
 $env:MONSTRATOR_LUA_RUNTIME = 'C:\Temp\MonstratorTests\node_modules\fengari'
 ```
 
@@ -42,11 +44,19 @@ node .\tests\run.cjs
 
 The suite runs the addon's Lua against WoW API mocks (`tests\mock.lua`) and
 checks the database codec, overlay, standalone build, importers, submissions,
-the toolchain and every locale. Fengari is Lua 5.3, so the tests do not prove
+the toolchain, package hygiene and every locale. Release tests also load the
+actual full/standalone ZIP contents in the mock client and check startup, UI
+creation and native data access. The runner rejects orphan root Lua modules,
+duplicate TOC entries, unwired tests and mismatched version metadata.
+CI runs the same tests, verifies
+the checked-in database and builds both archives without requiring QuestieDB or
+AtlasLoot to be installed. Fengari is Lua 5.3, so the tests do not prove
 Lua 5.1 or client compatibility on their own; check changes in game too.
 
 Set `MONSTRATOR_DBC2CSV` to a DBC2CSV executable to also run the negative tests
 for `tools\convert-db2.ps1`.
+`verify --determinism` is an additional local check that requires the pinned
+import source; it is not part of source-independent CI.
 
 ## Database toolchain
 
@@ -276,6 +286,15 @@ Notes:
 - Do not touch secure frames in combat.
 - User-facing text goes through `L[...]` and must be added to every locale.
 - Never invent placement data: every record keeps its source and evidence level.
+- Native runtime code uses `NativeProvider` fields directly. Third-party getter
+  shapes and area-ID conversions belong in the offline importer, not the addon.
+  `ReadNativeField` contains and reports getter failures once per getter; missing
+  optional values are distinct from failed calls.
+- Keep compatibility that protects saved favorites, schema-1 data and pre-seal
+  submissions. Do not confuse these active migration paths with obsolete
+  third-party runtime adapters.
+- Follow `.editorconfig`; never reformat the byte-preserved imported source,
+  licence or generated loot layer by hand. Their manifest hashes are checked.
 
 ### Interface references
 

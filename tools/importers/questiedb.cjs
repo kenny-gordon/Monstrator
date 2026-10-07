@@ -441,10 +441,15 @@ for kind, names in pairs(fields) do
           if not sameSpawns(read(live[kind].spawns, id), native[kind].spawns(id)) then fail(kind .. " " .. id .. ".spawns lost points") end
         end
         if kind == "Quest" then
-          for _, f in ipairs({ "startedBy", "finishedBy" }) do
-            local a, b = read(live.Quest[f], id), native.Quest[f](id)
+          for _, relation in ipairs({
+            { "startedBy", "starterNpcs", "starterObjects" },
+            { "finishedBy", "finisherNpcs", "finisherObjects" },
+          }) do
+            local f = relation[1]
+            local a = read(live.Quest[f], id)
             a = type(a) == "table" and a or {}
-            if not sameList(a[1], b[1]) or not sameList(a[2], b[2]) then fail("Quest " .. id .. "." .. f .. " differs") end
+            if not sameList(a[1], native.Quest[relation[2]](id))
+              or not sameList(a[2], native.Quest[relation[3]](id)) then fail("Quest " .. id .. "." .. f .. " differs") end
           end
         end
         checked = checked + 1

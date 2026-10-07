@@ -112,8 +112,16 @@ local function table_for(data, layout, overlay, origin)
     return api
 end
 
-local faction = function(value) return value ~= "" and value or nil end
-local identityMap = setmetatable({}, { __index = function(_, key) return key end })
+local getterErrors = setmetatable({}, { __mode = "k" })
+function M.ReadNativeField(getter, id)
+    if type(getter) ~= "function" then return end
+    local ok, value = pcall(getter, id)
+    if ok then return value end
+    if not getterErrors[getter] then
+        getterErrors[getter] = true
+        M:Error("Native database getter failed for ID " .. tostring(id) .. ": " .. tostring(value))
+    end
+end
 
 function M:NativeProvider()
     local native = self.native
@@ -127,12 +135,11 @@ function M:NativeProvider()
         return table_for(native.data[kind] or {}, layout, native.overlay[kind], native.origin[kind])
     end
     local lib = {
-        native = true, addonName = "Monstrator", version = meta.version, flavor = meta.flavor,
+        native = true, version = meta.version, flavor = meta.flavor,
         commit = meta.commit, source = meta.source, imported = (npcs and next(npcs)) and true or false,
-        areaMap = identityMap,
         Npc = tableOf("Npc", {
             name = { 1, text }, subName = { 2, text }, npcFlags = { 3, number }, minLevel = { 4, number },
-            maxLevel = { 5, number }, friendlyToFaction = { 6, faction }, spawns = { 7, spawns }, mapIDs = { 7, mapIDs },
+            maxLevel = { 5, number }, friendlyToFaction = { 6, text }, spawns = { 7, spawns }, mapIDs = { 7, mapIDs },
         }),
     }
     if native.data.Object or native.overlay.Object then
@@ -175,20 +182,11 @@ function M:NativeProvider()
         end
     end
     if native.data.Quest or native.overlay.Quest then
-        local quest = tableOf("Quest", {
+        lib.Quest = tableOf("Quest", {
             name = { 1, text }, questLevel = { 2, number }, requiredLevel = { 3, number },
             starterNpcs = { 4, idList }, starterObjects = { 5, idList },
             finisherNpcs = { 6, idList }, finisherObjects = { 7, idList },
         })
-        quest.startedBy = function(id)
-            if not quest.Has(id) then return nil end
-            return { quest.starterNpcs(id), quest.starterObjects(id) }
-        end
-        quest.finishedBy = function(id)
-            if not quest.Has(id) then return nil end
-            return { quest.finisherNpcs(id), quest.finisherObjects(id) }
-        end
-        lib.Quest = quest
     end
     native.provider = lib
     return lib
