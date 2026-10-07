@@ -287,6 +287,7 @@ local function trackFont(font, fit)
 end
 
 local label, button, panel
+local AREA_TEXT_WIDTH = 173
 
 M.helpTopics = {
     { "Getting started", "help.browse" }, { "Sub-groups", "help.subgroups" },
@@ -1235,26 +1236,29 @@ function M:CreateWindow()
     trackFont(f.TitleContainer.TitleText)
     f.areaTrail = CreateFrame("Frame", nil, f, "NavBarTemplate")
     f.areaTrail:SetPoint("TOPLEFT", 70, -30)
-    f.areaTrail:SetSize(630, 30)
+    f.areaTrail:SetSize(630, 34)
+    f.areaTrail.home:Hide()
+    f.areaTrail.overflow:Hide()
+    f.areaTrail.overlay:SetFrameLevel(f.areaTrail:GetFrameLevel() + 1)
     f.areaTrail.buttons = {}
     f.areaTrail.navList, f.areaTrail.freeButtons = {}, {}
-    local function areaButton(key, x, width, callback)
+    local function areaButton(key, callback)
         local b = CreateFrame("Button", nil, f.areaTrail, "NavButtonTemplate")
-        b:SetPoint("TOPLEFT", x, 0)
-        b:SetSize(width, 30)
+        b:SetSize(80, 30)
         b:SetFrameLevel(f.areaTrail:GetFrameLevel() + 5 - #f.areaTrail.navList)
         b.MenuArrowButton:Hide()
         b.listFunc = function() return nil end
         table.insert(f.areaTrail.navList, b)
         b.text:ClearAllPoints()
-        b.text:SetPoint("LEFT", 24, 0)
+        b.text:SetPoint("LEFT", 20, 0)
         b.text:SetJustifyH("LEFT")
-        b.text:SetWidth(width - 40)
+        b.text:SetWidth(AREA_TEXT_WIDTH)
         b.text:SetHeight(24)
         b.text:SetMaxLines(1)
         b.text:SetWordWrap(false)
         b.text:SetNonSpaceWrap(false)
-        local spec = trackFont(b.text, width - 40)
+        b.text:SetFont(STANDARD_TEXT_FONT, 12)
+        local spec = trackFont(b.text, AREA_TEXT_WIDTH)
         local setText = b.SetText
         b.SetText = function(self, text)
             setText(self, text)
@@ -1270,10 +1274,11 @@ function M:CreateWindow()
         end)
         b:SetScript("OnLeave", function() GameTooltip:Hide() end)
         f.areaTrail.buttons[key] = b
+        b.areaFont = spec
         return b
     end
-    areaButton("global", 0, 110, function() self:SelectPlace("global") end)
-    areaButton("region", 110, 240, function()
+    areaButton("global", function() self:SelectPlace("global") end)
+    areaButton("region", function()
         if self.scope == "region" then self:TogglePlacePicker()
         else
             local map = self:ScopeMap()
@@ -1281,7 +1286,7 @@ function M:CreateWindow()
             self:SelectPlace("region", region and region > 0 and region or nil)
         end
     end)
-    areaButton("zone", 350, 259, function() self:TogglePlacePicker() end)
+    areaButton("zone", function() self:TogglePlacePicker() end)
     f.position = label(f, "", 710, -40, 12, 202)
     f.position:SetWidth(202)
     f.position:SetMaxLines(1)
@@ -1792,12 +1797,29 @@ function M:RenderAreaTrail()
         regionName = self:PlaceName()
     end
     local names = { global = L["World"], region = regionName, zone = zoneName }
-    for key, b in pairs(trail.buttons) do
+    local offset = 0
+    for _, key in ipairs({ "global", "region", "zone" }) do
+        local b = trail.buttons[key]
         local text = names[key]
         b:SetShown(text ~= nil)
         if text and b.areaName ~= text then b:SetText(text); b.areaName = text end
+        if text then
+            if b.areaScale ~= self.settings.textScale or b.layoutName ~= text then
+                b.text:SetWidth(AREA_TEXT_WIDTH)
+                applyFont(b.areaFont, self.settings.textScale)
+                local width = b.text.GetUnboundedStringWidth and b.text:GetUnboundedStringWidth()
+                if type(width) ~= "number" then width = b.text:GetStringWidth() end
+                b:SetWidth(math.min(AREA_TEXT_WIDTH, width) + 30)
+                b.text:SetWidth(b:GetWidth() - 30)
+                b.areaScale, b.layoutName = self.settings.textScale, text
+            end
+            b:ClearAllPoints()
+            b:SetPoint("TOPLEFT", offset, -2)
+            offset = offset + b:GetWidth()
+        end
         b.selected:SetShown(key == self.scope)
     end
+    trail:SetWidth(offset + 21)
 end
 
 function M:SetNPCFilter(ids, label)

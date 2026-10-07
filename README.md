@@ -55,7 +55,11 @@ Its area trail uses the native map's breadcrumb controls: **World → continent
 zone (or the active continent) to open the area picker. A pinned zone shows its
 own continent, not the player's. The active segment is highlighted, and the
 trail updates as you move between zones in follow mode.
-Breadcrumb labels leave room for the native arrow tips, including at larger text scales.
+The area trail uses compact, content-sized segments with native label insets
+and bar height, rather than stretching each name across a fixed-width slab.
+Long localized names are fitted within the header; changing text scale updates
+the segment sizes. Unused home/overflow controls inherited from the template
+are hidden so they cannot overlap the directory's navigation.
 **All entries** offers direct category shortcuts to services, vendors, trainers,
 transit and objects rather than an empty category list. Their **>** controls open
 the relevant sub-groups directly; choosing NPCs or Static locations shows that

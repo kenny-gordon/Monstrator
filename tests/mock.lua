@@ -87,6 +87,8 @@ function methods:SetText(text)
     if self.scripts.OnTextChanged then self.scripts.OnTextChanged(self) end
 end
 function methods:GetText() return rawget(self, "text") or "" end
+function methods:GetStringWidth() return #self:GetText() * (self.fontSize or 12) * 0.5 end
+function methods:GetUnboundedStringWidth() return self:GetStringWidth() end
 function methods:GetFont() return rawget(self, "font") or "font", rawget(self, "fontSize") or 12, "" end
 function methods:SetFont(path, size)
     uiCalls.font = uiCalls.font + 1
@@ -155,6 +157,9 @@ function CreateFrame(kind, name, parent, template)
         frame.text, frame.selected, frame.MenuArrowButton = object(), object(), object()
         frame.SetText = function(self, text) self.text:SetText(text) end
         frame.GetText = function(self) return self.text:GetText() end
+    end
+    if template == "NavBarTemplate" then
+        frame.home, frame.overflow, frame.overlay = object(), object(), object()
     end
     if template == "PanelTabButtonTemplate" then
         frame.Text = object()

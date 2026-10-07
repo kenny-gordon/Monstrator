@@ -2,6 +2,8 @@
 
 ## 1.0.0
 
+- **Integrated native area header**: replace stretched fixed-width breadcrumb segments with content-sized native controls and original text insets/bar height. Hide unused inherited home/overflow controls, keep the template overlay below labels, and resize the trail for the active hierarchy, localization and text scale.
+
 - **Quieter directory presentation**: reserve the red button for navigation, put map preview beside it, and use neutral native-highlight actions for filters, secondary entry actions and footer utilities. Increase the selected portrait/name, replace parchment heading bars with fine rules, reserve gold NPC names for selection, and move repeated evidence labels out of rows while retaining evidence badges/tooltips.
 
 - **Area-browser screenshot polish**: correct native breadcrumb spacing, arrow layering and label insets so zone/continent names are not clipped. All entries now exposes useful category/sub-group shortcuts. NPC browse counts match result rows. Move grouped placement counts out of names into Details/tooltips and remove redundant identity/command text from parchment. Use a tracking fallback rather than a misleading human head, activate the invisible portrait resolver while loading, and share the 3D viewer's creature-cache request before retrying.

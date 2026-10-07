@@ -76,8 +76,40 @@ assert(trail.buttons.zone.selected:IsShown() and not trail.buttons.region.select
 assert(trail.buttons.region.x == trail.buttons.global.x + trail.buttons.global.width
     and trail.buttons.zone.x == trail.buttons.region.x + trail.buttons.region.width,
     "native breadcrumbs abut instead of overlapping the next label")
-assert(trail.buttons.region.text.x >= 21 and trail.buttons.zone.text.x >= 21,
-    "each label leaves room for the preceding native arrow")
+assert(trail.buttons.region.text.x == 20 and trail.buttons.zone.text.x == 20,
+    "breadcrumb labels retain the client's native inset")
+assert(not trail.home:IsShown() and not trail.overflow:IsShown(),
+    "unused template home/overflow controls must not sit behind custom breadcrumbs")
+assert(trail.width < 300 and trail.height == 34, "short area names make a compact native-height trail, not stretched slabs")
+local zoneText = trail.buttons.zone.text
+local measure = zoneText.GetUnboundedStringWidth
+zoneText.GetUnboundedStringWidth = function() return 1000 end
+trail.buttons.zone.layoutName = nil
+M:RenderAreaTrail()
+assert(trail.width <= 630 and trail.buttons.zone.width <= 203,
+    "long localized names are fitted within the header instead of overlapping player position")
+zoneText.GetUnboundedStringWidth = measure
+trail.buttons.zone.layoutName = nil
+local scale = M.settings.textScale
+M.settings.textScale = 1.5
+M:RenderAreaTrail()
+local largeWidth = trail.width
+M.settings.textScale = scale
+M:RenderAreaTrail()
+assert(trail.width < largeWidth, "content-sized navigation responds to text-scale changes")
+local measures = {}
+for key, b in pairs(trail.buttons) do
+    measures[key] = b.text.GetUnboundedStringWidth
+    b.text.GetUnboundedStringWidth = function() return 1000 end
+    b.layoutName = nil
+end
+M:RenderAreaTrail()
+assert(trail.width <= 630, "even three long localized labels cannot intrude on header utilities")
+for key, b in pairs(trail.buttons) do
+    b.text.GetUnboundedStringWidth = measures[key]
+    b.layoutName = nil
+end
+M:RenderAreaTrail()
 assert(trail.buttons.global:GetFrameLevel() > trail.buttons.region:GetFrameLevel()
     and trail.buttons.region:GetFrameLevel() > trail.buttons.zone:GetFrameLevel(),
     "native arrow tips draw above the following segment")
@@ -154,6 +186,8 @@ assert(M.scope == "region" and M.regionMap == 20,
     "continent breadcrumb widens the pinned zone's continent, not the player's continent")
 trail.buttons.global:Click()
 assert(M.scope == "global" and not trail.buttons.region:IsShown() and not trail.buttons.zone:IsShown())
+assert(trail.width == trail.buttons.global.width + 21,
+    "world scope does not retain the empty continent/zone strip")
 M.window:Hide()
 M.settings.sortOrder, M.settings.evidenceFilter = "level", "pending"
 M.window.search:SetText("old search")
