@@ -2,6 +2,8 @@
 
 ## 1.0.0
 
+- **Browse sidebar polish**: clearer section spacing/dividers, consistently aligned 20px icons and 32px entry-type rows, gold selection-edge accents and full-label hover tooltips. All six categories and their sub-group controls remain within the panel; filtering behavior is unchanged.
+
 - **Details icon edge fit**: inset static and NPC artwork two pixels inside the existing 48px slot to eliminate overhang without shrinking its border or changing list icons.
 
 - **Selected portrait consistency**: selected artwork retains its larger 48px size while sharing the helper and Auction House border style of 30px list artwork. Both surfaces crop NPC images inside the client's circular portrait so the artwork fills the square corners. Corrects the unintended Details icon size reduction.

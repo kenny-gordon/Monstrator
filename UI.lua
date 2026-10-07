@@ -993,10 +993,18 @@ function M:Render()
         f.filters:SetText(self:BreadcrumbText())
         f.renderFilterView, f.renderPlace, f.renderSubgroup = self.view, place, self.subgroup
         for key, b in pairs(f.scopeButtons) do b.activeMarker:SetShown(self.scope == key) end
-        for key, b in pairs(f.kindButtons) do b.activeMarker:SetShown(self.kind == key) end
+        for key, b in pairs(f.kindButtons) do
+            b.activeMarker:SetShown(self.kind == key)
+            b.selectionEdge:SetShown(self.kind == key)
+            b.labelFont:SetTextColor(self.kind == key and 1 or 0.86, self.kind == key and 0.82 or 0.84,
+                self.kind == key and 0.35 or 0.78)
+        end
         for i, b in ipairs(f.categoryButtons) do
             local kind, category = self:BrowseCategory(i)
             b.activeMarker:SetShown(kind == self.kind and category == self.category)
+            local active = kind == self.kind and category == self.category
+            b.selectionEdge:SetShown(active)
+            b.labelFont:SetTextColor(active and 1 or 0.86, active and 0.82 or 0.84, active and 0.35 or 0.78)
         end
         f.renderScope, f.renderKind, f.renderCategory = self.scope, self.kind, self.category
     end
@@ -1350,11 +1358,30 @@ function M:CreateWindow()
         return b
     end
     local function section(text, y)
-        local heading = label(f, text, 30, y, 11)
+        local heading = label(f, text, 30, y, 12)
         heading:SetWidth(204)
         heading:SetJustifyH("LEFT")
-        heading:SetTextColor(0.7, 0.72, 0.78)
+        heading:SetTextColor(0.82, 0.78, 0.65)
+        local rule = f:CreateTexture(nil, "BACKGROUND")
+        rule:SetPoint("TOPLEFT", 30, y + 7)
+        rule:SetSize(204, 1)
+        rule:SetColorTexture(0.6, 0.5, 0.35, 0.25)
         return heading
+    end
+    local function browseRow(b)
+        b:SetHeight(32)
+        if b.browseIcon then
+            b.browseIcon:ClearAllPoints()
+            b.browseIcon:SetPoint("LEFT", 8, 0)
+            b.browseIcon:SetSize(20, 20)
+        end
+        b:SetScript("OnEnter", function(owner)
+            self.focusIndex = nil
+            GameTooltip:SetOwner(owner, "ANCHOR_RIGHT")
+            GameTooltip:SetText(owner:GetText())
+            GameTooltip:Show()
+        end)
+        b:SetScript("OnLeave", function() GameTooltip:Hide() end)
     end
     section("Search scope", -146)
     f.scopeButtons = {
@@ -1383,22 +1410,23 @@ function M:CreateWindow()
         f.viewButtons[view] = tab
         table.insert(self.focusOrder, tab)
     end
-    section("Entry type", -226)
+    section("Entry type", -230)
     f.kindButtons = {
-        all = control("All entries", 28, -242, function() self.kind = "all"; self.category = "All"; self:UpdateCategories() end, nil, "INV_Misc_Map02"),
-        npc = control("NPCs", 28, -270, function() self.kind = "npc"; self.category = "All"; self:UpdateCategories() end, nil, "INV_Misc_Head_Human_01"),
-        location = control("Static locations", 28, -298, function() self.kind = "location"; self.category = "All"; self:UpdateCategories() end, nil, "INV_Misc_StoneTablet_05"),
+        all = control("All entries", 28, -250, function() self.kind = "all"; self.category = "All"; self:UpdateCategories() end, nil, "INV_Misc_Map02"),
+        npc = control("NPCs", 28, -284, function() self.kind = "npc"; self.category = "All"; self:UpdateCategories() end, nil, "INV_Misc_Head_Human_01"),
+        location = control("Static locations", 28, -318, function() self.kind = "location"; self.category = "All"; self:UpdateCategories() end, nil, "INV_Misc_StoneTablet_05"),
     }
-    section("Categories", -330)
+    for _, b in pairs(f.kindButtons) do browseRow(b) end
+    section("Categories", -366)
     f.categoryButtons, f.subgroupButtons = {}, {}
     for i = 1, 6 do
-        local b = control("All", 28, -350 - (i - 1) * 38, function()
+        local b = control("All", 28, -386 - (i - 1) * 38, function()
             local kind, category = self:BrowseCategory(i)
             self.kind, self.category, self.subgroup = kind, category, nil
             if f.subpicker then f.subpicker:Hide() end
             self:UpdateCategories()
         end, 180, "INV_Misc_Map02")
-        b:SetHeight(32)
+        browseRow(b)
         b.labelFont:SetHeight(30)
         b.labelFont:SetMaxLines(2)
         b.labelFont:SetWordWrap(true)
@@ -1406,7 +1434,7 @@ function M:CreateWindow()
         b.labelSpec.fit = 276
         selectionMarker(b)
         f.categoryButtons[i] = b
-        local more = control(">", 212, -350 - (i - 1) * 38, function()
+        local more = control(">", 212, -390 - (i - 1) * 38, function()
             local kind, category = self:BrowseCategory(i)
             if category then
                 if kind ~= self.kind then
@@ -1431,6 +1459,15 @@ function M:CreateWindow()
     for _, group in ipairs({ f.scopeButtons, f.kindButtons }) do
         for _, b in pairs(group) do selectionMarker(b) end
     end
+    local function accent(b)
+        local edge = b:CreateTexture(nil, "ARTWORK")
+        edge:SetPoint("TOPLEFT", 0, -3)
+        edge:SetSize(2, b:GetHeight() - 6)
+        edge:SetColorTexture(1, 0.82, 0.35, 0.9)
+        b.selectionEdge = edge
+    end
+    for _, b in pairs(f.kindButtons) do accent(b) end
+    for _, b in ipairs(f.categoryButtons) do accent(b) end
 
     local nameHeader = label(f, "Name", 274, -144, 11)
     nameHeader:SetTextColor(0.7, 0.72, 0.78)

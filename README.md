@@ -59,6 +59,9 @@ nearest first; explicit area commands and Favorites/Journal remain available.
 transit and objects rather than an empty category list. Their **>** controls open
 the relevant sub-groups directly; choosing NPCs or Static locations shows that
 type's complete category list. Browse counts represent matching rows.
+Browse sections have subtle dividers, consistently aligned 20px icons and
+roomier rows. Selected entry types/categories have a gold edge accent; hover a
+row for its full label. Scope and sub-group behavior is unchanged.
 Textured browsing panels sit beside a quest-parchment Details page with dark
 ink and section headings. If the parchment atlas is unavailable, Monstrator
 reports it and retains the dark readable layout. No third-party artwork is bundled.

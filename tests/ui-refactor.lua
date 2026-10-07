@@ -145,6 +145,14 @@ assert(not M.window.rows[1].icon.portraitMask and not M.window.rows[1].icon.port
 assert(M.window.rows[1].icon.portraitTexture ~= M.window.rows[1].icon,
     "engine-generated portraits never share the static object texture")
 assert(M.window.categoryButtons[1].browseIcon, "browse filters have visual category cues")
+assert(M.window.kindButtons.all.height == 32 and M.window.kindButtons.all.browseIcon.width == 20
+    and M.window.categoryButtons[1].browseIcon.width == 20, "Browse rows use consistently sized and aligned icons")
+assert(M.window.kindButtons.all.selectionEdge:IsShown() and not M.window.kindButtons.npc.selectionEdge:IsShown()
+    and M.window.categoryButtons[1].selectionEdge:IsShown(), "sidebar selections have clear native-gold edge accents")
+assert(M.window.categoryButtons[6].y - M.window.categoryButtons[6].height >= -624,
+    "all six categories remain inside the Browse panel")
+assert(M.window.categoryButtons[1]:GetScript("OnEnter") and M.window.kindButtons.all:GetScript("OnEnter"),
+    "Browse rows expose full labels on hover")
 local browse = M.window.kindButtons.all
 assert(not browse.Left:IsShown() and not browse.Middle:IsShown() and not browse.Right:IsShown(),
     "list styling hides template regions without passing nil texture assets")
