@@ -2,6 +2,9 @@
 
 ## 1.0.0
 
+- **NPC portraits and screenshot fixes**: directory rows and selected entries use matching live-unit portraits or client-resolved creature display portraits, with a shared bounded loader and icon fallback for unavailable NPCs. Recycled rows ignore late portrait results. Unknown NPCs no longer default to a hostile-looking sword. Larger result text and explicit, unlimited parchment word wrapping prevent the Evidence section from overflowing horizontally.
+- **Beta-update compatibility and clearer controls**: newer client builds can discover world-zone maps from the live hierarchy without reusing incompatible extracted object coordinates. Unavailable automatic scans expose a nonfatal coverage status instead of the misleading build-mismatch error. The former Focus button is now Keyboard, with shortcut help. Scan alerts can mark the actual sighted NPC with a skull on click, preserving existing marks and checking combat, visibility and raid permissions.
+
 - **Compatibility fix**: icon-led sidebar controls hide their template artwork without passing nil to texture setters, which Forever rejects. Search callbacks ignore incomplete or replaced windows to prevent a follow-on error after failed construction.
 - **Directory readability**: larger secondary row text, less repeated technical data, contextual service/quest-giver icons instead of generic keys, and neutral colors for faraway distances. NPC IDs and levels remain available in Details.
 - **Research-led window redesign**: use Forever's native portrait frame and bottom list tabs, textured browsing surfaces and a quest-parchment entry page. More space for entry details, integrated section headings instead of nested boxes, and coverage/progress moved to the footer tooltip. Built-in templates and artwork are referenced directly; no addon dependency or copied assets.

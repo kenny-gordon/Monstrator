@@ -128,7 +128,38 @@ assert(M:ObservationCount() == 0 and M.index.byKey[record.key] == nil)
 
 local catalog, buildInfo, mapInfo = M.clientMapCatalog, GetBuildInfo, C_Map.GetMapInfo
 assert(#catalog.maps == 50 and catalog.build == "1.60.1.70205")
+local messagesBeforeMismatch = #messages
 assert(not M:StartClientWorldSync(), "an extracted catalog must not run on an unmatched build")
+assert(#messages == messagesBeforeMismatch, "routine beta mismatch must not emit a broken-addon error")
+assert(M.clientData.worldSyncStatus == M.L["mapScan.limited"],
+    "unavailable world scans report their limitation without implying the directory is broken")
+local childrenInfo = C_Map.GetMapChildrenInfo
+C_Map.GetMapInfo = function(id)
+    if id == 1 or id == 2 then return { name = "Live zone", parentMapID = 100 } end
+    if id == 100 then return { name = "Live world", parentMapID = 0 } end
+end
+C_Map.GetMapChildrenInfo = function(root, mapType, descendants)
+    assert(root == 100 and mapType == 3 and descendants)
+    return { { mapID = 2 }, { mapID = 1 }, { mapID = 2 }, { mapID = -1 } }
+end
+GetBuildInfo = function() return "1.60.2", "99999", "test-date", 16001 end
+local liveMaps = M:ClientWorldMaps()
+assert(#liveMaps == 2 and liveMaps[1] == 1 and liveMaps[2] == 2,
+    "a newer beta build discovers deduplicated zone IDs from its live map hierarchy")
+M.clientData.worldScanned = nil
+assert(M:StartClientWorldSync() and #M.clientData.worldQueue.maps == 2)
+assert(not M.clientData.worldSyncStatus and not M.clientData.worldSyncRefused)
+M.clientData.worldQueue = nil
+C_Map.GetMapChildrenInfo = function() return {} end
+assert(not M:StartClientWorldSync(), "an empty live hierarchy must not pretend a world scan succeeded")
+C_Map.GetMapChildrenInfo = function() error("synthetic hierarchy failure") end
+assert(not M:StartClientWorldSync(true) and M.clientData.errors["map-catalog"],
+    "actual live hierarchy failures must be reported")
+C_Map.GetMapChildrenInfo = function() return { { mapID = 1 } } end
+assert(M:StartClientWorldSync(true) and not M.clientData.errors["map-catalog"],
+    "explicit retry clears the failed hierarchy provider before trying it again")
+M.clientData.worldQueue = nil
+C_Map.GetMapChildrenInfo, C_Map.GetMapInfo = childrenInfo, mapInfo
 M.clientMapCatalog = { build = "1.60.1.70205", maps = { 1, 2, 3 } }
 GetBuildInfo = function() return "1.60.1", "70205", "test-date", 16001 end
 M.clientData.maps, M.clientData.errors = {}, {}
@@ -170,6 +201,10 @@ M.clientData.worldQueue = nil
 C_TaxiMap, C_AreaPoiInfo = nil, nil
 local extractedData = M.extractedObjects
 M.extractedObjects = nil
+M.clientData.worldScanned = nil
+local noProviderMessages = #messages
+assert(not M:StartClientWorldSync() and #messages == noProviderMessages and M.clientData.worldSyncStatus,
+    "missing optional providers expose limited coverage rather than recurring automatic errors")
 assert(not M:StartClientWorldSync(true), "missing providers must be reported, not queued as success")
 M.extractedObjects = extractedData
 C_TaxiMap = { GetTaxiNodesForMap = function() return {} end }

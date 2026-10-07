@@ -1,6 +1,14 @@
 local _, M = ...
 if GetLocale() ~= "deDE" then return end
 local L = M.L
+L["mapScan.limited"] = "Der Weltkartenscan ist für diese Client-Version nicht verfügbar. Markierungen der aktuellen Zone und die Datenbank bleiben verfügbar."
+L["scan.mark"] = "NPC mit Totenkopf markieren"
+L["scan.markHint"] = "Klicken, um den gesichteten NPC mit einem Totenkopf zu markieren. Er muss noch sichtbar oder anvisiert sein. Vorhandene Markierungen bleiben erhalten. Im Schlachtzug sind Leiter- oder Assistentenrechte nötig. Nicht im Kampf verfügbar."
+L["scan.markCombat"] = "Markiere den NPC nach dem Kampf."
+L["scan.markUnavailable"] = "NPC-Markierungen sind auf diesem Client nicht verfügbar."
+L["scan.markPermission"] = "Der Client hat die Markierung nicht erlaubt. Frage im Schlachtzug den Leiter oder einen Assistenten."
+L["scan.markOccupied"] = "Dieser NPC hat bereits eine andere Schlachtzugsmarkierung; sie wurde nicht geändert."
+L["scan.markMissing"] = "Der gesichtete NPC ist nicht mehr sichtbar. Wähle ihn als Ziel oder nähere dich bis zur Namensleistenreichweite und markiere ihn dann."
 -- Core UI strings; anything untranslated falls back to English. Database names stay as in the game data.
 L["zone"] = "Aktuelle Zone"
 L["global"] = "Ganze Welt"

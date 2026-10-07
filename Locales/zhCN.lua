@@ -1,6 +1,14 @@
 local _, M = ...
 if GetLocale() ~= "zhCN" then return end
 local L = M.L
+L["mapScan.limited"] = "此客户端版本无法扫描世界地图。当前区域标记和目录数据库仍可使用。"
+L["scan.mark"] = "用骷髅标记NPC"
+L["scan.markHint"] = "点击为发现的NPC添加骷髅标记。NPC必须仍可见或已被选为目标。保留已有标记；在团队中需要团长或助理权限。战斗中不可使用。"
+L["scan.markCombat"] = "请在战斗结束后标记NPC。"
+L["scan.markUnavailable"] = "此客户端无法标记NPC。"
+L["scan.markPermission"] = "客户端未允许此标记。在团队中请联系团长或助理。"
+L["scan.markOccupied"] = "此NPC已有其他团队标记，未作更改。"
+L["scan.markMissing"] = "发现的NPC已不可见。请选中它或靠近到能看到姓名板的距离，再进行标记。"
 -- Core UI strings; anything untranslated falls back to English. Database names stay as in the game data.
 L["zone"] = "当前区域"
 L["global"] = "全局世界"

@@ -218,7 +218,9 @@ M:Render()
 assert(M.window.rows[1].distance.color[3] == 0.6 and M.window.rows[4].distance:GetText():find("101 yd"))
 M.settings.textScale = 1.5
 M:Render()
-assert(window.rows[1].name.fontSize == 19.5 and window.rows[1].detail.fontSize == 18)
+assert(window.rows[1].name.fontSize == 21 and window.rows[1].detail.fontSize == 19.5)
+assert(-window.rows[1].name.y + window.rows[1].name.fontSize <= -window.rows[1].detail.y,
+    "maximum supported text scale must keep name and secondary lines separate")
 assert(23 + window.rows[1].detail.fontSize <= window.rows[1].height,
     "maximum supported text scale must fit the row's second line")
 M.settings.textScale = 1

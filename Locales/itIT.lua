@@ -1,6 +1,14 @@
 local _, M = ...
 if GetLocale() ~= "itIT" then return end
 local L = M.L
+L["mapScan.limited"] = "La scansione mondiale non è disponibile per questa versione del client. Gli indicatori della zona attuale e il database restano disponibili."
+L["scan.mark"] = "Segna PNG con teschio"
+L["scan.markHint"] = "Clicca per mettere un teschio sul PNG avvistato. Deve essere ancora visibile o selezionato. I marchi esistenti sono conservati. Nelle incursioni servono i permessi di capo o assistente. Non disponibile in combattimento."
+L["scan.markCombat"] = "Segna il PNG dopo il combattimento."
+L["scan.markUnavailable"] = "I marchi sui PNG non sono disponibili su questo client."
+L["scan.markPermission"] = "Il client non ha consentito il marchio. Nelle incursioni chiedi al capo o a un assistente."
+L["scan.markOccupied"] = "Questo PNG ha già un altro marchio d'incursione; è rimasto invariato."
+L["scan.markMissing"] = "Il PNG avvistato non è più visibile. Selezionalo o avvicinati finché appare la barra del nome, poi segnalo."
 -- Core UI strings; anything untranslated falls back to English. Database names stay as in the game data.
 L["zone"] = "Zona attuale"
 L["global"] = "Mondo intero"

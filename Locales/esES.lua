@@ -2,6 +2,14 @@ local _, M = ...
 local locale = GetLocale()
 if locale ~= "esES" and locale ~= "esMX" then return end
 local L = M.L
+L["mapScan.limited"] = "El escaneo mundial no está disponible para esta versión del cliente. Los marcadores de la zona actual y la base siguen disponibles."
+L["scan.mark"] = "Marcar PNJ con calavera"
+L["scan.markHint"] = "Haz clic para poner una calavera sobre el PNJ avistado. Debe seguir visible o seleccionado. Se conservan las marcas existentes. En banda se requiere permiso de líder o ayudante. No disponible en combate."
+L["scan.markCombat"] = "Marca al PNJ después del combate."
+L["scan.markUnavailable"] = "El marcado de PNJ no está disponible en este cliente."
+L["scan.markPermission"] = "El cliente no permitió la marca. En banda, consulta al líder o a un ayudante."
+L["scan.markOccupied"] = "Este PNJ ya tiene otra marca de banda; no se ha cambiado."
+L["scan.markMissing"] = "El PNJ avistado ya no está visible. Selecciónalo o acércate hasta ver su placa de nombre y vuelve a marcarlo."
 -- Core UI strings; anything untranslated falls back to English. Database names stay as in the game data.
 L["zone"] = "Zona actual"
 L["global"] = "Mundo entero"

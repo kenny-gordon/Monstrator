@@ -1,5 +1,13 @@
 local _, M = ...
 local L = M.L
+L["mapScan.limited"] = "World map scanning is unavailable for this client build. Current-zone markers and the directory database remain available."
+L["scan.mark"] = "Mark NPC with skull"
+L["scan.markHint"] = "Click to place a skull over the sighted NPC. It must still be visible or targeted. Existing marks are preserved; raid leader/assistant permission is required in raids. Unavailable during combat."
+L["scan.markCombat"] = "Mark the NPC after combat."
+L["scan.markUnavailable"] = "NPC marking is unavailable on this client."
+L["scan.markPermission"] = "The client did not allow the marker. In raids, ask the leader or an assistant."
+L["scan.markOccupied"] = "This NPC already has a different raid marker; it was left unchanged."
+L["scan.markMissing"] = "The sighted NPC is no longer visible. Target it or move into nameplate range, then mark it."
 -- English base strings. Plain-English keys fall back to themselves (see Core.lua), so only symbolic keys
 -- and wording overrides need an entry here. Other locales override any key they translate.
 L["zone"] = "Current zone"

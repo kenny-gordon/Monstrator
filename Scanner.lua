@@ -207,7 +207,7 @@ function M:ScanUnit(unit, source)
     local level = UnitLevel and UnitLevel(unit)
     if not self:IsFinite(level) then level = nil end
     return self:ScanAlert({ npcID = npcID, name = name, reason = reason, source = source,
-        classification = classification, level = level, unit = unit })
+        classification = classification, level = level, unit = unit, guid = guid })
 end
 
 function M:ScanNameplates()
@@ -231,7 +231,7 @@ function M:ScanVignette(vignetteGUID)
     if not name then return end
     local reason = self:IsWatched(npcID, name) and "watch" or (self.settings.scanRares and "rare" or nil)
     if not reason then return end
-    local hit = { npcID = npcID, name = name, reason = reason, source = "vignette" }
+    local hit = { npcID = npcID, name = name, reason = reason, source = "vignette", guid = info.objectGUID }
     local mapID = self:PlayerPosition()
     if mapID and type(api.GetVignettePosition) == "function" then
         local okPosition, position = pcall(api.GetVignettePosition, vignetteGUID, mapID)
@@ -308,6 +308,39 @@ function M:ScanWaypoint(hit)
     return false
 end
 
+function M:MarkScanNPC()
+    local hit = self.scanHit
+    if inCombat() then self:Error(L["scan.markCombat"]); return false end
+    if not SetRaidTarget or not GetRaidTargetIndex then
+        self:Error(L["scan.markUnavailable"]); return false
+    end
+    if IsInRaid and IsInRaid() and not ((UnitIsGroupLeader and UnitIsGroupLeader("player"))
+        or (UnitIsGroupAssistant and UnitIsGroupAssistant("player"))) then
+        self:Error(L["scan.markPermission"]); return false
+    end
+    local units = { "target", "mouseover" }
+    if hit and hit.unit then table.insert(units, 1, hit.unit) end
+    for i = 1, 40 do table.insert(units, "nameplate" .. i) end
+    for _, unit in ipairs(units) do
+        local guid = UnitGUID(unit)
+        local dead = UnitIsDead and UnitIsDead(unit)
+        if hit and readable(guid) and creatureID(guid) == hit.npcID
+            and (not hit.guid or guid == hit.guid) and readable(dead) and not dead then
+            local marker = GetRaidTargetIndex(unit)
+            if not readable(marker) then self:Error(L["scan.markUnavailable"]); return false end
+            if marker == 8 then return true end
+            if marker and marker ~= 0 then self:Error(L["scan.markOccupied"]); return false end
+            local ok, err = pcall(SetRaidTarget, unit, 8)
+            if not ok then self:Error(tostring(err)); return false end
+            local applied = GetRaidTargetIndex(unit)
+            if not readable(applied) or applied ~= 8 then self:Error(L["scan.markPermission"]); return false end
+            return true
+        end
+    end
+    self:Error(L["scan.markMissing"])
+    return false
+end
+
 -- Targeting an NPC by name needs a secure button. Its attributes and visibility cannot change in combat, so it
 -- is a separate top-level frame (never anchored to the alert) and updates are deferred to PLAYER_REGEN_ENABLED.
 function M:SetScanTarget(name)
@@ -345,7 +378,7 @@ end
 function M:CreateScanAlert()
     local W = self.Widgets
     local f = CreateFrame("Frame", "MonstratorScanAlert", UIParent, "BackdropTemplate")
-    f:SetSize(380, 114)
+    f:SetSize(380, 142)
     f:SetPoint("TOP", UIParent, "TOP", 0, -150)
     -- Alerts must sit above every Monstrator window (HIGH/DIALOG), not underneath them.
     f:SetFrameStrata("FULLSCREEN_DIALOG")
@@ -369,6 +402,14 @@ function M:CreateScanAlert()
         if self.scanHit then self:ShowModel("npc", self.scanHit.npcID, self.scanHit.name) end
     end)
     f.close = W.button(f, "Close", 284, -80, 82, function() f:Hide() end)
+    f.mark = W.button(f, "scan.mark", 14, -110, 352, function() self:MarkScanNPC() end)
+    f.mark:SetScript("OnEnter", function(owner)
+        GameTooltip:SetOwner(owner, "ANCHOR_BOTTOM")
+        GameTooltip:SetText(L["scan.mark"])
+        GameTooltip:AddLine(L["scan.markHint"], 1, 1, 1, true)
+        GameTooltip:Show()
+    end)
+    f.mark:SetScript("OnLeave", function() GameTooltip:Hide() end)
     f:SetScript("OnHide", function() self:SetScanTarget(nil) end)
     local ok, target = pcall(CreateFrame, "Button", "MonstratorScanTarget", UIParent,
         "SecureActionButtonTemplate,UIPanelButtonTemplate")

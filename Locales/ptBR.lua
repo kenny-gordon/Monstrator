@@ -1,6 +1,14 @@
 local _, M = ...
 if GetLocale() ~= "ptBR" then return end
 local L = M.L
+L["mapScan.limited"] = "A varredura mundial não está disponível para esta versão do cliente. Os marcadores da zona atual e o banco de dados continuam disponíveis."
+L["scan.mark"] = "Marcar PNJ com caveira"
+L["scan.markHint"] = "Clique para colocar uma caveira no PNJ avistado. Ele deve continuar visível ou selecionado. Marcas existentes são preservadas. Em raides, exige permissão de líder ou assistente. Indisponível em combate."
+L["scan.markCombat"] = "Marque o PNJ após o combate."
+L["scan.markUnavailable"] = "A marcação de PNJs não está disponível neste cliente."
+L["scan.markPermission"] = "O cliente não permitiu a marca. Em raides, peça ao líder ou a um assistente."
+L["scan.markOccupied"] = "Este PNJ já tem outra marca de raide; ela não foi alterada."
+L["scan.markMissing"] = "O PNJ avistado não está mais visível. Selecione-o ou aproxime-se até ver sua placa de nome e tente marcá-lo."
 -- Core UI strings; anything untranslated falls back to English. Database names stay as in the game data.
 L["zone"] = "Zona atual"
 L["global"] = "Mundo inteiro"

@@ -1,6 +1,14 @@
 local _, M = ...
 if GetLocale() ~= "koKR" then return end
 local L = M.L
+L["mapScan.limited"] = "이 클라이언트 버전에서는 월드 지도 탐색을 사용할 수 없습니다. 현재 지역 표시와 디렉터리 데이터베이스는 계속 사용할 수 있습니다."
+L["scan.mark"] = "NPC에 해골 표시"
+L["scan.markHint"] = "클릭하여 발견한 NPC에 해골을 표시합니다. NPC가 보이거나 대상으로 선택되어 있어야 합니다. 기존 표시는 유지됩니다. 공격대에서는 공대장 또는 부공대장 권한이 필요합니다. 전투 중에는 사용할 수 없습니다."
+L["scan.markCombat"] = "전투가 끝난 후 NPC에 표시하세요."
+L["scan.markUnavailable"] = "이 클라이언트에서는 NPC 표시를 사용할 수 없습니다."
+L["scan.markPermission"] = "클라이언트가 표시를 허용하지 않았습니다. 공격대에서는 공대장이나 부공대장에게 요청하세요."
+L["scan.markOccupied"] = "이 NPC에는 이미 다른 공격대 표시가 있어 변경하지 않았습니다."
+L["scan.markMissing"] = "발견한 NPC가 더 이상 보이지 않습니다. 대상으로 선택하거나 이름표가 보이는 거리로 이동한 후 표시하세요."
 -- Core UI strings; anything untranslated falls back to English. Database names stay as in the game data.
 L["zone"] = "현재 지역"
 L["global"] = "전체 세계"

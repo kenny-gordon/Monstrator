@@ -44,6 +44,43 @@ assert(not M.scanTargetButton or M.scanTargetButton.strata == M.scanAlert.strata
 assert(attributes.macrotext == "/targetexact Mirelow" and target:IsShown(), "the secure target button follows the alert")
 assert(sounds == 0, "sound respects the setting")
 assert(warnings == 1, "alerts post a raid warning")
+do
+    local savedSet, savedGet, savedRaid = SetRaidTarget, GetRaidTargetIndex, IsInRaid
+    local savedLeader, savedAssistant, savedCombat = UnitIsGroupLeader, UnitIsGroupAssistant, InCombatLockdown
+    local markers, markCalls = {}, 0
+    SetRaidTarget = function(unit, index) markCalls = markCalls + 1; markers[unit] = index end
+    GetRaidTargetIndex = function(unit) return markers[unit] end
+    IsInRaid = function() return false end
+    InCombatLockdown = function() return false end
+    M.scanAlert.mark:Click()
+    assert(markers.nameplate2 == 8 and markCalls == 1, "alert button places a skull over the actual sighted rare")
+    assert(M:MarkScanNPC() and markCalls == 1, "already marked NPC does not trigger another change")
+    markers.nameplate2 = 4
+    assert(not M:MarkScanNPC() and markers.nameplate2 == 4, "existing raid markers are preserved")
+    markers.nameplate2 = nil
+    InCombatLockdown = function() return true end
+    assert(not M:MarkScanNPC() and markCalls == 1, "combat must never queue an automatic later marker")
+    InCombatLockdown = function() return false end
+    IsInRaid = function() return true end
+    UnitIsGroupLeader, UnitIsGroupAssistant = function() return false end, function() return false end
+    assert(not M:MarkScanNPC() and markCalls == 1, "raid permission is checked before marking")
+    UnitIsGroupAssistant = function() return true end
+    assert(M:MarkScanNPC() and markCalls == 2, "raid assistant can place the marker")
+    markers.nameplate2 = nil
+    local rare = units.nameplate2
+    npc("nameplate2", 777, "Unrelated creature")
+    assert(not M:MarkScanNPC() and markCalls == 2, "recycled nameplate token cannot mark the wrong creature")
+    npc("nameplate2", 502, "Mirelow", "rare")
+    units.nameplate2.guid = "Creature-0-0-0-0-502-DIFFERENT"
+    assert(not M:MarkScanNPC() and markCalls == 2, "a different spawn of the same NPC is not the sighted rare")
+    units.nameplate2 = nil
+    units.target = rare
+    assert(M:MarkScanNPC() and markers.target == 8, "targeted rare can be marked after its nameplate disappears")
+    units.target = nil
+    units.nameplate2 = rare
+    SetRaidTarget, GetRaidTargetIndex, IsInRaid = savedSet, savedGet, savedRaid
+    UnitIsGroupLeader, UnitIsGroupAssistant, InCombatLockdown = savedLeader, savedAssistant, savedCombat
+end
 fire(nil, "NAME_PLATE_UNIT_ADDED", "nameplate2")
 assert(#s.scanLog == 1, "the same NPC does not re-alert within the cooldown")
 clock = clock + 301

@@ -166,6 +166,13 @@ The parchment atlas is `QuestBG-Parchment`, defined in
 The textured background is `Interface\FrameGeneral\UI-Background-Rock`.
 These are client-owned references, not bundled assets.
 
+NPC artwork resolves a creature display ID through the documented
+`PlayerModel:SetCreature` / `GetDisplayInfo` methods, then uses
+`SetPortraitTextureFromCreatureDisplayID`; live-unit portraits use
+`SetPortraitTexture`. Never pass an NPC ID as a display ID. Keep appearance
+lookups serialized, the session cache bounded and late callbacks guarded
+against recycled rows. Unavailable appearances keep their category icon.
+
 Design research also examined
 [Journalator's tabbed display](https://github.com/TheMouseNest/Journalator)
 and [AtlasLoot's visual entry controls](https://github.com/Hoizame/AtlasLootClassic).
@@ -174,6 +181,10 @@ Validate native templates in Forever's branch rather than assuming an Era
 template or a texture setter's nil behavior is compatible. In-game release
 checks must cover native tabs, enlarged/localized text, parchment contrast and
 the reported dark-layout fallback when the atlas is missing.
+Also check portraits after scrolling, Keyboard button help, rare marking with
+and without raid permissions, combat restrictions, and live world-map discovery
+on a client build newer than the extracted catalog. Build/locale gates on
+extracted object coordinates must remain intact.
 
 ## Release checklist
 

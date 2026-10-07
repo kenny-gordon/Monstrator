@@ -27,7 +27,7 @@ end
 local categoryIcons = {
     Services = "INV_Misc_GroupLooking", Vendors = "INV_Misc_Coin_01",
     Trainers = "INV_Misc_Book_09", Transit = "Ability_Mount_Wyvern_01",
-    Combat = "INV_Sword_04", Mailboxes = "INV_Letter_15",
+    Combat = "INV_Misc_Head_Human_01", Mailboxes = "INV_Letter_15",
     Instances = "INV_Misc_StoneTablet_05", Landmarks = "INV_Misc_Map02",
     Objects = "INV_Misc_TreasureChest01",
 }
@@ -66,6 +66,114 @@ function M:EntryIcon(record)
     end
     return "Interface\\Icons\\" .. (categoryIcons[record.category]
         or (record.kind == "npc" and "INV_Misc_Head_Human_01" or "INV_Misc_Map02"))
+end
+
+local function portraitCall(fn, ...)
+    local ok, value = pcall(fn, ...)
+    if not ok then M:Error(tostring(value)); return end
+    return value, true
+end
+
+local function paintPortrait(texture, displayID)
+    local _, ok = portraitCall(SetPortraitTextureFromCreatureDisplayID, texture, displayID)
+    if ok then
+        texture:SetTexCoord(0, 1, 0, 1)
+        texture.portraitDisplayID = displayID
+    end
+end
+
+local function resolvePortrait()
+    local state = M.portraits
+    if state.busy then return end
+    local job
+    while true do
+        job = table.remove(state.queue, 1)
+        if not job then return end
+        local active = false
+        for texture in pairs(job.textures) do
+            if texture.portraitNPC == job.id then active = true; break end
+        end
+        if active then break end
+        state.pending[job.id] = nil
+    end
+    state.busy = true
+    portraitCall(state.model.ClearModel, state.model)
+    local _, started = portraitCall(state.model.SetCreature, state.model, job.id)
+    local attempts = 0
+    local function finish(displayID)
+        if not state.cache[job.id] then
+            table.insert(state.cacheOrder, job.id)
+            if #state.cacheOrder > 256 then state.cache[table.remove(state.cacheOrder, 1)] = nil end
+        end
+        state.cache[job.id] = { displayID = displayID, time = GetTime() }
+        for texture in pairs(job.textures) do
+            if displayID and texture.portraitNPC == job.id then paintPortrait(texture, displayID) end
+        end
+        state.pending[job.id], state.busy = nil, false
+        C_Timer.After(0, resolvePortrait)
+    end
+    local function loaded()
+        attempts = attempts + 1
+        local displayID, ok = portraitCall(state.model.GetDisplayInfo, state.model)
+        if ok and M:IsFinite(displayID) and displayID > 0 and displayID % 1 == 0 then
+            finish(displayID)
+        elseif ok and attempts < 3 then
+            C_Timer.After(0.2, loaded)
+        else
+            finish()
+        end
+    end
+    if started then C_Timer.After(0.1, loaded) else finish() end
+end
+
+function M:SetEntryArtwork(texture, record)
+    local icon = self:EntryIcon(record)
+    local npcID = record.kind == "npc" and record.npcID or nil
+    if texture.entryIcon ~= icon or texture.portraitNPC ~= npcID then
+        texture:SetTexture(icon)
+        texture:SetTexCoord(0.07, 0.93, 0.07, 0.93)
+        texture.entryIcon, texture.portraitNPC = icon, npcID
+        texture.portraitDisplayID = nil
+    end
+    if not self:IsFinite(npcID) or npcID < 1 or npcID % 1 ~= 0 then return end
+    if SetPortraitTexture and UnitGUID then
+        for _, unit in ipairs({ "target", "mouseover" }) do
+            local guid = UnitGUID(unit)
+            if not (issecretvalue and issecretvalue(guid)) and type(guid) == "string" then
+                local kind, _, _, _, _, id = strsplit("-", guid)
+                if (kind == "Creature" or kind == "Vehicle") and tonumber(id) == npcID then
+                    local _, ok = portraitCall(SetPortraitTexture, texture, unit)
+                    if ok then texture:SetTexCoord(0, 1, 0, 1); return end
+                end
+            end
+        end
+    end
+    if not SetPortraitTextureFromCreatureDisplayID or not C_Timer or not C_Timer.After then return end
+    if not self.portraits then
+        local model = CreateFrame("PlayerModel", nil, UIParent)
+        model:SetSize(1, 1)
+        model:Hide()
+        if not model.SetCreature or not model.GetDisplayInfo then return end
+        self.portraits = { model = model, cache = {}, cacheOrder = {}, queue = {}, pending = {} }
+    end
+    local state = self.portraits
+    local cached = state.cache[npcID]
+    if cached then
+        if cached.displayID then
+            if texture.portraitDisplayID ~= cached.displayID then
+                paintPortrait(texture, cached.displayID)
+            end
+            return
+        elseif GetTime() - cached.time < 60 then return end
+    end
+    local job = state.pending[npcID]
+    if not job then
+        job = { id = npcID, textures = {} }
+        state.pending[npcID] = job
+        table.insert(state.queue, job)
+    end
+    job.textures[texture] = true
+    resolvePortrait()
 end
 
 local function entrySlot(parent, x, y, size)
@@ -762,8 +870,8 @@ function M:Render()
     end
     if f.subpicker:IsShown() then self:RenderSubgroupPicker(true) end
     local queue = self.clientData.worldQueue
-    local coverage = queue and (L["Scanning zones: %d/%d"]):format(queue.next - 1, #self.clientMapCatalog.maps)
-        or (self.clientData.worldScanned and L["World scan finished"]) or nil
+    local coverage = queue and (L["Scanning zones: %d/%d"]):format(queue.next - 1, #queue.maps)
+        or (self.clientData.worldScanned and L["World scan finished"]) or self.clientData.worldSyncStatus
     coverage = (coverage and (coverage .. "\n") or "") .. self:DataSourceSummary()
     if f.renderCoverage ~= coverage then f.coverage:SetText(coverage); f.renderCoverage = coverage end
     if self.appliedTextScale ~= self.settings.textScale then
@@ -865,8 +973,7 @@ function M:Render()
         if row:IsShown() ~= (entry ~= nil) then row:SetShown(entry ~= nil) end
         if entry then
             local r = entry.record
-            local icon = self:EntryIcon(r)
-            if row.renderIcon ~= icon then row.icon:SetTexture(icon); row.renderIcon = icon end
+            self:SetEntryArtwork(row.icon, r)
             local favorite = self.favorites.entries[r.key] ~= nil
             local locations = entry.placementCount and entry.placementCount > 1
                 and (" " .. (L["(%d locations)"]):format(entry.placementCount)) or ""
@@ -913,9 +1020,9 @@ function M:Render()
                 row.renderRed, row.renderGreen, row.renderBlue = red, green, blue
             end
             if row.renderTextScale ~= self.settings.textScale then
-                row.name:SetFont(STANDARD_TEXT_FONT, 13 * self.settings.textScale)
+                row.name:SetFont(STANDARD_TEXT_FONT, 14 * self.settings.textScale)
                 row.distance:SetFont(STANDARD_TEXT_FONT, 12 * self.settings.textScale)
-                row.detail:SetFont(STANDARD_TEXT_FONT, 12 * self.settings.textScale)
+                row.detail:SetFont(STANDARD_TEXT_FONT, 13 * self.settings.textScale)
                 row.renderTextScale = self.settings.textScale
             end
             if row.selection:IsShown() ~= (self.selected == index) then row.selection:SetShown(self.selected == index) end
@@ -1072,7 +1179,7 @@ function M:CreateWindow()
         end
         self:Refresh()
     end)
-    f.evidence = button(f, "Evidence", 808, -68, 232, function()
+    f.evidence = button(f, "Evidence", 808, -68, 190, function()
         local filters = { "all", "confirmed", "pending", "map", "reference" }
         for i, filter in ipairs(filters) do
             if self.settings.evidenceFilter == filter then self.settings.evidenceFilter = filters[i % #filters + 1]; break end
@@ -1214,7 +1321,7 @@ function M:CreateWindow()
         row.badge:SetSize(3, 32)
         row.badge:SetColorTexture(0.6, 0.6, 0.6, 1)
         row.icon, row.iconBorder = entrySlot(row, 12, -7, 30)
-        row.name = label(row, "", 52, -4)
+        row.name = label(row, "", 52, -2)
         row.distance = label(row, "", 348, -5, 12)
         row.detail = label(row, "", 52, -24)
         row.name:SetWidth(288)
@@ -1334,6 +1441,9 @@ function M:CreateWindow()
         card.body = label(card, "", 10, -32, 13)
         card.body:SetSpacing(2)
         card.body:SetWidth(230)
+        card.body:SetWordWrap(true)
+        card.body:SetNonSpaceWrap(true)
+        card.body:SetMaxLines(0)
         card.body:SetJustifyH("LEFT")
         card.body:SetJustifyV("TOP")
         card.body:SetTextColor(0.88, 0.86, 0.8)
@@ -1401,11 +1511,18 @@ function M:CreateWindow()
         GameTooltip:Show()
     end)
     f.status:SetScript("OnLeave", function() GameTooltip:Hide() end)
-    f.resultFocus = control("Focus", 1046, -68, function()
+    f.resultFocus = control("Keyboard", 1004, -68, function()
         self.focusIndex = nil
         f.search:ClearFocus()
         self:Render()
-    end, 58)
+    end, 100)
+    f.resultFocus:SetScript("OnEnter", function(owner)
+        GameTooltip:SetOwner(owner, "ANCHOR_BOTTOM")
+        GameTooltip:SetText(L["Keyboard"])
+        GameTooltip:AddLine(L["help.keyboard"], 1, 1, 1, true)
+        GameTooltip:Show()
+    end)
+    f.resultFocus:SetScript("OnLeave", function() GameTooltip:Hide() end)
     table.insert(self.focusOrder, helpButton)
     local function focusNext()
         f.search:ClearFocus()
@@ -1813,6 +1930,7 @@ function M:RenderDetailsPane()
     local yards = entry and entry.distance and math.floor(entry.distance + 0.5)
     local favorite = r and self.favorites.entries[r.key] ~= nil
     local info = f.info
+    self:SetEntryArtwork(info.icon, r or { kind = "location", category = "Landmarks" })
     local placeKey = self.scope .. ":" .. tostring(self:ScopeMap())
     local recordKey = r and table.concat({ r.name, r.title or "", r.category, r.verification,
         r.precision, tostring(r.mapID), tostring(r.x), tostring(r.y), tostring(r.npcID or ""),
@@ -1837,14 +1955,12 @@ function M:RenderDetailsPane()
     info.items:SetShown(r ~= nil and r.npcID ~= nil and self:ItemProvider() ~= nil)
     self:RenderWatchButton()
     if not r then
-        info.icon:SetTexture("Interface\\Icons\\INV_Misc_Map02")
         info.name:SetText(L["Nothing selected"])
         info.title:SetText("")
         info.location:SetText("")
         info.identity:SetText("")
         info.body:SetText(L["Select a result to see its location, identity and evidence. Left-click navigates, right-click saves a favorite."])
     else
-        info.icon:SetTexture(self:EntryIcon(r))
         local map = C_Map and C_Map.GetMapInfo and C_Map.GetMapInfo(r.mapID)
         local _, regionName = self:MapRegion(r.mapID)
         info.name:SetText(r.name)

@@ -56,6 +56,7 @@ function methods:SetWidth(width) self.width = width end
 function methods:SetHeight(height) self.height = height end
 function methods:SetMaxLines(value) self.maxLines = value end
 function methods:SetWordWrap(value) self.wordWrap = value end
+function methods:SetNonSpaceWrap(value) self.nonSpaceWrap = value end
 function methods:SetShadowOffset(x, y) self.shadowX, self.shadowY = x, y end
 function methods:SetSpacing(value) self.spacing = value end
 function methods:SetChecked(value) self.checked = value end

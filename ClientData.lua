@@ -135,32 +135,70 @@ function M:SyncClientData()
     end
 end
 
+function M:ClientWorldMaps()
+    local version, build = GetBuildInfo()
+    local catalog = self.clientMapCatalog
+    if catalog and catalog.build == tostring(version) .. "." .. tostring(build) then return catalog.maps end
+    if not C_Map or type(C_Map.GetMapChildrenInfo) ~= "function"
+        or type(C_Map.GetBestMapForUnit) ~= "function" or type(C_Map.GetMapInfo) ~= "function" then return end
+    local root = C_Map.GetBestMapForUnit("player")
+    local visited = {}
+    while self:IsFinite(root) and root > 0 and not visited[root] do
+        visited[root] = true
+        local info = invoke("map-catalog", C_Map.GetMapInfo, root)
+        if type(info) ~= "table" or not available(info.parentMapID) then return end
+        if info.parentMapID == 0 then
+            local children = invoke("map-catalog", C_Map.GetMapChildrenInfo, root,
+                Enum and Enum.UIMapType and Enum.UIMapType.Zone or 3, true)
+            if type(children) ~= "table" then return end
+            local maps, seen = {}, {}
+            for _, child in ipairs(children) do
+                if available(child) and type(child) == "table" and self:IsFinite(child.mapID)
+                    and child.mapID > 0 and child.mapID % 1 == 0 and not seen[child.mapID] then
+                    seen[child.mapID] = true
+                    table.insert(maps, child.mapID)
+                end
+            end
+            table.sort(maps)
+            if #maps > 0 then return maps end
+            return
+        end
+        root = info.parentMapID
+    end
+end
+
 function M:StartClientWorldSync(force)
     if self.clientData.worldQueue then
         if force then self:Notice("World map scan already running; keep the directory open.") end
         return false
     end
     if self.clientData.worldScanned and not force then return false end
-    local version, build = GetBuildInfo()
-    local catalog = self.clientMapCatalog
-    if not catalog or catalog.build ~= tostring(version) .. "." .. tostring(build) then
-        if force or not self.clientData.worldSyncRefused then self:Error("Extracted zone-map catalog does not match this client build;         current-map data remains available.") end
-                self.clientData.worldSyncRefused = true
-                return false
+    if force then wipe(self.clientData.errors) end
+    local maps = self:ClientWorldMaps()
+    if not maps then
+        self.clientData.worldSyncStatus = self.L["mapScan.limited"]
+        if force then self:Error(self.clientData.worldSyncStatus) end
+        self.clientData.worldSyncRefused = true
+        return false
     end
+    local version, build = GetBuildInfo()
+    local extracted = self.extractedObjects
+    local extractedMatches = extracted and extracted.build == tostring(version) .. "." .. tostring(build)
+        and extracted.locale == GetLocale()
     if not C_Map or type(C_Map.GetMapInfo) ~= "function"
         or not ((C_TaxiMap and type(C_TaxiMap.GetTaxiNodesForMap) == "function")
-        or (self.extractedObjects and type(C_Map.GetWorldPosFromMapPos) == "function" and CreateVector2D)
+        or (extractedMatches and type(C_Map.GetWorldPosFromMapPos) == "function" and CreateVector2D)
         or (C_AreaPoiInfo and type(C_AreaPoiInfo.GetAreaPOIForMap) == "function"
         and type(C_AreaPoiInfo.GetAreaPOIInfo) == "function"
         and type(C_AreaPoiInfo.IsAreaPOITimed) == "function")) then
-        if force or not self.clientData.worldSyncRefused then self:Error("World map scan requires a flight/POI provider or supported         extracted-object transform.") end
-                self.clientData.worldSyncRefused = true
-                return false
+        self.clientData.worldSyncStatus = self.L["mapScan.limited"]
+        if force then self:Error("World map scan requires a flight/POI provider or a supported extracted-object transform.") end
+        self.clientData.worldSyncRefused = true
+        return false
     end
-    if force then wipe(self.clientData.errors) end
-    self.clientData.worldQueue = { next = 1, force = force }
-    if force then self:Notice(("Scanning %d zone maps while the directory is open."):format(#catalog.maps)) end
+    self.clientData.worldSyncStatus, self.clientData.worldSyncRefused = nil, nil
+    self.clientData.worldQueue = { next = 1, force = force, maps = maps }
+    if force then self:Notice(("Scanning %d zone maps while the directory is open."):format(#maps)) end
     return true
 end
 
@@ -170,10 +208,10 @@ function M:StepClientWorldSync()
     local now = GetTime()
     if queue.updated and now - queue.updated < 0.5 then return false end
     queue.updated = now
-    local mapID = self.clientMapCatalog.maps[queue.next]
+    local mapID = queue.maps[queue.next]
     local changed = self:RefreshClientMap(mapID, queue.force)
     queue.next = queue.next + 1
-    if queue.next > #self.clientMapCatalog.maps then
+    if queue.next > #queue.maps then
         self.clientData.worldQueue = nil
         self.clientData.worldScanned = true
         local count = 0

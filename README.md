@@ -55,8 +55,12 @@ ink and section headings. If the parchment atlas is unavailable, Monstrator
 reports it and retains the dark readable layout. No third-party artwork is bundled.
 Parchment text uses shadow-free dark ink and extra line spacing; long distance
 labels can wrap in the result list rather than being limited to one line.
-Service and profession icons are category cues, not NPC portraits or proof of
-a confirmed location.
+NPC results and selected entries use real creature portraits when the client
+knows their appearance. A matching target/mouseover supplies its live portrait;
+otherwise Monstrator resolves the cached creature display ID through one shared,
+hidden model. Unavailable NPCs retain a category icon and can retry later.
+Locations keep service/object icons. Neither a portrait nor an icon proves a
+confirmed location. Portrait resolution does not change journal or submission data.
 
 Use the bottom **Directory**, **Favorites** and **Review journal** tabs to switch
 lists. Hover the footer's result summary for database coverage and journal
@@ -97,6 +101,9 @@ quest-giving NPCs; a quest-giver icon does not mean a quest is currently availab
 
 **Keyboard**: Tab and Shift+Tab move between controls, Enter activates, Up/Down
 select rows when the search box is not focused, and Escape closes the window.
+The **Keyboard** button leaves the search field so arrow keys operate on the
+result list; it does not set your character's combat focus target. Hover it for
+the keyboard shortcuts.
 
 The scope, zone, sort, evidence filter and window position are remembered.
 `/monstrator reset` (or **Reset window & filters** in Settings) restores the defaults.
@@ -140,6 +147,11 @@ character.
 nameplate, as your target or mouseover, or as a minimap marker. **Rare alerts**
 adds every rare, rare elite and world boss. An alert plays a sound (optional),
 shows a raid warning and a popup with **Target**, **Waypoint** and **3D model**.
+**Mark NPC with skull** places a visible raid-target icon over the sighted NPC
+when clicked. It requires a matching live target, mouseover or nameplate and is
+unavailable during combat. Existing marks on that NPC are preserved; raid
+leader/assistant permission is required in raids. A minimap sighting alone
+cannot mark an NPC that is no longer visible. Nothing is marked automatically.
 Each NPC alerts at most once every five minutes; dead NPCs and players are ignored.
 
 Add NPCs with **Watch for this NPC** in the Details pane, by ID or name in the
@@ -194,6 +206,14 @@ meeting stones and similar) that pass a live check against the map. Choosing
 open; `/monstrator sync` refreshes the current map and `/monstrator sync world`
 rescans. These are labeled as map markers, never as NPC spawns. Sign names
 describe the sign, not where it points.
+
+After a beta client update, world scanning can discover zone IDs from the live
+map hierarchy instead of depending on the older extracted catalog. Extracted
+object coordinates remain build/locale-gated and are never blindly reused.
+If neither a compatible catalog nor a live hierarchy is available, the footer
+coverage tooltip and `/monstrator diagnostic` explain the limitation; an
+explicit world scan reports it as well. Current-zone markers and the directory
+database still work. This does not delete your journal, favorites or settings.
 
 ## Commands
 

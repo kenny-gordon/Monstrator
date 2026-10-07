@@ -35,6 +35,7 @@ execute(fs.readFileSync(path.join(__dirname, 'places.lua'), 'utf8'), 'places.lua
 execute(fs.readFileSync(path.join(__dirname, 'items.lua'), 'utf8'), 'items.lua');
 execute(fs.readFileSync(path.join(__dirname, 'native-db.lua'), 'utf8'), 'native-db.lua');
 execute(fs.readFileSync(path.join(__dirname, 'ui-refactor.lua'), 'utf8'), 'ui-refactor.lua');
+execute(fs.readFileSync(path.join(__dirname, 'portraits.lua'), 'utf8'), 'portraits.lua');
 execute(fs.readFileSync(path.join(__dirname, 'scanner.lua'), 'utf8'), 'scanner.lua');
 execute(fs.readFileSync(path.join(__dirname, 'submission.lua'), 'utf8'), 'submission.lua');
 

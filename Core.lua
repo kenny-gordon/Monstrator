@@ -91,6 +91,8 @@ function M:Diagnostic()
         self:Notice(("Extracted catalog: %d zone maps, build %s; world scan %s."):format(
             #self.clientMapCatalog.maps, self.clientMapCatalog.build,
             queue and ("queued at map " .. queue.next) or (self.clientData.worldScanned and "finished" or "not started")))
+        if queue then self:Notice(("Active world scan: %d live-compatible zone maps."):format(#queue.maps)) end
+        if self.clientData.worldSyncStatus then self:Notice(self.clientData.worldSyncStatus) end
     end
     if UpdateAddOnMemoryUsage and GetAddOnMemoryUsage then
         UpdateAddOnMemoryUsage()
