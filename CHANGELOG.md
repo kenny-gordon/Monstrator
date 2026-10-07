@@ -2,6 +2,7 @@
 
 ## 1.0.0
 
+- **Release hygiene**: package only declared runtime files, documentation and required data attribution; exclude stray reports, backups and scratch files. Added full/standalone archive regression checks.
 - **Offline Wowhead comparator**: reusable saved-HTML/reviewed-fact inputs, exact effective-database field differences, version-aware results, record coverage and an unchecked-ID queue. Included 32 targeted references; discrepancies remain review-only. No network crawler, automatic pruning or runtime dependency.
 
 - **Database hygiene and cross-reference audit**: added exact-ID structural/relationship auditing, effective-overlay checks, full candidate comparisons and independent Vanilla NPC-name comparisons. Recorded targeted Wowhead evidence for unresolved quests and renamed NPCs. Held QuestieDB 1.0.5's conversion after detecting 2,589 missing existing quests and an inverted NPC level range; preserved current Forever data. Imports now validate structure/coverage/parity before writing. Fixed tooling JSON control-character escaping and made inverted level ranges verification errors.

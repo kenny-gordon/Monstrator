@@ -19,7 +19,7 @@ Data formats are described in [DATA_SCHEMA.md](DATA_SCHEMA.md).
 | `UI.lua`, `ItemLookup.lua`, `Scanner.lua` | Main window, help, item lookup, 3D viewer, NPC scan |
 | `Locales\` | Translations (enUS holds symbolic keys; plain-English keys fall back to themselves) |
 | `Data\Native\` | Generated database files, overlay and `manifest.json` |
-| `Data\Source\` | Hand-written corrections and harvested discoveries (not shipped; built into the overlay) |
+| `Data\Source\` | Corrections/discoveries built into the overlay; offline source-review manifests (not shipped) |
 | `tools\` | Database toolchain, importers and client-data generators |
 | `tests\` | Test runner, WoW API mocks and behaviour tests |
 
@@ -165,8 +165,8 @@ edition mismatch or missing local record). Exit 1 remains structural/input
 failure. Reports and queues must be outside the repository and source folders;
 outputs cannot overwrite each other or their input manifest. Existing report
 files can be refreshed; input snapshots are protected too. `--queue` requires
-`--wowhead` and lists IDs lacking a
-readable Classic reference, not every unchecked field or a deletion list.
+`--wowhead` and lists IDs lacking a readable Classic reference, not every
+unchecked field or a deletion list.
 
 This tool does not crawl Wowhead or bypass access controls. A tooltip widget is
 for display, not database validation. Any permitted XML/API response would need
@@ -326,6 +326,16 @@ pending encounter coordinates without confirming them. Check Shift-click and
 the Details map button, including combat and unsupported-map failures.
 
 ## Release checklist
+
+Keep review reports, page snapshots, downloaded source checkouts and local
+tool dependencies outside the addon directory. `Data\Source` holds only
+maintained source inputs; it is not a report/snapshot folder. `dist` is ignored
+generated output: packaging refreshes the current version's archives.
+
+Packages include only TOC-listed runtime files, the main documentation/licence
+and native data manifests/attribution, plus generated `CREDITS.md`. Unlisted
+scratch files, backups and reports are not shipped. Add new runtime assets to
+the TOC when required; do not rely on recursively bundling the checkout.
 
 1. Bump `## Version` in `Monstrator.toc` and add a `CHANGELOG.md` entry.
 2. `node .\tests\run.cjs`

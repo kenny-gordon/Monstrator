@@ -943,20 +943,25 @@ function creditsText(m, standalone, loot) {
 }
 
 function cmdPackage(args = []) {
+  if (args.some((arg) => arg !== '--standalone') || args.length > 1) fail('usage: package [--standalone]');
   const standalone = args.includes('--standalone');
   const toc = fs.readFileSync(path.join(root, 'Monstrator.toc'), 'utf8');
   const version = (toc.match(/^## Version:\s*(.+)$/m) || [])[1]?.trim() || '0.0.0';
-  const excluded = new Set(['tools', 'tests', 'dist', '.git', 'node_modules', path.join('Data', 'Source')]);
-  const files = [];
-  (function walk(dir) {
-    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-      const full = path.join(dir, entry.name), r = path.relative(root, full);
-      if (excluded.has(r) || entry.name.startsWith('.')) continue;
-      if (entry.isDirectory()) walk(full); else files.push(r);
+  const files = new Set(['Monstrator.toc', 'README.md', 'CHANGELOG.md', 'CONTRIBUTING.md', 'DATA_SCHEMA.md', 'LICENSE']);
+  for (const line of toc.split(/\r?\n/)) {
+    const file = line.trim();
+    if (!file || file.startsWith('#')) continue;
+    const full = path.resolve(root, file), relative = path.relative(root, full);
+    if (relative === '..' || relative.startsWith('..' + path.sep) || path.isAbsolute(relative)) {
+      fail(`TOC file must be inside the addon: ${file}`);
     }
-  })(root);
-  // Every file the TOC loads must ship.
-  for (const line of toc.split(/\r?\n/)) if (/\.lua$/i.test(line.trim()) && !line.trim().startsWith('#') && !files.includes(line.trim())) fail(`TOC file missing from package: ${line.trim()}`);
+    if (!fs.existsSync(full) || !fs.statSync(full).isFile()) fail(`TOC file missing from package: ${file}`);
+    files.add(relative);
+  }
+  for (const name of ['manifest.json', 'atlasloot-manifest.json', 'AtlasLoot-source.lua', 'AtlasLoot-LICENSE.txt']) {
+    const file = path.join('Data', 'Native', name);
+    if (fs.existsSync(path.join(root, file))) files.add(file);
+  }
   const m = manifest();
   const loot = lootManifest();
   const lootFiles = new Set(['AtlasLoot-LICENSE.txt', 'AtlasLoot-source.lua', 'atlasloot-manifest.json']
