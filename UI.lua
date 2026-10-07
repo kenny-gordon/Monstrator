@@ -447,6 +447,19 @@ button = function(parent, text, x, y, width, callback, listIcon)
     return b
 end
 
+local function quietButton(b, parchment)
+    for _, region in ipairs({ b.Left, b.Middle, b.Right }) do region:Hide() end
+    b:SetHighlightTexture("Interface\\QuestFrame\\UI-QuestTitleHighlight", "ADD")
+    local font = b.labelFont
+    if parchment then
+        font:SetTextColor(0.3, 0.16, 0.06)
+        font:SetShadowOffset(0, 0)
+    else
+        font:SetTextColor(0.86, 0.84, 0.78)
+    end
+    b.quiet, b.parchmentInk = true, parchment == true
+end
+
 local function edit(parent, x, y, width, text)
     local box = CreateFrame("EditBox", nil, parent, "InputBoxTemplate")
     box:SetSize(width, 24)
@@ -1074,8 +1087,8 @@ function M:Render()
                 or row.renderEvidence ~= evidence or row.renderNPCID ~= r.npcID
                 or row.renderCategory ~= r.category or row.renderMap ~= r.mapID then
                 local map = C_Map and C_Map.GetMapInfo and C_Map.GetMapInfo(r.mapID)
-                row.detail:SetText((L["%s  %.1f, %.1f | %s%s|cff9aa3b5%s|r"]):format(
-                    map and map.name or (L["Map %d"]):format(r.mapID), r.x, r.y, "", "", evidence))
+                row.detail:SetText((map and map.name or (L["Map %d"]):format(r.mapID))
+                    .. ("  %.1f, %.1f"):format(r.x, r.y))
                 local group = (r.verification == "curated" or r.verification == "user-confirmed") and "confirmed"
                     or (r.verification == "client-map" or r.verification == "client-object") and "map"
                     or isReferenceRecord(r) and "reference" or r.verification
@@ -1108,7 +1121,13 @@ function M:Render()
                 row.detail:SetFont(STANDARD_TEXT_FONT, 13 * self.settings.textScale)
                 row.renderTextScale = self.settings.textScale
             end
-            if row.selection:IsShown() ~= (self.selected == index) then row.selection:SetShown(self.selected == index) end
+            local selected = self.selected == index
+            if row.renderSelected ~= selected or row.renderContrast ~= self.settings.highContrast then
+                if selected or self.settings.highContrast then row.name:SetTextColor(1, 0.82, 0)
+                else row.name:SetTextColor(0.92, 0.9, 0.84) end
+                row.renderSelected, row.renderContrast = selected, self.settings.highContrast
+            end
+            if row.selection:IsShown() ~= selected then row.selection:SetShown(selected) end
         end
     end
     self:RenderDetailsPane()
@@ -1314,6 +1333,7 @@ function M:CreateWindow()
         self.offset = 0
         self:Refresh()
     end)
+    for _, b in ipairs({ f.itemsButton, helpButton, clearButton, f.sort, f.evidence }) do quietButton(b) end
 
     f.panels = {
         panel(f, "Browse", 16, -104, 232, 520),
@@ -1334,10 +1354,14 @@ function M:CreateWindow()
     f.filters = f.resultsPanel.heading
     f.filters:SetWidth(400)
     f.clearFilter = button(f, "Clear item filter", 670, -110, 118, function() self:SetNPCFilter(nil) end)
+    quietButton(f.clearFilter)
     f.clearFilter:Hide()
     self.focusOrder = { f.search, clearButton, f.sort, f.evidence }
-    local function control(text, x, y, callback, width, listIcon)
+    local function control(text, x, y, callback, width, listIcon, primary)
         local b = button(f, text, x, y, width or 208, callback, listIcon)
+        if not primary then
+            quietButton(b, parchment and x >= 804 and y <= -104 and y >= -624)
+        end
         table.insert(self.focusOrder, b)
         b:SetScript("OnEnter", function() self.focusIndex = nil end)
         return b
@@ -1532,9 +1556,9 @@ function M:CreateWindow()
 
     f.info = {}
     f.info.parchment = parchment ~= nil and parchment ~= false
-    f.info.icon, f.info.iconBorder = entrySlot(f, 822, -151, 38)
-    f.info.name = label(f, "", 874, -146, 16)
-    f.info.name:SetWidth(216)
+    f.info.icon, f.info.iconBorder = entrySlot(f, 824, -151, 48)
+    f.info.name = label(f, "", 886, -146, 17)
+    f.info.name:SetWidth(204)
     f.info.name:SetHeight(48)
     f.info.name:SetMaxLines(2)
     f.info.name:SetJustifyH("LEFT")
@@ -1542,8 +1566,8 @@ function M:CreateWindow()
         f.info.name:SetTextColor(0.2, 0.1, 0.03)
         f.info.name:SetShadowOffset(0, 0)
     end
-    f.info.title = label(f, "", 874, -198, 12)
-    f.info.title:SetWidth(216)
+    f.info.title = label(f, "", 824, -206, 12)
+    f.info.title:SetWidth(266)
     f.info.title:SetMaxLines(1)
     f.info.title:SetJustifyH("LEFT")
     f.info.title:SetTextColor(0.9, 0.82, 0.5)
@@ -1562,10 +1586,10 @@ function M:CreateWindow()
         local card = CreateFrame("Frame", nil, f.info.content, "BackdropTemplate")
         card:SetWidth(250)
         card.rule = card:CreateTexture(nil, "BACKGROUND")
-        card.rule:SetPoint("TOPLEFT", 5, -4)
-        card.rule:SetSize(240, 24)
-        card.rule:SetTexture("Interface\\QuestFrame\\UI-QuestTitleHighlight")
-        card.rule:SetVertexColor(0.8, 0.65, 0.35, 0.3)
+        card.rule:SetPoint("TOPLEFT", 10, -25)
+        card.rule:SetSize(230, 1)
+        if f.info.parchment then card.rule:SetColorTexture(0.3, 0.18, 0.08, 0.22)
+        else card.rule:SetColorTexture(0.8, 0.7, 0.5, 0.22) end
         card.heading = label(card, heading, 10, -10, 12)
         card.heading:SetWidth(230)
         card.heading:SetJustifyH("LEFT")
@@ -1607,23 +1631,23 @@ function M:CreateWindow()
     location.mapButton:SetScript("OnLeave", function() GameTooltip:Hide() end)
     f.info.navigate = control("Navigate", 818, -508, function()
         self:Activate(self.results and self.results[self.selected])
-    end, 132)
-    f.info.favorite = control("Favorite", 958, -508, function()
+    end, 132, nil, true)
+    f.info.favorite = control("Favorite", 818, -538, function()
         local entry = self.results and self.results[self.selected]
         if entry then self:ToggleFavorite(entry.record); self:Render() end
     end, 132)
-    f.detailsButton = control("Entry details", 818, -538, function()
+    f.detailsButton = control("Entry details", 818, -598, function()
         self:ShowEntryDetails(self.results and self.results[self.selected])
     end, 132)
     f.info.zone = control("Browse this zone", 958, -538, function() self:BrowseRecordPlace() end, 132)
     f.info.model = control("3D model", 818, -568, function() self:ShowSelectedModel() end, 132)
     f.info.items = control("Items sold/dropped", 958, -568, function() self:ShowNPCItems() end, 132)
-    f.info.watch = control("Watch for this NPC", 818, -598, function()
+    f.info.watch = control("Watch for this NPC", 958, -598, function()
         local entry = self.results and self.results[self.selected]
         local r = entry and entry.record
         if r and r.npcID then self:ToggleWatch(r.npcID, r.name) end
     end, 132)
-    f.info.map = control("map.view", 958, -598, function()
+    f.info.map = control("map.view", 958, -508, function()
         local entry = self.results and self.results[self.selected]
         if entry then self:ViewRecordOnMap(entry.record) end
     end, 132)
@@ -1652,6 +1676,7 @@ function M:CreateWindow()
     f.footer = label(f, "", 690, -650, 12)
     f.footer:SetWidth(414)
     f.footer:SetJustifyH("RIGHT")
+    f.footer:SetTextColor(0.7, 0.72, 0.75)
     f.status = CreateFrame("Frame", nil, f)
     f.status:SetPoint("TOPLEFT", 690, -642)
     f.status:SetSize(414, 28)

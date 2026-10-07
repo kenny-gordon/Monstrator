@@ -346,7 +346,6 @@ L["No matching directory entries.\nTry Static locations for client map data,\nor
 L["Evidence filter: "] = "證據篩選： "
 L["(%d locations)"] = "（%d 個位置）"
 L["NPC ID"] = "NPC ID"
-L["%s  %.1f, %.1f | %s%s|cff9aa3b5%s|r"] = "%s  %.1f, %.1f | %s%s|cff9aa3b5%s|r"
 L["You are in "] = "你位於 "
 L["Search updating; try again shortly."] = "搜尋正在更新；請稍後再試。"
 L["Narrow this category, e.g. Trainers > Fishing or Vendors > Weapons."] = "縮小此類別，例如 訓練師 > 釣魚 或 商人 > 武器。"

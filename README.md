@@ -63,6 +63,12 @@ type's complete category list. Browse counts represent matching rows.
 Textured browsing panels sit beside a quest-parchment Details page with dark
 ink and section headings. If the parchment atlas is unavailable, Monstrator
 reports it and retains the dark readable layout. No third-party artwork is bundled.
+Navigation is the primary red action; map preview sits beside it. Secondary
+actions, filters and footer utilities use neutral text with native hover/focus
+highlights instead of a grid of red buttons. Gold result names emphasize the
+selected row; evidence remains in colored row badges, tooltips and Details.
+The selected entry has a larger portrait, and parchment sections use fine
+dividers rather than heavy gold heading bars.
 Parchment text uses shadow-free dark ink and extra line spacing; long distance
 labels can wrap in the result list rather than being limited to one line.
 NPC results and selected entries use real creature portraits when the client

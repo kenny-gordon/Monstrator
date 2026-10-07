@@ -9,6 +9,7 @@ local settings = {}
 for key, value in pairs(M.settings) do settings[key] = value end
 M.settings = settings
 M.settings.textScale, M.settings.evidenceFilter = 1, "all"
+M.settings.highContrast = false
 M.dbIndex = nil
 M.clientData = { maps = {}, errors = {}, generation = 0 }
 local function record(key, verification)
@@ -98,6 +99,28 @@ assert(M.window.resultsPanel.backdrop.bgFile == "Interface\\FrameGeneral\\UI-Bac
 assert(M.window.detailsPanel.parchment.atlas == "QuestBG-Parchment",
     "selected entry uses the client's quest parchment, not bundled artwork")
 local info = M.window.info
+assert(not info.navigate.quiet and info.navigate.Left:IsShown(), "only the primary navigation action keeps red button artwork")
+for _, b in ipairs({ info.map, info.favorite, info.zone, info.model, info.items, info.watch, M.window.detailsButton }) do
+    assert(b.quiet and b.parchmentInk and not b.Left:IsShown() and not b.Middle:IsShown() and not b.Right:IsShown(),
+        "secondary parchment actions use quiet native highlights instead of red button tiles")
+    assert(b.labelFont.color[1] < 0.4 and b.labelFont.shadowX == 0, "parchment actions use shadow-free dark ink")
+end
+assert(info.map.y == info.navigate.y and info.map.x > info.navigate.x,
+    "map preview sits beside the primary navigation action")
+local actions = { info.navigate, info.map, info.favorite, info.zone, info.model, info.items, info.watch, M.window.detailsButton }
+for i, a in ipairs(actions) do
+    for j = i + 1, #actions do
+        local b = actions[j]
+        assert(a.x + a.width <= b.x or b.x + b.width <= a.x
+            or a.y - a.height >= b.y or b.y - b.height >= a.y, "details action hit areas must not overlap")
+    end
+end
+for _, b in ipairs({ M.window.sort, M.window.evidence, M.window.itemsButton,
+    M.window.captureButton, M.window.scanButton, M.window.scanWindowButton, M.window.placeButton }) do
+    assert(b.quiet and not b.Left:IsShown() and b.labelFont.color[1] > 0.7,
+        "toolbar and utility controls are neutral but readable on dark panels")
+end
+assert(info.icon.width == 48 and info.name.fontSize == 17, "the selected NPC has a larger portrait and name")
 assert(M.window.rows[1].icon.texture == M:EntryIcon(reference))
 assert(info.icon.texture == M.window.rows[1].icon.texture, "list and details use the same category icon")
 assert(M.window.rows[1].iconBorder.texture == "Interface\\Buttons\\UI-Quickslot2")
@@ -127,6 +150,7 @@ assert(info.name.shadowX == 0 and info.name.shadowY == 0
     "dark parchment text must not inherit the dark shadow used on native gold text")
 assert(info.body.fontSize == 13 and info.body.spacing == 2, "parchment body has readable type and leading")
 for _, section in ipairs(info.sections) do
+    assert(section.rule.height == 1, "parchment section headings use a light divider, not decorative gold bars")
     assert(section.body.wordWrap and section.body.nonSpaceWrap and section.body.maxLines == 0,
         "all parchment sections explicitly wrap full evidence, including long words, without line limits")
     assert(section.body.x + section.body.width <= section.width, "wrapped text stays inside its section")
@@ -181,6 +205,24 @@ assert(M:EntryIcon({ kind = "npc", category = "Services", tags = { "quest_giver"
 assert(M:EntryIcon({ kind = "npc", category = "Services", tags = { "flight", "quest_giver" } })
     == "Interface\\Icons\\Ability_Mount_Wyvern_01", "specific services take priority over quest-giver status")
 assert(not M.window.rows[1].detail:GetText():find("NPC ID", 1, true))
+assert(not M.window.rows[1].detail:GetText():find("Legacy", 1, true),
+    "repeated evidence labels stay in Details/tooltips rather than every row")
+local oldSelected = M.selected
+M.results[2] = { record = confirmed }
+M.selected = 1
+M:Render()
+assert(M.window.rows[1].name.color[1] == 1 and M.window.rows[2].name.color[1] < 1,
+    "gold text distinguishes selection instead of coloring every NPC name")
+M.selected = 2
+M:Render()
+assert(M.window.rows[2].name.color[1] == 1 and M.window.rows[1].name.color[1] < 1,
+    "name emphasis follows selection on recycled rows")
+M.settings.highContrast = true
+M:Render()
+assert(M.window.rows[1].name.color[1] == 1, "high contrast preserves bright names on unselected rows")
+M.settings.highContrast = false
+M.results[2], M.selected = nil, oldSelected
+M:Render()
 assert(M:EntryIcon({ kind = "npc", category = "Combat", tags = {} })
     == "Interface\\Icons\\Ability_Tracking", "unresolved creatures use a tracking symbol, not a fake human portrait")
 assert(M.window.rows[1].name.fontSize == 14 and M.window.rows[1].detail.fontSize == 13,

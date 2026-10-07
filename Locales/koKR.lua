@@ -346,7 +346,6 @@ L["No matching directory entries.\nTry Static locations for client map data,\nor
 L["Evidence filter: "] = "증거 필터: "
 L["(%d locations)"] = "(위치 %d개)"
 L["NPC ID"] = "NPC ID"
-L["%s  %.1f, %.1f | %s%s|cff9aa3b5%s|r"] = "%s  %.1f, %.1f | %s%s|cff9aa3b5%s|r"
 L["You are in "] = "현재 위치: "
 L["Search updating; try again shortly."] = "검색이 업데이트 중입니다. 잠시 후 다시 시도하세요."
 L["Narrow this category, e.g. Trainers > Fishing or Vendors > Weapons."] = "이 범주를 좁히세요. 예: 훈련사 > 낚시 또는 상인 > 무기."

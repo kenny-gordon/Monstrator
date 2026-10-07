@@ -346,7 +346,6 @@ L["No matching directory entries.\nTry Static locations for client map data,\nor
 L["Evidence filter: "] = "Filtro evidenza: "
 L["(%d locations)"] = "(%d posizioni)"
 L["NPC ID"] = "ID PNG"
-L["%s  %.1f, %.1f | %s%s|cff9aa3b5%s|r"] = "%s  %.1f, %.1f | %s%s|cff9aa3b5%s|r"
 L["You are in "] = "Sei in "
 L["Search updating; try again shortly."] = "Ricerca in aggiornamento; riprova a breve."
 L["Narrow this category, e.g. Trainers > Fishing or Vendors > Weapons."] = "Restringi questa categoria, es. Istruttori > Pesca o Mercanti > Armi."
