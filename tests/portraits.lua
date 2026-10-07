@@ -10,7 +10,9 @@ CreateFrame = function(kind, ...)
         frame.SetCreature = function(self, id)
             self.creature = id
             queries = queries + 1
-            if available[id] and self:GetScript("OnModelLoaded") then self:GetScript("OnModelLoaded")(self) end
+            if self:IsShown() and available[id] and self:GetScript("OnModelLoaded") then
+                self:GetScript("OnModelLoaded")(self)
+            end
         end
         frame.GetDisplayInfo = function(self) return available[self.creature] or 0 end
     end
@@ -41,7 +43,10 @@ local detail = M.window.info.icon
 M:SetEntryArtwork(row, npc(2001))
 M:SetEntryArtwork(detail, npc(2001))
 assert(queries == 1, "row and details share one creature lookup")
+assert(M.portraits.model:IsShown() and M.portraits.model.alpha == 0,
+    "model loading runs on an active but invisible resolver")
 drain()
+assert(not M.portraits.model:IsShown(), "idle appearance resolver does not keep rendering")
 assert(row.portraitTexture.texture == "portrait:501" and detail.portraitTexture.texture == "portrait:501")
 assert(row.portraitDisplayID == 501)
 assert(row.isPortrait and row.portraitTexture.mask == row.portraitMask and row.texCoords[1] == 0 and row.texCoords[2] == 1,
@@ -79,6 +84,25 @@ M:SetEntryArtwork(row, npc(2999))
 drain()
 assert(row.portraitTexture.texture == "portrait:502", "an unavailable creature can resolve after the retry cooldown")
 assert(modelCount == 1, "all visible NPCs share one hidden model resolver")
+local prime = M.PrimeCreature
+local primed, retryCount = nil, 0
+local setCreature = M.portraits.model.SetCreature
+M.PrimeCreature = function(_, id)
+    primed = id
+end
+M.portraits.model.SetCreature = function(self, id)
+    if id == 2995 then
+        retryCount = retryCount + 1
+        if retryCount == 3 then available[id] = 502 end
+    end
+    setCreature(self, id)
+end
+M:SetEntryArtwork(row, npc(2995))
+drain()
+assert(primed == 2995 and row.portraitTexture.texture == "portrait:502",
+    "an uncached creature is requested and retried after delayed cache arrival")
+M.PrimeCreature = prime
+M.portraits.model.SetCreature = setCreature
 local getDisplay = M.portraits.model.GetDisplayInfo
 M.portraits.model.GetDisplayInfo = function() return 501 end
 M:SetEntryArtwork(row, npc(2996))

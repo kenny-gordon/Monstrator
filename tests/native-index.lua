@@ -108,7 +108,26 @@ if not M.window then M:CreateWindow() end
 local w = M.window
 local savedScope, savedZone = M.scope, M.zoneMap
 M.scope, M.zoneMap = "zone", nil
+M.kind, M.category = "all", "All"
+M:UpdateCategories()
+assert(w.categoryButtons[2]:IsShown() and w.categoryButtons[4]:GetText() == "Trainers (2)"
+    and w.subgroupButtons[4]:IsShown(), "All entries exposes useful counted category/sub-group shortcuts")
+w.categoryButtons[4]:Click()
+assert(M.kind == "npc" and M.category == "Trainers" and #M.results == 2,
+    "the trainer shortcut selects its type and category together")
+M.kind, M.category = "all", "All"
+M:UpdateCategories()
+w.subgroupButtons[4]:Click()
+assert(M.kind == "npc" and M.category == "Trainers" and w.subpicker:IsShown(),
+    "a sub-group shortcut from All entries opens the correct type's picker")
+w.subpicker:Hide()
+M.kind, M.category = "all", "All"
+M:UpdateCategories()
+w.categoryButtons[6]:Click()
+assert(M.kind == "location" and M.category == "Objects",
+    "the object shortcut selects static locations rather than leaving an invalid mixed category")
 M.kind = "npc"
+M.category = "All"
 M:UpdateCategories()
 assert(M.categories.npc[4] == "Trainers" and w.subgroupButtons[4]:IsShown() and not w.subgroupButtons[1]:IsShown(),
     "only categories with sub-groups offer the picker")

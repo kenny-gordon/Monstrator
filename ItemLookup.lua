@@ -856,13 +856,15 @@ end
 -- Asks the server for an uncached creature (the same query a creature link tooltip makes), so SetCreature
 -- can render it on a later attempt. Harmless when the client already knows the creature.
 local primer
-local function primeCreature(id)
-    pcall(function()
+function M:PrimeCreature(id)
+    local ok, err = pcall(function()
         primer = primer or CreateFrame("GameTooltip", "MonstratorCreatureCacheTooltip", UIParent, "GameTooltipTemplate")
         primer:SetOwner(UIParent, "ANCHOR_NONE")
         primer:SetHyperlink(("unit:Creature-0-0-0-0-%d-0000000000"):format(id))
         primer:Hide()
     end)
+    if not ok then self:Error(tostring(err)) end
+    return ok
 end
 
 local function showFallback(f, icon)
@@ -926,7 +928,7 @@ function M:ShowModel(kind, id, name)
             showModel(f)
             f.status:SetText((L["NPC ID %d. Drag to rotate, mouse wheel to zoom."]):format(id))
         elseif attempts < 12 and C_Timer and C_Timer.After then
-            if attempts == 1 or attempts == 6 then primeCreature(id) end
+            if attempts == 1 or attempts == 6 then self:PrimeCreature(id) end
             C_Timer.After(0.5, load)
         else
             showFallback(f, QUESTION_ICON)

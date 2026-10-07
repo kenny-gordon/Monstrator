@@ -73,6 +73,16 @@ assert(trail.template == "NavBarTemplate" and trail.buttons.zone.template == "Na
 assert(trail.buttons.global:GetText() == "World" and trail.buttons.region:GetText() == "Kalimdor"
     and trail.buttons.zone:GetText() == "Mulgore", "trail reflects the browsed zone's actual hierarchy")
 assert(trail.buttons.zone.selected:IsShown() and not trail.buttons.region.selected:IsShown())
+assert(trail.buttons.region.x == trail.buttons.global.x + trail.buttons.global.width
+    and trail.buttons.zone.x == trail.buttons.region.x + trail.buttons.region.width,
+    "native breadcrumbs abut instead of overlapping the next label")
+assert(trail.buttons.region.text.x >= 21 and trail.buttons.zone.text.x >= 21,
+    "each label leaves room for the preceding native arrow")
+assert(trail.buttons.global:GetFrameLevel() > trail.buttons.region:GetFrameLevel()
+    and trail.buttons.region:GetFrameLevel() > trail.buttons.zone:GetFrameLevel(),
+    "native arrow tips draw above the following segment")
+assert(trail.buttons.zone.x + trail.buttons.zone.width + 21 <= trail.width,
+    "the final native arrow stays inside the trail, away from player position")
 local picker = M.window.picker
 assert(not picker:IsShown())
 M.window.placeButton:Click()
@@ -125,7 +135,8 @@ M.selected = 1
 M:Render()
 local info = M.window.info
 assert(info.location:GetText():find("Mulgore, Kalimdor", 1, true), "location card shows zone and region")
-assert(info.location:GetText():find("/way #1 ", 1, true), "location card shows a TomTom command")
+assert(not info.location:GetText():find("/way ", 1, true),
+    "the visual location card does not spend a line on a technical navigation command")
 assert(info.zone:GetText() == "Browse region", "the player's own zone offers its region")
 info.zone:Click()
 assert(M.scope == "region" and M.regionMap == 10)

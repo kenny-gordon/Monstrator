@@ -55,6 +55,11 @@ Its area trail uses the native map's breadcrumb controls: **World → continent
 zone (or the active continent) to open the area picker. A pinned zone shows its
 own continent, not the player's. The active segment is highlighted, and the
 trail updates as you move between zones in follow mode.
+Breadcrumb labels leave room for the native arrow tips, including at larger text scales.
+**All entries** offers direct category shortcuts to services, vendors, trainers,
+transit and objects rather than an empty category list. Their **>** controls open
+the relevant sub-groups directly; choosing NPCs or Static locations shows that
+type's complete category list. Browse counts represent matching rows.
 Textured browsing panels sit beside a quest-parchment Details page with dark
 ink and section headings. If the parchment atlas is unavailable, Monstrator
 reports it and retains the dark readable layout. No third-party artwork is bundled.
@@ -63,7 +68,9 @@ labels can wrap in the result list rather than being limited to one line.
 NPC results and selected entries use real creature portraits when the client
 knows their appearance. A matching target/mouseover supplies its live portrait;
 otherwise Monstrator resolves the cached creature display ID through one shared,
-hidden model. Unavailable NPCs retain a category icon and can retry later.
+invisible model, active only while loading. Uncached creatures are requested
+through a creature tooltip before retrying. Unavailable NPCs retain a category
+icon (a tracking symbol for unclassified creatures) and can retry later.
 Locations keep service/object icons. Neither a portrait nor an icon proves a
 confirmed location. Portrait resolution does not change journal or submission data.
 Resolved portraits use circular framing; fallback and location icons keep their
@@ -73,6 +80,9 @@ for animals; **3D model** provides a rotatable view when a portrait is unclear.
 Use the bottom **Directory**, **Favorites** and **Review journal** tabs to switch
 lists. Hover the footer's result summary for database coverage and journal
 progress; these statistics no longer crowd the selected entry.
+Grouped location counts appear in Details and row tooltips, leaving names
+uncluttered. The Location section shows the area, coordinates and distance;
+copyable navigation commands remain available through the navigation fallback.
 
 **View on map** in Details, clicking the Location coordinates, or Shift-clicking
 a result opens the native world map

@@ -2,6 +2,8 @@
 
 ## 1.0.0
 
+- **Area-browser screenshot polish**: correct native breadcrumb spacing, arrow layering and label insets so zone/continent names are not clipped. All entries now exposes useful category/sub-group shortcuts. NPC browse counts match result rows. Move grouped placement counts out of names into Details/tooltips and remove redundant identity/command text from parchment. Use a tracking fallback rather than a misleading human head, activate the invisible portrait resolver while loading, and share the 3D viewer's creature-cache request before retrying.
+
 - **Protected-action fix for NPC scan**: replace the direct raid-marker API call with a hardware-click secure macro button. The action validates the sighted GUID, preserves existing marks, clears rejected actions and uses a secure combat state driver to hide/clear marking during combat. Its top-level secure frame is independent of the alert's unprotected visibility.
 
 - **Native area trail and nearby landing view**: use the world map's breadcrumb templates for World, continent and zone navigation. The trail reflects pinned-zone ancestry and follows player-zone changes. Normal directory opening resets to the current zone, all entries and nearest-first sorting rather than restoring distant scopes or stale filters; explicit browsing and journal/favorite commands are preserved.

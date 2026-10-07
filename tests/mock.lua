@@ -98,6 +98,8 @@ function methods:SetTextColor(r, g, b)
 end
 function methods:SetPropagateKeyboardInput(value) self.propagates = value end
 function methods:SetFrameStrata(strata) self.strata = strata end
+function methods:SetFrameLevel(level) self.frameLevel = level end
+function methods:SetAlpha(alpha) self.alpha = alpha end
 function methods:IsShown() return self.shown end
 function methods:Show()
     local old = self.shown; self.shown = true
@@ -113,7 +115,7 @@ function methods:ClearFocus() self.focused = false end
 function methods:HasFocus() return rawget(self, "focused") == true end
 function methods:GetCenter() return 100, 100 end
 function methods:GetEffectiveScale() return 1 end
-function methods:GetFrameLevel() return 1 end
+function methods:GetFrameLevel() return self.frameLevel or 1 end
 function methods:SetAttribute(key, value)
     self.attributes = self.attributes or {}
     self.attributes[key] = value

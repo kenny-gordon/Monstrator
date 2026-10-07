@@ -27,10 +27,23 @@ end
 local categoryIcons = {
     Services = "INV_Misc_GroupLooking", Vendors = "INV_Misc_Coin_01",
     Trainers = "INV_Misc_Book_09", Transit = "Ability_Mount_Wyvern_01",
-    Combat = "INV_Misc_Head_Human_01", Mailboxes = "INV_Letter_15",
+    Combat = "Ability_Tracking", Mailboxes = "INV_Letter_15",
     Instances = "INV_Misc_StoneTablet_05", Landmarks = "INV_Misc_Map02",
     Objects = "INV_Misc_TreasureChest01",
 }
+local browseShortcuts = {
+    { "all", "All" }, { "npc", "Services" }, { "npc", "Vendors" },
+    { "npc", "Trainers" }, { "npc", "Transit" }, { "location", "Objects" },
+}
+
+function M:BrowseCategory(index)
+    if self.kind == "all" then
+        local shortcut = browseShortcuts[index]
+        if shortcut then return shortcut[1], shortcut[2] end
+    else
+        return self.kind, self.categories[self.kind][index]
+    end
+end
 local professionIcons = {
     alchemy = "Trade_Alchemy", blacksmithing = "Trade_BlackSmithing",
     enchanting = "Trade_Engraving", engineering = "Trade_Engineering",
@@ -65,7 +78,7 @@ function M:EntryIcon(record)
         end
     end
     return "Interface\\Icons\\" .. (categoryIcons[record.category]
-        or (record.kind == "npc" and "INV_Misc_Head_Human_01" or "INV_Misc_Map02"))
+        or (record.kind == "npc" and "Ability_Tracking" or "INV_Misc_Map02"))
 end
 
 local function portraitCall(fn, ...)
@@ -121,6 +134,7 @@ local function resolvePortrait()
     local modelLoaded = false
     portraitCall(state.model.ClearModel, state.model)
     state.model:SetScript("OnModelLoaded", function() modelLoaded = true end)
+    state.model:Show()
     local _, started = portraitCall(state.model.SetCreature, state.model, job.id)
     local attempts = 0
     local function finish(displayID)
@@ -136,6 +150,7 @@ local function resolvePortrait()
         end
         state.pending[job.id], state.busy = nil, false
         state.model:SetScript("OnModelLoaded", nil)
+        state.model:Hide()
         C_Timer.After(0, resolvePortrait)
     end
     local function loaded()
@@ -144,6 +159,10 @@ local function resolvePortrait()
         if modelLoaded and ok and M:IsFinite(displayID) and displayID > 0 and displayID % 1 == 0 then
             finish(displayID)
         elseif ok and attempts < 6 then
+            if not modelLoaded then
+                if attempts == 1 then M:PrimeCreature(job.id) end
+                portraitCall(state.model.SetCreature, state.model, job.id)
+            end
             C_Timer.After(0.2, loaded)
         else
             finish()
@@ -189,6 +208,8 @@ function M:SetEntryArtwork(texture, record)
     if not self.portraits then
         local model = CreateFrame("PlayerModel", nil, UIParent)
         model:SetSize(1, 1)
+        model:SetPoint("CENTER")
+        model:SetAlpha(0)
         model:Hide()
         if not model.SetCreature or not model.GetDisplayInfo then return end
         self.portraits = { model = model, cache = {}, cacheOrder = {}, queue = {}, pending = {} }
@@ -908,19 +929,19 @@ function M:Render()
         if self.view ~= "directory" then
             text = L[key == "npc" and "NPCs" or (key == "all" and "All entries" or "Static locations")]
         elseif key == "npc" then
-            text = (L["NPCs (%d)"]):format(counts.uniqueNPCs or counts.npc)
+            text = (L["NPCs (%d)"]):format(counts.npc)
         else
             text = (key == "all" and L["All entries"] or L["Static locations"]) .. " (" .. counts[key] .. ")"
         end
         if b.renderText ~= text then b:SetText(text); b.renderText = text end
     end
     for i, b in ipairs(f.categoryButtons) do
-        local category = self.categories[self.kind][i]
+        local kind, category = self:BrowseCategory(i)
         if category then
             local icon = "Interface\\Icons\\" .. (categoryIcons[category] or "INV_Misc_Map02")
             if b.renderIcon ~= icon then b.browseIcon:SetTexture(icon); b.renderIcon = icon end
-            local categories = counts.categories[self.kind] or {}
-            local amount = category == "All" and counts[self.kind] or (categories[category] or 0)
+            local categories = counts.categories[kind] or {}
+            local amount = category == "All" and counts[kind] or (categories[category] or 0)
             local sub = self.category == category and self:ActiveSubgroup()
             local text = sub and (L[category] .. ": " .. L[sub.label] .. " (" .. ((counts.subgroups or {})[sub.key] or 0) .. ")")
                 or (L[category] .. " (" .. amount .. ")")
@@ -950,7 +971,8 @@ function M:Render()
         for key, b in pairs(f.scopeButtons) do b.activeMarker:SetShown(self.scope == key) end
         for key, b in pairs(f.kindButtons) do b.activeMarker:SetShown(self.kind == key) end
         for i, b in ipairs(f.categoryButtons) do
-            b.activeMarker:SetShown(self.categories[self.kind][i] == self.category)
+            local kind, category = self:BrowseCategory(i)
+            b.activeMarker:SetShown(kind == self.kind and category == self.category)
         end
         f.renderScope, f.renderKind, f.renderCategory = self.scope, self.kind, self.category
     end
@@ -1038,12 +1060,10 @@ function M:Render()
             local r = entry.record
             self:SetEntryArtwork(row.icon, r)
             local favorite = self.favorites.entries[r.key] ~= nil
-            local locations = entry.placementCount and entry.placementCount > 1
-                and (" " .. (L["(%d locations)"]):format(entry.placementCount)) or ""
             if row.renderName ~= r.name or row.renderFavorite ~= favorite or row.renderTitle ~= r.title
                 or row.renderPlacementCount ~= entry.placementCount then
                 row.name:SetText((favorite and "|cffffd100*|r " or "") .. r.name
-                    .. (r.title and (" |cffc8b070<" .. r.title .. ">|r") or "") .. locations)
+                    .. (r.title and (" |cffc8b070<" .. r.title .. ">|r") or ""))
                 row.renderName, row.renderFavorite, row.renderTitle = r.name, favorite, r.title
                 row.renderPlacementCount = entry.placementCount
             end
@@ -1203,15 +1223,19 @@ function M:CreateWindow()
         local b = CreateFrame("Button", nil, f.areaTrail, "NavButtonTemplate")
         b:SetPoint("TOPLEFT", x, 0)
         b:SetSize(width, 30)
+        b:SetFrameLevel(f.areaTrail:GetFrameLevel() + 5 - #f.areaTrail.navList)
         b.MenuArrowButton:Hide()
         b.listFunc = function() return nil end
         table.insert(f.areaTrail.navList, b)
-        b.text:SetWidth(width - 34)
+        b.text:ClearAllPoints()
+        b.text:SetPoint("LEFT", 24, 0)
+        b.text:SetJustifyH("LEFT")
+        b.text:SetWidth(width - 40)
         b.text:SetHeight(24)
         b.text:SetMaxLines(1)
         b.text:SetWordWrap(false)
         b.text:SetNonSpaceWrap(false)
-        local spec = trackFont(b.text, width - 34)
+        local spec = trackFont(b.text, width - 40)
         local setText = b.SetText
         b.SetText = function(self, text)
             setText(self, text)
@@ -1230,7 +1254,7 @@ function M:CreateWindow()
         return b
     end
     areaButton("global", 0, 110, function() self:SelectPlace("global") end)
-    areaButton("region", 102, 240, function()
+    areaButton("region", 110, 240, function()
         if self.scope == "region" then self:TogglePlacePicker()
         else
             local map = self:ScopeMap()
@@ -1238,7 +1262,7 @@ function M:CreateWindow()
             self:SelectPlace("region", region and region > 0 and region or nil)
         end
     end)
-    areaButton("zone", 334, 296, function() self:TogglePlacePicker() end)
+    areaButton("zone", 350, 259, function() self:TogglePlacePicker() end)
     f.position = label(f, "", 710, -40, 12, 202)
     f.position:SetWidth(202)
     f.position:SetMaxLines(1)
@@ -1362,15 +1386,22 @@ function M:CreateWindow()
     f.categoryButtons, f.subgroupButtons = {}, {}
     for i = 1, 6 do
         local b = control("All", 28, -350 - (i - 1) * 38, function()
-            self.category, self.subgroup = self.categories[self.kind][i], nil
+            local kind, category = self:BrowseCategory(i)
+            self.kind, self.category, self.subgroup = kind, category, nil
             if f.subpicker then f.subpicker:Hide() end
-            self:ChangeView("directory")
+            self:UpdateCategories()
         end, 180, "INV_Misc_Map02")
         selectionMarker(b)
         f.categoryButtons[i] = b
         local more = control(">", 212, -350 - (i - 1) * 38, function()
-            local category = self.categories[self.kind][i]
-            if category then self:ToggleSubgroupPicker(category) end
+            local kind, category = self:BrowseCategory(i)
+            if category then
+                if kind ~= self.kind then
+                    self.kind, self.category = kind, category
+                    self:UpdateCategories()
+                end
+                self:ToggleSubgroupPicker(category)
+            end
         end, 24)
         more:SetScript("OnEnter", function(b)
             self.focusIndex = nil
@@ -2110,10 +2141,9 @@ function M:RenderDetailsPane()
             (map and map.name or (L["Map %d"]):format(r.mapID)) .. ", " .. regionName,
             ((info.parchment and "|cff60330f" or "|cffd6a64b") .. "%.1f, %.1f|r"):format(r.x, r.y),
             yards and (L["Distance: %d yd"]):format(yards) or (entry.distanceLabel or L["Distance unavailable"]),
-            ((info.parchment and "|cff65513a" or "|cff8f949e") .. "/way #%d %.1f %.1f|r"):format(r.mapID, r.x, r.y),
         }, "\n"))
         local identity = {
-            L[r.kind] .. " / " .. L[r.category] .. " | " .. L[r.faction or "Both"],
+            L[r.faction or "Both"],
         }
         if r.npcID then
             local extra = {}
@@ -2148,8 +2178,8 @@ function M:RenderDetailsPane()
             card.body:SetHeight(0)
             local height = math.max(20, card.body:GetStringHeight() or 60)
             card.body:SetHeight(height)
-            card:SetHeight(height + 42)
-            offset = offset + height + 48
+            card:SetHeight(height + 38)
+            offset = offset + height + 40
         end
     end
     info.content:SetHeight(math.max(274, offset))
@@ -2188,10 +2218,10 @@ end
 
 function M:UpdateCategories()
     for i, b in ipairs(self.window.categoryButtons) do
-        local category = self.categories[self.kind][i]
+        local kind, category = self:BrowseCategory(i)
         b:SetShown(category ~= nil)
         if category then b:SetText(L[category]); b.renderText = nil end
-        self.window.subgroupButtons[i]:SetShown(category ~= nil and self.subgroups[self.kind .. ":" .. category] ~= nil)
+        self.window.subgroupButtons[i]:SetShown(category ~= nil and self.subgroups[kind .. ":" .. category] ~= nil)
     end
     self.subgroup = nil
     self.window.subpicker:Hide()

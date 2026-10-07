@@ -84,7 +84,12 @@ M.detailsFrame:Hide()
 M.SetNavigationWaypoint = navigate
 
 M:Render()
-assert(M.window.rows[1].name:GetText():find("(3 locations)", 1, true))
+assert(not M.window.rows[1].name:GetText():find("locations", 1, true),
+    "grouped placement counts must not crowd the NPC name")
+assert(M.window.info.identity:GetText():find("(3 locations)", 1, true),
+    "placement counts remain available in selected-entry details")
+assert(M.window.kindButtons.npc:GetText() == "NPCs (2)",
+    "NPC browse count matches result rows, not a smaller count of distinct IDs")
 assert(M.window.template == "PortraitFrameTemplate", "directory inherits the client's native window chrome")
 assert(M.window.TitleContainer.TitleText:GetText() == "MONSTRATOR")
 assert(M.window.PortraitContainer.portrait.texture == "Interface\\Icons\\INV_Misc_Map02")
@@ -151,10 +156,10 @@ currentWindow.search:GetScript("OnTextChanged")()
 assert(#pendingTimers == queued, "an incomplete window must not queue search work")
 M.window, M.Refresh = currentWindow, currentRefresh
 M.searchPending = nil
-assert(info.location:GetText():find("/way #1 ", 1, true))
+assert(not info.location:GetText():find("/way ", 1, true))
 assert(info.identity:GetText():find("NPC ID 123", 1, true))
 assert(info.scroll.scrollChild == info.content and #info.sections == 3)
-assert(info.content.height > info.scroll.height, "long details remain accessible by scrolling")
+assert(info.content.height >= info.scroll.height, "detail content fills at least the scroll viewport")
 local categoryButton = M.window.categoryButtons[1]
 local font = categoryButton.labelFont
 local oldWidth, oldUnboundedWidth = rawget(font, "GetStringWidth"), rawget(font, "GetUnboundedStringWidth")
@@ -177,7 +182,7 @@ assert(M:EntryIcon({ kind = "npc", category = "Services", tags = { "flight", "qu
     == "Interface\\Icons\\Ability_Mount_Wyvern_01", "specific services take priority over quest-giver status")
 assert(not M.window.rows[1].detail:GetText():find("NPC ID", 1, true))
 assert(M:EntryIcon({ kind = "npc", category = "Combat", tags = {} })
-    == "Interface\\Icons\\INV_Misc_Head_Human_01", "unknown creature artwork must not imply hostility")
+    == "Interface\\Icons\\Ability_Tracking", "unresolved creatures use a tracking symbol, not a fake human portrait")
 assert(M.window.rows[1].name.fontSize == 14 and M.window.rows[1].detail.fontSize == 13,
     "result names and secondary text remain readable at the base text scale")
 assert(M.window.rows[1].name.fontSize >= 13 and M.window.rows[1].height >= 44,
@@ -188,7 +193,8 @@ assert(uiCalls.text == textCalls and uiCalls.font == fontCalls and uiCalls.color
 local oldCategory = reference.category
 reference.category = "Vendors"
 M:Render()
-assert(info.identity:GetText():find("Vendors", 1, true), "details update when a record changes in place")
+assert(info.title:GetText() == "Vendors", "details update when a record changes in place")
+assert(not info.identity:GetText():find("NPCs /", 1, true), "details do not repeat kind/category already shown in the subtitle")
 assert(info.icon.texture == M:EntryIcon(reference))
 reference.category = oldCategory
 info.scroll:SetVerticalScroll(50)
@@ -209,17 +215,18 @@ local originalHeight = rawget(info.body, "GetStringHeight")
 info.body.GetStringHeight = function() return 360 end
 M.settings.textScale = 1.5
 M:Render()
-assert(info.sections[3].height == 402 and info.content.height >= 402,
+assert(info.sections[3].height == 398 and info.content.height >= 398,
     "wrapped evidence expands its card and scroll content instead of clipping")
 info.body.GetStringHeight = originalHeight
 M.settings.textScale = 1
 M:Render()
 M.results[1].placementCount = 4
 M:Render()
-assert(M.window.rows[1].name:GetText():find("(4 locations)", 1, true))
+assert(info.identity:GetText():find("(4 locations)", 1, true))
 M.results[1].placementCount = 1
 M:Render()
 assert(not M.window.rows[1].name:GetText():find("locations", 1, true))
+assert(not info.identity:GetText():find("locations", 1, true))
 assert(M.window.viewButtons.review:GetText():find("(1)", 1, true),
     "Review must count pending observations, not all journal entries")
 assert(M.window.onboarding:GetText():find("Confirmed NPC: 1 placements / 1 IDs", 1, true),
