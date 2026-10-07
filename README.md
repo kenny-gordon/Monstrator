@@ -80,6 +80,12 @@ pending review, client map locations or database records.
 **Grouping** (on by default) shows one row per NPC per zone, at its nearest known
 location, with a location count. Turn it off in Settings to see every spawn point.
 
+Result rows keep the name, location, distance and evidence visible; NPC IDs and
+level details are in the Details pane rather than repeated in every row.
+Nearby distances are green, mid-range distances gold, and farther distances
+neutral. Service icons distinguish flight masters, stables, guild services and
+quest-giving NPCs; a quest-giver icon does not mean a quest is currently available.
+
 **Keyboard**: Tab and Shift+Tab move between controls, Enter activates, Up/Down
 select rows when the search box is not focused, and Escape closes the window.
 

@@ -120,6 +120,11 @@ assert(M:EntryIcon({ kind = "location", category = "Objects", tags = { "ore" } }
     == "Interface\\Icons\\Trade_Mining")
 assert(M:EntryIcon({ kind = "location", category = "Mailboxes", tags = {} })
     == "Interface\\Icons\\INV_Letter_15")
+assert(M:EntryIcon({ kind = "npc", category = "Services", tags = { "quest_giver" } })
+    == "Interface\\Icons\\INV_Misc_Note_01", "quest NPCs have a contextual icon, not a generic key")
+assert(M:EntryIcon({ kind = "npc", category = "Services", tags = { "flight", "quest_giver" } })
+    == "Interface\\Icons\\Ability_Mount_Wyvern_01", "specific services take priority over quest-giver status")
+assert(not M.window.rows[1].detail:GetText():find("NPC ID", 1, true))
 assert(M.window.rows[1].name.fontSize >= 13 and M.window.rows[1].height >= 44,
     "native rows must retain readable type and vertical spacing")
 local textCalls, fontCalls, colorCalls = uiCalls.text, uiCalls.font, uiCalls.color

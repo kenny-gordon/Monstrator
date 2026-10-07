@@ -209,13 +209,14 @@ M:Render()
 assert(M.window.rows[1].distance.color[2] == 1)
 assert(M.window.rows[2].distance.color[2] == 0.85)
 assert(M.window.rows[3].distance.color[2] == 0.85)
-assert(M.window.rows[4].distance.color[2] == 0.35)
+assert(M.window.rows[4].distance.color[2] == 0.85 and M.window.rows[4].distance.color[1] == 0.85,
+    "faraway results use neutral distance text rather than a danger color")
 M.settings.highContrast = true
 M:Render()
 assert(M.window.rows[1].distance.color[3] == 0.6 and M.window.rows[4].distance:GetText():find("101 yd"))
 M.settings.textScale = 1.5
 M:Render()
-assert(window.rows[1].name.fontSize == 19.5 and window.rows[1].detail.fontSize == 16.5)
+assert(window.rows[1].name.fontSize == 19.5 and window.rows[1].detail.fontSize == 18)
 assert(23 + window.rows[1].detail.fontSize <= window.rows[1].height,
     "maximum supported text scale must fit the row's second line")
 M.settings.textScale = 1

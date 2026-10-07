@@ -25,7 +25,7 @@ local function applyWindowBackdrop(frame, inset)
 end
 
 local categoryIcons = {
-    Services = "INV_Misc_Key_03", Vendors = "INV_Misc_Coin_01",
+    Services = "INV_Misc_GroupLooking", Vendors = "INV_Misc_Coin_01",
     Trainers = "INV_Misc_Book_09", Transit = "Ability_Mount_Wyvern_01",
     Combat = "INV_Sword_04", Mailboxes = "INV_Letter_15",
     Instances = "INV_Misc_StoneTablet_05", Landmarks = "INV_Misc_Map02",
@@ -41,12 +41,15 @@ local professionIcons = {
 }
 local tagIcons = {
     { "innkeeper", "INV_Misc_Rune_01" }, { "bank", "INV_Misc_Bag_10" },
+    { "flight", "Ability_Mount_Wyvern_01" }, { "stable", "Ability_Mount_RidingHorse" },
+    { "guild", "INV_Shirt_GuildTabard_01" }, { "tabard", "INV_Shirt_GuildTabard_01" },
     { "auction", "INV_Misc_Coin_02" }, { "repair", "Trade_BlackSmithing" },
     { "mailbox", "INV_Letter_15" }, { "herb", "Trade_Herbalism" },
     { "ore", "Trade_Mining" }, { "fishing", "Trade_Fishing" },
     { "anvil", "Trade_BlackSmithing" }, { "forge", "Trade_BlackSmithing" },
     { "food", "INV_Misc_Food_11" }, { "drink", "INV_Drink_07" },
     { "boat", "INV_Misc_Map02" },
+    { "quest_giver", "INV_Misc_Note_01" },
 }
 
 function M:EntryIcon(record)
@@ -828,12 +831,11 @@ function M:Render()
             local evidence = entry.stale and L["Stale favorite"] or shortEvidenceName(r)
             if row.renderKey ~= r.key or row.renderX ~= r.x or row.renderY ~= r.y
                 or row.renderStale ~= entry.stale or row.renderVerification ~= r.verification
-                or row.renderEvidence ~= evidence or row.renderNPCID ~= r.npcID then
+                or row.renderEvidence ~= evidence or row.renderNPCID ~= r.npcID
+                or row.renderCategory ~= r.category or row.renderMap ~= r.mapID then
                 local map = C_Map and C_Map.GetMapInfo and C_Map.GetMapInfo(r.mapID)
-                local identity = r.npcID and (L["NPC ID"] .. " " .. r.npcID .. " | ") or ""
-                local level = (r.level and r.level > 0) and (L["Lv "] .. r.level .. " | ") or ""
                 row.detail:SetText((L["%s  %.1f, %.1f | %s%s|cff9aa3b5%s|r"]):format(
-                    map and map.name or (L["Map %d"]):format(r.mapID), r.x, r.y, level, identity, evidence))
+                    map and map.name or (L["Map %d"]):format(r.mapID), r.x, r.y, "", "", evidence))
                 local group = (r.verification == "curated" or r.verification == "user-confirmed") and "confirmed"
                     or (r.verification == "client-map" or r.verification == "client-object") and "map"
                     or isReferenceRecord(r) and "reference" or r.verification
@@ -842,6 +844,7 @@ function M:Render()
                 row.renderKey, row.renderX, row.renderY = r.key, r.x, r.y
                 row.renderStale, row.renderVerification = entry.stale, r.verification
                 row.renderEvidence, row.renderNPCID = evidence, r.npcID
+                row.renderCategory, row.renderMap = r.category, r.mapID
             end
             if row.renderYards ~= yards or row.renderLabel ~= entry.distanceLabel then
                 row.distance:SetText(yards and string.format(L["%d yd"], yards)
@@ -853,7 +856,7 @@ function M:Render()
                 if self.settings.highContrast then red, green, blue = 1, 1, 0.6
                 elseif entry.distance < 40 then red, green, blue = 0.3, 1, 0.3
                 elseif entry.distance <= 100 then red, green, blue = 1, 0.85, 0.2
-                else red, green, blue = 1, 0.35, 0.35 end
+                else red, green, blue = 0.85, 0.85, 0.8 end
             end
             if row.renderRed ~= red or row.renderGreen ~= green or row.renderBlue ~= blue then
                 row.distance:SetTextColor(red, green, blue)
@@ -862,7 +865,7 @@ function M:Render()
             if row.renderTextScale ~= self.settings.textScale then
                 row.name:SetFont(STANDARD_TEXT_FONT, 13 * self.settings.textScale)
                 row.distance:SetFont(STANDARD_TEXT_FONT, 12 * self.settings.textScale)
-                row.detail:SetFont(STANDARD_TEXT_FONT, 11 * self.settings.textScale)
+                row.detail:SetFont(STANDARD_TEXT_FONT, 12 * self.settings.textScale)
                 row.renderTextScale = self.settings.textScale
             end
             if row.selection:IsShown() ~= (self.selected == index) then row.selection:SetShown(self.selected == index) end
