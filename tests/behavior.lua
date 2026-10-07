@@ -249,6 +249,21 @@ C_Timer.NewTicker = withoutTicker
 M:Toggle("review")
 M:ShowSettings()
 M:ShowReview(observation)
+local reviewEvidence = M.reviewFrame.evidence:GetText()
+local seenAt = tostring(observation.lastSeen)
+if type(date) == "function" then
+    local ok, formatted = pcall(date, "%Y-%m-%d %H:%M", observation.lastSeen)
+    if ok then seenAt = formatted end
+end
+assert(reviewEvidence:find(M.L["NPC ID: "] .. observation.npcID, 1, true))
+assert(reviewEvidence:find(M.L["Seen: %s | Sightings: %d"]:format(seenAt, 2), 1, true))
+assert(reviewEvidence:find(M.L["Submission seal: %s"]:format(M.L["seal:intact"]), 1, true))
+assert(reviewEvidence:find(M.L["Source: "] .. M.L["Vendors"], 1, true))
+local intactSeal = observation.seal
+observation.seal = "invalid"
+M:ShowReview(observation)
+assert(M.reviewFrame.evidence:GetText():find(M.L["seal:mismatch"], 1, true), "tampered records must be marked")
+observation.seal = intactSeal
 M.window:Hide()
 assert(M.ticker == nil)
 local many = {}

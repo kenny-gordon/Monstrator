@@ -141,6 +141,11 @@ location, category and tags, then confirm or delete it. Only confirmed entries
 appear in the directory. **Manage journal** (`/monstrator journal`) edits
 confirmed entries too.
 
+The review form shows the capture source, NPC ID, sighting count and time,
+client build/locale, and whether the submission seal still matches the record.
+These details provide context for review; the seal is tamper-evident, not proof
+that the encounter position is an exact spawn.
+
 - `/monstrator audit` compares your journal with the database: new NPCs, moved
   spawns and new services.
 - **NPC inventory** (`/monstrator npcs`) summarizes every known NPC by ID.

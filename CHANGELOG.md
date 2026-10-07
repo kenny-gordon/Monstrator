@@ -9,7 +9,7 @@ First release for WoW Forever (interface 16001, client 1.60.1).
 - **Built-in database**: 10,000+ NPCs, 6,500+ objects, 14,000+ items and 4,000+ quests. No other addon is required at runtime.
 - **Item lookup and 3D viewer**: find who sells, drops, gathers or rewards an item, and preview NPC models.
 - **NPC scan**: alerts for watched NPCs and rares (nameplate, target, mouseover, minimap), with a sighting log.
-- **Journal**: opt-in local discovery with review before any placement is confirmed, plus favorites and an audit against the database.
+- **Journal**: opt-in local discovery with review before any placement is confirmed. Review now surfaces capture source, NPC ID, sighting history, build/locale and submission-seal status; favorites and database audits are also included.
 - **Discovery submissions**: `/monstrator submit` creates a sealed, anonymous text block for the submission issue form. The maintainer `review` tool rejects tampered blocks and requires corroboration from independent reporters.
 - **Localization**: the full UI and help are available in enUS, deDE, frFR, esES/esMX, ptBR, itIT, ruRU, koKR, zhCN and zhTW.
 - **Interface**: a help window organized by topic, and scan alerts that always draw above other windows. If a new alert arrives during combat, the Target button reads "After combat" until it can safely switch NPCs.

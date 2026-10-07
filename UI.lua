@@ -297,7 +297,7 @@ end
 function M:ShowReview(record)
     if not self.reviewFrame then
         local f = CreateFrame("Frame", nil, UIParent, "BackdropTemplate")
-        f:SetSize(560, 380)
+        f:SetSize(560, 450)
         f:SetPoint("CENTER")
         f:SetFrameStrata("DIALOG")
         applyWindowBackdrop(f)
@@ -305,12 +305,16 @@ function M:ShowReview(record)
         f.title = label(f, "Review placement", 20, -20)
         f.title:SetWidth(520)
         f.title:SetJustifyH("LEFT")
-        label(f, "Encounter position is approximate. Confirm a static placement.", 20, -55)
-        label(f, "X (%)", 20, -95)
-        label(f, "Y (%)", 180, -95)
-        f.x = edit(f, 25, -120, 110)
-        f.y = edit(f, 185, -120, 110)
-        f.category = button(f, "Category", 20, -160, 220, function()
+        f.evidence = label(f, "", 20, -54, 11)
+        f.evidence:SetWidth(520)
+        f.evidence:SetHeight(116)
+        f.evidence:SetJustifyH("LEFT")
+        f.evidence:SetJustifyV("TOP")
+        label(f, "X (%)", 20, -185)
+        label(f, "Y (%)", 180, -185)
+        f.x = edit(f, 25, -210, 110)
+        f.y = edit(f, 185, -210, 110)
+        f.category = button(f, "Category", 20, -250, 220, function()
             local list = self.categories[f.record.kind]
             local index = 2
             for i, value in ipairs(list) do if value == f.value then index = i + 1 end end
@@ -318,25 +322,59 @@ function M:ShowReview(record)
             f.value = list[index]
             f.category:SetText(L[f.value])
         end)
-        label(f, "Tags (comma separated)", 20, -202)
-        f.tags = edit(f, 25, -228, 495)
-        label(f, "Examples: food, innkeeper, repair, mailbox, flight", 20, -268, 11)
-        button(f, "Confirm placement", 20, -310, 160, function()
+        label(f, "Tags (comma separated)", 20, -292)
+        f.tags = edit(f, 25, -317, 495)
+        label(f, "Examples: food, innkeeper, repair, mailbox, flight", 20, -349, 11)
+        button(f, "Confirm placement", 20, -394, 160, function()
             local x, y = tonumber(f.x:GetText()), tonumber(f.y:GetText())
             if not self:IsFinite(x) or not self:IsFinite(y) or x < 0 or x > 100 or y < 0 or y > 100 then
                 self:Error(L["Enter coordinates between 0 and 100."]); return
             end
             if self:Review(f.record, "accept", x, y, f.value, f.tags:GetText()) then f:Hide() end
         end)
-        button(f, "Delete record", 190, -310, 130, function()
+        button(f, "Delete record", 190, -394, 130, function()
             if self:Review(f.record, "reject") then f:Hide() end
         end)
-        button(f, "Cancel", 330, -310, 100, function() f:Hide() end)
+        button(f, "Cancel", 330, -394, 100, function() f:Hide() end)
         self.reviewFrame = f
     end
     local f = self.reviewFrame
     f.record, f.value = record, record.category
     f.title:SetText(record.name .. " - " .. self:MapName(record.mapID))
+    local sourceEvent = type(record.source) == "string" and record.source:match("^local:(.+)$")
+    local captureLabels = {
+        ["manual-target"] = L["npc"],
+        ["PLAYER_TARGET_CHANGED"] = L["scan:target"],
+        ["UPDATE_MOUSEOVER_UNIT"] = L["scan:mouseover"],
+        ["MERCHANT_SHOW"] = L["Vendors"],
+        ["TRAINER_SHOW"] = L["Trainers"],
+        ["GOSSIP_SHOW"] = L["Services"],
+        ["TAXIMAP_OPENED"] = L["Transit"],
+        ["manual-landmark"] = L["Landmarks"],
+    }
+    local captureSource = (sourceEvent and captureLabels[sourceEvent]) or record.source
+    local sealState = record.seal == nil and "seal:missing"
+        or (self:RecordSealValid(record) and "seal:intact" or "seal:mismatch")
+    local seenAt = record.lastSeen and tostring(record.lastSeen) or L["unknown"]
+    if record.lastSeen and type(date) == "function" then
+        local ok, formatted = pcall(date, "%Y-%m-%d %H:%M", record.lastSeen)
+        if ok then seenAt = formatted end
+    end
+    local evidence = {
+        L["Encounter position is approximate. Confirm a static placement."],
+        L["Evidence: "] .. L[record.verification] .. " / " .. L[record.precision],
+        L["Source: "] .. captureSource,
+    }
+    if record.kind == "npc" then
+        table.insert(evidence, (L["NPC ID: "] .. tostring(record.npcID or L["unknown"]))
+            .. " | " .. (L["Level: %s | Type: %s | Rank: %s | Reaction: %s"]):format(
+                tostring(record.level or L["unknown"]), record.creatureType or L["unknown"],
+                record.classification or L["unknown"], tostring(record.reaction or L["unknown"])))
+    end
+    table.insert(evidence, (L["Seen: %s | Sightings: %d"]):format(seenAt, record.sightings or 1))
+    table.insert(evidence, (L["Submission seal: %s"]):format(L[sealState]))
+    table.insert(evidence, (L["Build: %s | Locale: %s"]):format(record.build, record.locale))
+    f.evidence:SetText(table.concat(evidence, "\n"))
     f.x:SetText(string.format("%.4f", record.x))
     f.y:SetText(string.format("%.4f", record.y))
     f.category:SetText(L[f.value])
@@ -1740,4 +1778,3 @@ end
 
 M.Widgets = { label = label, button = button, edit = edit, panel = panel, backdrop = applyWindowBackdrop,
     escapeCloses = escapeCloses, marker = selectionMarker }
-
