@@ -48,6 +48,7 @@ C_Timer = {
 C_Texture = { GetAtlasInfo = function(atlas)
     if atlas == "QuestBG-Parchment" then return { width = 384, height = 512 } end
     if atlas == "honorsystem-bar-rewardborder-circle" then return { width = 36, height = 36 } end
+    if atlas == "auctionhouse-itemicon-small-border" then return { width = 16, height = 16 } end
 end }
 local methods = {}
 uiCalls = { text = 0, font = 0, color = 0 }

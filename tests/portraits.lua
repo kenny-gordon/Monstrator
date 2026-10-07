@@ -40,6 +40,32 @@ local function npc(id)
 end
 local row = M.window.rows[1].icon
 local detail = M.window.info.icon
+local setTexture = row.SetTexture
+local reported = #messages
+row.SetTexture = function(self, icon)
+    if icon == "Interface\\Icons\\INV_Box_01" then return false end
+    return setTexture(self, icon)
+end
+M:SetEntryArtwork(row, { kind = "location", category = "Objects", tags = { "chest" } })
+assert(row.texture == "Interface\\Icons\\INV_Misc_QuestionMark" and #messages == reported + 1,
+    "a rejected icon asset is reported and uses visible fallback artwork, never an empty slot")
+M:SetEntryArtwork(row, { kind = "location", category = "Mailboxes", tags = {} })
+M:SetEntryArtwork(row, { kind = "location", category = "Objects", tags = { "chest" } })
+assert(#messages == reported + 1, "missing artwork is reported once rather than on every recycled row")
+row.SetTexture = setTexture
+row.entryIcon = nil
+M:SetEntryArtwork(row, { kind = "location", category = "Objects", tags = { "chest" } })
+assert(row.texture == "Interface\\Icons\\INV_Box_01" and row:IsShown() and not row.portraitTexture:IsShown(),
+    "container fallback uses valid native box artwork and never a recycled creature portrait")
+local icons = {}
+for id = 1617, 1622 do
+    local icon = M:EntryIcon({ kind = "location", category = "Objects", objectID = id, tags = { "herb" } })
+    assert(not icons[icon], "common herb nodes have distinct native item artwork")
+    icons[icon] = true
+end
+assert(M:EntryIcon({ kind = "npc", category = "Combat", objectID = 1617, tags = {} })
+    ~= M:EntryIcon({ kind = "location", category = "Objects", objectID = 1617, tags = { "herb" } }),
+    "object artwork must not leak into NPC portraits")
 M:SetEntryArtwork(row, npc(2001))
 M:SetEntryArtwork(detail, npc(2001))
 assert(queries == 1, "row and details share one creature lookup")
@@ -49,10 +75,10 @@ drain()
 assert(not M.portraits.model:IsShown(), "idle appearance resolver does not keep rendering")
 assert(row.portraitTexture.texture == "portrait:501" and detail.portraitTexture.texture == "portrait:501")
 assert(row.portraitDisplayID == 501)
-assert(row.isPortrait and row.portraitTexture.mask == row.portraitMask and row.texCoords[1] == 0 and row.texCoords[2] == 1,
-    "resolved portraits use a circular mask without item-icon cropping")
-assert(not row.slotBorder:IsShown() and row.portraitBorder:IsShown(),
-    "resolved NPC portraits show a round native ring, not an overlapping square item slot")
+assert(row.isPortrait and not row.portraitTexture.mask and row.texCoords[1] == 0 and row.texCoords[2] == 1,
+    "resolved portraits retain the full creature image in a square slot")
+assert(row.slotBorder:IsShown() and not row.portraitBorder,
+    "NPC portraits use the same square native border as objects, with no gold portrait ring")
 local oldQueries, oldPaints = queries, paints
 M:SetEntryArtwork(row, npc(2001))
 assert(queries == oldQueries and paints == oldPaints, "cached portraits do not reload on every render")
@@ -63,8 +89,8 @@ assert(row.texture == "Interface\\Icons\\INV_Letter_15", "late portrait cannot o
 row.portraitTexture:SetTexture("late engine portrait")
 assert(row:IsShown() and not row.portraitTexture:IsShown(),
     "engine-side portrait updates cannot overwrite static icons because the textures are separate")
-assert(not row.isPortrait and not row.portraitTexture.mask and row.slotBorder:IsShown() and not row.portraitBorder:IsShown(),
-    "recycling a portrait into a location removes its circular mask and restores square icon framing")
+assert(not row.isPortrait and not row.portraitTexture.mask and row.slotBorder:IsShown(),
+    "recycling a portrait into a location preserves the same square framing")
 assert(row.texCoords[1] == 0.07 and row.texCoords[2] == 0.93)
 M:SetEntryArtwork(row, npc(2002))
 assert(row.portraitTexture.texture == "portrait:502", "recycled rows can use the resolved display cache")
@@ -74,7 +100,7 @@ assert(row.portraitTexture.texture == "portrait:501", "NPCs that share a display
 M:SetEntryArtwork(row, npc(2999))
 drain()
 assert(row.texture == M:EntryIcon(npc(2999)), "uncached NPC keeps the honest icon fallback")
-assert(row.slotBorder:IsShown() and not row.portraitBorder:IsShown())
+assert(row.slotBorder:IsShown() and not row.portraitBorder)
 oldQueries = queries
 M:SetEntryArtwork(row, npc(2999))
 assert(queries == oldQueries, "unavailable creatures are not queried on every refresh")

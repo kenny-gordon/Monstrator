@@ -1,5 +1,6 @@
 local _, M = ...
 local L = M.L
+L["Icon asset unavailable: %s"] = "Icon asset unavailable: %s"
 L["map.view"] = "View on map"
 L["map.combat"] = "Open the map preview after combat."
 L["map.unavailable"] = "The world map preview is unavailable on this client."

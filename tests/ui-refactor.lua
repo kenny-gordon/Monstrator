@@ -126,10 +126,13 @@ end
 assert(info.icon.width == 48 and info.name.fontSize == 17, "the selected NPC has a larger portrait and name")
 assert(M.window.rows[1].icon.texture == M:EntryIcon(reference))
 assert(info.icon.texture == M.window.rows[1].icon.texture, "list and details use the same category icon")
-assert(M.window.rows[1].iconBorder.texture == "Interface\\Buttons\\UI-Quickslot2")
-assert(M.window.rows[1].icon.portraitMask.texture == "Interface\\CharacterFrame\\TempPortraitAlphaMask"
-    and M.window.rows[1].icon.portraitBorder.atlas == "honorsystem-bar-rewardborder-circle",
-    "NPC artwork has separate native round portrait framing and square fallback framing")
+assert(M.window.rows[1].iconBorder.atlas == "auctionhouse-itemicon-small-border"
+    and info.iconBorder.atlas == M.window.rows[1].iconBorder.atlas,
+    "rows and selected entries share the Auction House's restrained square border")
+assert(M.window.rows[1].iconBorder.width == M.window.rows[1].icon.width * 16 / 14,
+    "icon borders preserve the Auction House template's proportions")
+assert(not M.window.rows[1].icon.portraitMask and not M.window.rows[1].icon.portraitBorder,
+    "all entry artwork uses consistent square slots without separate circular NPC decorations")
 assert(M.window.rows[1].icon.portraitTexture ~= M.window.rows[1].icon,
     "engine-generated portraits never share the static object texture")
 assert(M.window.categoryButtons[1].browseIcon, "browse filters have visual category cues")

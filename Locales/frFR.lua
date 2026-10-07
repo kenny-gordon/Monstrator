@@ -1,6 +1,7 @@
 local _, M = ...
 if GetLocale() ~= "frFR" then return end
 local L = M.L
+L["Icon asset unavailable: %s"] = "Image d'icône indisponible : %s"
 L["map.view"] = "Voir sur la carte"
 L["map.combat"] = "Ouvrez la carte après le combat."
 L["map.unavailable"] = "L'aperçu de la carte du monde est indisponible sur ce client."

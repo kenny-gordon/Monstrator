@@ -2,6 +2,8 @@
 
 ## 1.0.0
 
+- **Consistent entry icons**: use the Auction House's square border atlas and native proportions for NPC portraits, objects and fallbacks, removing separate gold portrait rings and masks. Replace the invalid generic treasure-chest asset with native box artwork, add chest/cooking/quest-object mappings, and distinguish six common herb nodes by object ID. Rejected entry/sidebar icon assets are reported once and replaced with a visible question mark, preserving static/portrait separation.
+
 - **Screenshot readability follow-up**: widen and dynamically fit the player-position readout, allow category/count labels to wrap within their rows, and show evidence labels only for otherwise identical visible rows. Distinct database/client/confirmed records remain separate.
 
 - **Native directory polish**: remove the map breadcrumb strip entirely; restore a simple subtitle and keep all area browsing in the sidebar/picker. Separate the parchment from a dark action tray, use native primary buttons for navigation/map preview, pack applicable actions without NPC-only gaps and add full-label action tooltips. Result paging uses native scrollbar arrows instead of text carets.
@@ -16,7 +18,7 @@
 
 - **Coordinate map preview and screenshot corrections**: View on map in Details, or Shift-click a result, opens its zone on the native world map with a coordinate marker, without changing navigation or confirming encounters. Object icons and engine-generated NPC portraits now use separate textures so recycled rows cannot show delayed creature artwork on static locations. Appearance resolution waits for model completion before caching a display ID. Sidebar fitting measures full text width; empty/short content hides unnecessary paging and scroll controls.
 
-- **Portrait framing fix**: resolved NPC portraits use a circular mask and native round ring rather than overlapping square item-slot artwork. Location and fallback icons retain square framing. Losing a live target restores the cached appearance or fallback instead of retaining stale artwork.
+- **Portrait lifecycle fix**: losing a live target restores the cached appearance or fallback instead of retaining stale artwork.
 
 - **NPC portraits and screenshot fixes**: directory rows and selected entries use matching live-unit portraits or client-resolved creature display portraits, with a shared bounded loader and icon fallback for unavailable NPCs. Recycled rows ignore late portrait results. Unknown NPCs no longer default to a hostile-looking sword. Larger result text and explicit, unlimited parchment word wrapping prevent the Evidence section from overflowing horizontally.
 - **Beta-update compatibility and clearer controls**: newer client builds can discover world-zone maps from the live hierarchy without reusing incompatible extracted object coordinates. Unavailable automatic scans expose a nonfatal coverage status instead of the misleading build-mismatch error. The former Focus button is now Keyboard, with shortcut help. Scan alerts can mark the actual sighted NPC with a skull on click, preserving existing marks and checking combat, visibility and raid permissions.

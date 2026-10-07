@@ -1,6 +1,7 @@
 local _, M = ...
 if GetLocale() ~= "ruRU" then return end
 local L = M.L
+L["Icon asset unavailable: %s"] = "Изображение значка недоступно: %s"
 L["map.view"] = "Показать на карте"
 L["map.combat"] = "Откройте карту после боя."
 L["map.unavailable"] = "Просмотр карты мира недоступен в этом клиенте."

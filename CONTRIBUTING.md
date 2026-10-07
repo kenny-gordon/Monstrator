@@ -179,6 +179,12 @@ NPC artwork resolves a creature display ID through the documented
 `SetPortraitTexture`. Never pass an NPC ID as a display ID. Keep appearance
 lookups serialized, the session cache bounded and late callbacks guarded
 against recycled rows. Unavailable appearances keep their category icon.
+Use `auctionhouse-itemicon-small-border` with the native 16:14 border/icon
+ratio, as defined in [Forever's Auction House table templates](https://github.com/Gethe/wow-ui-source/blob/forever/Interface/AddOns/Blizzard_AuctionHouseUI/Shared/Blizzard_AuctionHouseTableBuilder.xml).
+Use the same square frame for portraits and static icons; do not add
+separate circular masks or gold rings to directory NPCs. Keep herb artwork
+keyed by canonical object ID rather than localized names. Rejected static
+assets must produce a visible fallback and a once-per-asset diagnostic.
 
 Design research also examined
 [Journalator's tabbed display](https://github.com/TheMouseNest/Journalator)

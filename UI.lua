@@ -29,7 +29,7 @@ local categoryIcons = {
     Trainers = "INV_Misc_Book_09", Transit = "Ability_Mount_Wyvern_01",
     Combat = "Ability_Tracking", Mailboxes = "INV_Letter_15",
     Instances = "INV_Misc_StoneTablet_05", Landmarks = "INV_Misc_Map02",
-    Objects = "INV_Misc_TreasureChest01",
+    Objects = "INV_Box_01",
 }
 local browseShortcuts = {
     { "all", "All" }, { "npc", "Services" }, { "npc", "Vendors" },
@@ -52,6 +52,11 @@ local professionIcons = {
     cooking = "INV_Misc_Food_15", first_aid = "Spell_Holy_SealOfSacrifice",
     fishing = "Trade_Fishing",
 }
+local herbIcons = {
+    [1617] = "INV_Misc_Herb_10", [1618] = "INV_Misc_Flower_02",
+    [1619] = "INV_Misc_Herb_07", [1620] = "INV_Jewelry_Talisman_03",
+    [1621] = "INV_Misc_Root_01", [1622] = "INV_Misc_Herb_11",
+}
 local tagIcons = {
     { "innkeeper", "INV_Misc_Rune_01" }, { "bank", "INV_Misc_Bag_10" },
     { "flight", "Ability_Mount_Wyvern_01" }, { "stable", "Ability_Mount_RidingHorse" },
@@ -60,12 +65,21 @@ local tagIcons = {
     { "mailbox", "INV_Letter_15" }, { "herb", "Trade_Herbalism" },
     { "ore", "Trade_Mining" }, { "fishing", "Trade_Fishing" },
     { "anvil", "Trade_BlackSmithing" }, { "forge", "Trade_BlackSmithing" },
+    { "chest", "INV_Box_01" }, { "cooking", "Trade_Cooking" },
+    { "quest_object", "INV_Misc_Note_01" },
     { "food", "INV_Misc_Food_11" }, { "drink", "INV_Drink_07" },
     { "boat", "INV_Misc_Map02" },
     { "quest_giver", "INV_Misc_Note_01" },
 }
 
 function M:EntryIcon(record)
+    if record.kind == "location" then
+        for _, tag in ipairs(record.tags or {}) do
+            if tag == "herb" and herbIcons[record.objectID] then
+                return "Interface\\Icons\\" .. herbIcons[record.objectID]
+            end
+        end
+    end
     if record.category == "Trainers" then
         for _, key in ipairs(self:RecordSubgroups(record)) do
             local profession = key:match("^trainer:(.+)$")
@@ -81,6 +95,17 @@ function M:EntryIcon(record)
         or (record.kind == "npc" and "Ability_Tracking" or "INV_Misc_Map02"))
 end
 
+local missingIcons = {}
+local function setStaticIcon(texture, icon)
+    if texture:SetTexture(icon) == false then
+        if not missingIcons[icon] then
+            missingIcons[icon] = true
+            M:Error((L["Icon asset unavailable: %s"]):format(tostring(icon)))
+        end
+        texture:SetTexture("Interface\\Icons\\INV_Misc_QuestionMark")
+    end
+end
+
 local function portraitCall(fn, ...)
     local ok, value = pcall(fn, ...)
     if not ok then M:Error(tostring(value)); return end
@@ -89,19 +114,12 @@ end
 
 local function artworkStyle(texture, portrait)
     if texture.isPortrait == portrait then return end
-    local wasPortrait = texture.isPortrait
     texture.isPortrait = portrait
     if texture.portraitTexture then
         texture:SetShown(not portrait)
         texture.portraitTexture:SetShown(portrait)
     end
-    if texture.slotBorder then texture.slotBorder:SetShown(not portrait) end
-    if texture.portraitBorder then texture.portraitBorder:SetShown(portrait) end
-    if texture.portraitMask then
-        local artwork = texture.portraitTexture or texture
-        if portrait then artwork:AddMaskTexture(texture.portraitMask)
-        elseif wasPortrait then artwork:RemoveMaskTexture(texture.portraitMask) end
-    end
+    if texture.slotBorder then texture.slotBorder:Show() end
     texture:SetTexCoord(portrait and 0 or 0.07, portrait and 1 or 0.93,
         portrait and 0 or 0.07, portrait and 1 or 0.93)
 end
@@ -175,7 +193,7 @@ function M:SetEntryArtwork(texture, record)
     local icon = self:EntryIcon(record)
     local npcID = record.kind == "npc" and record.npcID or nil
     if texture.entryIcon ~= icon or texture.portraitNPC ~= npcID then
-        texture:SetTexture(icon)
+        setStaticIcon(texture, icon)
         artworkStyle(texture, false)
         texture.entryIcon, texture.portraitNPC = icon, npcID
         texture.portraitDisplayID = nil
@@ -200,7 +218,7 @@ function M:SetEntryArtwork(texture, record)
         end
     end
     if texture.portraitUnitGUID then
-        texture:SetTexture(icon)
+        setStaticIcon(texture, icon)
         artworkStyle(texture, false)
         texture.portraitUnitGUID = nil
     end
@@ -240,28 +258,20 @@ local function entrySlot(parent, x, y, size)
     icon:SetSize(size, size)
     icon:SetTexCoord(0.07, 0.93, 0.07, 0.93)
     local border = parent:CreateTexture(nil, "OVERLAY")
-    border:SetPoint("TOPLEFT", x - size * 0.18, y + size * 0.18)
-    border:SetSize(size * 1.36, size * 1.36)
-    border:SetTexture("Interface\\Buttons\\UI-Quickslot2")
+    if C_Texture and C_Texture.GetAtlasInfo and C_Texture.GetAtlasInfo("auctionhouse-itemicon-small-border") then
+        border:SetPoint("TOPLEFT", x - size / 14, y + size / 14)
+        border:SetSize(size * 16 / 14, size * 16 / 14)
+        border:SetAtlas("auctionhouse-itemicon-small-border")
+    else
+        border:SetPoint("TOPLEFT", x - size * 0.18, y + size * 0.18)
+        border:SetSize(size * 1.36, size * 1.36)
+        border:SetTexture("Interface\\Buttons\\UI-Quickslot2")
+    end
     icon.slotBorder = border
     icon.portraitTexture = parent:CreateTexture(nil, "ARTWORK")
     icon.portraitTexture:SetAllPoints(icon)
     icon.portraitTexture:SetTexCoord(0, 1, 0, 1)
     icon.portraitTexture:Hide()
-    if parent.CreateMaskTexture and icon.AddMaskTexture and icon.RemoveMaskTexture then
-        local mask = parent:CreateMaskTexture(nil, "ARTWORK")
-        mask:SetAllPoints(icon)
-        mask:SetTexture("Interface\\CharacterFrame\\TempPortraitAlphaMask", "CLAMPTOBLACKADDITIVE", "CLAMPTOBLACKADDITIVE")
-        icon.portraitMask = mask
-    end
-    if C_Texture and C_Texture.GetAtlasInfo and C_Texture.GetAtlasInfo("honorsystem-bar-rewardborder-circle") then
-        local ring = parent:CreateTexture(nil, "OVERLAY")
-        ring:SetPoint("TOPLEFT", x - size * 0.1, y + size * 0.1)
-        ring:SetSize(size * 1.2, size * 1.2)
-        ring:SetAtlas("honorsystem-bar-rewardborder-circle")
-        ring:Hide()
-        icon.portraitBorder = ring
-    end
     return icon, border
 end
 -- Shrinks a font (never below 8pt) until its text fits `spec.fit` pixels; translated labels vary a lot in length.
@@ -434,7 +444,7 @@ button = function(parent, text, x, y, width, callback, listIcon)
         b.browseIcon = b:CreateTexture(nil, "ARTWORK")
         b.browseIcon:SetPoint("TOPLEFT", 10, -4)
         b.browseIcon:SetSize(16, 16)
-        b.browseIcon:SetTexture("Interface\\Icons\\" .. listIcon)
+        setStaticIcon(b.browseIcon, "Interface\\Icons\\" .. listIcon)
     end
     local spec = trackFont(fontString, (width or 150) - (listIcon and 42 or 14))
     b.labelFont = fontString
@@ -948,7 +958,7 @@ function M:Render()
         local kind, category = self:BrowseCategory(i)
         if category then
             local icon = "Interface\\Icons\\" .. (categoryIcons[category] or "INV_Misc_Map02")
-            if b.renderIcon ~= icon then b.browseIcon:SetTexture(icon); b.renderIcon = icon end
+            if b.renderIcon ~= icon then setStaticIcon(b.browseIcon, icon); b.renderIcon = icon end
             local categories = counts.categories[kind] or {}
             local amount = category == "All" and counts[kind] or (categories[category] or 0)
             local sub = self.category == category and self:ActiveSubgroup()

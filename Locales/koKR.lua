@@ -1,6 +1,7 @@
 local _, M = ...
 if GetLocale() ~= "koKR" then return end
 local L = M.L
+L["Icon asset unavailable: %s"] = "아이콘 이미지를 사용할 수 없습니다: %s"
 L["map.view"] = "지도에서 보기"
 L["map.combat"] = "전투가 끝난 후 지도 미리보기를 여세요."
 L["map.unavailable"] = "이 클라이언트에서는 세계 지도 미리보기를 사용할 수 없습니다."

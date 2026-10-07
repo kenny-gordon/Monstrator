@@ -1,6 +1,7 @@
 local _, M = ...
 if GetLocale() ~= "zhTW" then return end
 local L = M.L
+L["Icon asset unavailable: %s"] = "圖示資源無法使用：%s"
 L["map.view"] = "在地圖上查看"
 L["map.combat"] = "請在戰鬥結束後開啟地圖預覽。"
 L["map.unavailable"] = "此用戶端無法預覽世界地圖。"

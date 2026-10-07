@@ -88,8 +88,14 @@ through a creature tooltip before retrying. Unavailable NPCs retain a category
 icon (a tracking symbol for unclassified creatures) and can retry later.
 Locations keep service/object icons. Neither a portrait nor an icon proves a
 confirmed location. Portrait resolution does not change journal or submission data.
-Resolved portraits use circular framing; fallback and location icons keep their
-square slots. Creature portrait camera angles come from the client and can vary
+Common herb nodes use their own item artwork by object ID rather than the same
+herbalism icon. Containers use a native box icon. If the client rejects an icon
+asset, Monstrator reports it once and shows a question mark instead of a blank slot.
+All directory artwork uses the same square Auction House border: creature portraits,
+object icons and fallbacks have consistent framing with no separate gold rings.
+The client atlas `auctionhouse-itemicon-small-border` is used when available,
+with a native square-slot fallback on clients without it.
+Creature portrait camera angles come from the client and can vary
 for animals; **3D model** provides a rotatable view when a portrait is unclear.
 
 Use the bottom **Directory**, **Favorites** and **Review journal** tabs to switch
