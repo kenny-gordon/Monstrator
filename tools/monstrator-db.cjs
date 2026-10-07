@@ -14,6 +14,8 @@
 //   node tools\monstrator-db.cjs verify [--determinism [importer args]]  schema, references, hashes (and re-import compare)
 //   node tools\monstrator-db.cjs diff <other Data\Native>   added/removed/changed IDs per kind
 //   node tools\monstrator-db.cjs stats                     database summary
+//   node tools\monstrator-db.cjs audit [--compare dir] [--pfquest dir] [--output file.json]
+//                                                          exact structural issues and external-reference differences
 //   node tools\monstrator-db.cjs package [--standalone]    dist\Monstrator-<version>[-standalone].zip with CREDITS.md;
 //                                                          --standalone ships no imported data
 //   node tools\monstrator-db.cjs build [import args]       import + overlay + verify
@@ -73,6 +75,12 @@ function evalLua(source, name, expr) {
   const json = String.raw`
 function __monstrator_json(value)
   local out = {}
+  local function jsonString(s)
+    return '"' .. s:gsub('[%z\1-\31\\"]', function(c)
+      if c == "\\" or c == '"' then return "\\" .. c end
+      return string.format("\\u%04x", string.byte(c))
+    end) .. '"'
+  end
   local function emit(v)
     local t = type(v)
     if t == "table" then
@@ -89,13 +97,13 @@ function __monstrator_json(value)
         for k, item in pairs(v) do
           if not first then out[#out + 1] = "," end
           first = false
-          out[#out + 1] = string.format("%q", tostring(k)):gsub("\\\n", "\\n") .. ":"
+          out[#out + 1] = jsonString(tostring(k)) .. ":"
           emit(item)
         end
         out[#out + 1] = "}"
       end
     elseif t == "string" then
-      out[#out + 1] = (string.format("%q", v):gsub("\\\n", "\\n"):gsub("\\(%d+)", function(d) return string.format("\\u%04x", tonumber(d)) end))
+      out[#out + 1] = jsonString(v)
     elseif t == "number" then
       if v ~= v or v == math.huge or v == -math.huge then out[#out + 1] = "null"
       elseif math.type and math.type(v) == "integer" then out[#out + 1] = tostring(v)
@@ -601,6 +609,10 @@ function loadRuntime(dir) {
 
 function cmdVerify(args) {
   const errors = [];
+  const { readTables, inspect } = require('./database-audit.cjs');
+  const raw = readTables(nativeDir);
+  const structural = [...raw.issues, ...inspect(raw.tables).issues].filter((issue) => issue.severity === 'error');
+  for (const issue of structural.slice(0, 40)) errors.push(`${issue.kind} ${issue.id || ''}: ${issue.message}`);
   const loot = lootManifest();
   if (loot) console.log(`AtlasLoot reference: ${loot.counts.added} imported relationships (${loot.commit.slice(0, 10)}); source/license hashes OK.`);
   const m = manifest();
@@ -610,8 +622,11 @@ function cmdVerify(args) {
   else for (const [name, info] of Object.entries(m.files)) {
     const file = path.join(nativeDir, name);
     if (!fs.existsSync(file)) { errors.push(`${name} missing`); continue; }
-    const hash = sha256(fs.readFileSync(file));
+    const contents = fs.readFileSync(file), hash = sha256(contents);
     if (hash !== info.sha256) errors.push(`${name}: sha256 differs from manifest (edited by hand? re-run import)`);
+    if (info.kind && raw.tables[info.kind] && (info.entries !== raw.tables[info.kind].size || info.bytes !== contents.length)) {
+      errors.push(`${name}: entry count or byte size differs from manifest`);
+    }
   }
   // The overlay codec must reproduce every base row exactly, or overlay rows would silently alter data.
   for (const kind of KINDS) {
@@ -652,7 +667,7 @@ for _, kind in ipairs({ "Npc", "Object", "Item", "Quest" }) do
     end
     if kind == "Npc" then
       local lo, hi = t.minLevel(id), t.maxLevel(id)
-      if lo and hi and lo > hi then warn("npc level range inverted") end
+      if lo and hi and lo > hi then err("Npc " .. id .. ": minimum level exceeds maximum level") end
     elseif kind == "Item" then
       for _, f in ipairs({ "vendors", "npcDrops" }) do for _, ref in ipairs(t[f](id) or {}) do if not db.Npc.Has(ref) then warn("item " .. f .. " -> unknown NPC") end end end
       for _, ref in ipairs(t.objectDrops(id) or {}) do if not (db.Object and db.Object.Has(ref)) then warn("item objectDrops -> unknown object") end end
@@ -719,6 +734,83 @@ return { errors = errors, errorCount = errors.n or 0, warnings = warnings, stats
   if (result.errorCount > errors.length) errors.push(`... ${result.errorCount} schema errors in total`);
   if (errors.length) { errors.forEach((e) => console.error('  ' + e)); fail(`verify found ${errors.length} problem(s)`); }
   console.log('Verify: OK (manifest hashes, schema, coordinates' + (args.includes('--determinism') ? ', determinism' : '') + ').');
+}
+
+function cmdAudit(args) {
+  const { readTables, inspect, compare, pfQuestNames } = require('./database-audit.cjs');
+  const options = {};
+  for (let i = 0; i < args.length; i++) {
+    const key = args[i];
+    if (!['--compare', '--pfquest', '--output'].includes(key) || !args[i + 1] || args[i + 1].startsWith('--') || options[key]) {
+      fail('usage: audit [--compare Data\\Native] [--pfquest folder] [--output report.json]');
+    }
+    options[key] = path.resolve(args[++i]);
+  }
+  const raw = readTables(nativeDir), metadata = manifest();
+  const report = { schemaVersion: 1, source: metadata && metadata.source, base: inspect(raw.tables) };
+  report.base.issues.unshift(...raw.issues);
+  if (metadata) {
+    for (const kind of KINDS) {
+      const name = `${kind}s.lua`, info = metadata.files[name];
+      if (!info || info.entries !== raw.tables[kind].size
+        || info.sha256 !== sha256(fs.readFileSync(path.join(nativeDir, name)))) {
+        report.base.issues.push({ severity: 'error', code: 'manifest-integrity', kind,
+          message: 'Entity count or file hash does not match the manifest' });
+      }
+    }
+  } else if (Object.values(raw.tables).some((rows) => rows.size)) {
+    report.base.issues.push({ severity: 'error', code: 'missing-manifest', message: 'Imported base data has no manifest' });
+  }
+  const overlay = evalLua(`${loadRuntime(nativeDir)}\n__audit = M.native.overlay`, 'audit overlay', '__audit');
+  const effective = Object.fromEntries(KINDS.map((kind) => [kind, new Map(raw.tables[kind])]));
+  for (const kind of KINDS) {
+    for (const [id, row] of entries(overlay[kind])) {
+      if (row === false) effective[kind].delete(id);
+      else effective[kind].set(id, row);
+    }
+  }
+  report.effective = inspect(effective);
+  const reviewFile = path.join(sourceDir, 'DatabaseReview.json');
+  if (fs.existsSync(reviewFile)) report.externalReview = JSON.parse(fs.readFileSync(reviewFile, 'utf8'));
+  if (options['--compare']) {
+    const candidate = readTables(options['--compare']);
+    const file = path.join(options['--compare'], 'manifest.json');
+    report.candidate = {
+      source: fs.existsSync(file) ? JSON.parse(fs.readFileSync(file, 'utf8')).source : null,
+      ...inspect(candidate.tables), changes: compare(raw.tables, candidate.tables),
+    };
+    report.candidate.issues.unshift(...candidate.issues);
+    report.candidate.safeToReplace = !report.candidate.issues.some((issue) => issue.severity === 'error')
+      && !Object.values(report.candidate.changes).some((changes) => changes.removed.length)
+      && report.candidate.issues.filter((issue) => issue.code === 'unresolved-reference').length
+        <= report.base.issues.filter((issue) => issue.code === 'unresolved-reference').length;
+  }
+  if (options['--pfquest']) report.pfQuest = pfQuestNames(options['--pfquest'], effective.Npc);
+  const loot = lootManifest();
+  if (loot) report.lootReference = { source: loot.source, commit: loot.commit, counts: loot.counts };
+  const summary = (section) => `${section.issues.filter((i) => i.severity === 'error').length} errors, `
+    + `${section.issues.filter((i) => i.severity === 'warning').length} warnings`;
+  console.log('Base audit: ' + summary(report.base));
+  console.log('Effective database audit: ' + summary(report.effective));
+  for (const issue of report.effective.issues.slice(0, 20)) {
+    console.log(`  ${issue.severity}: ${issue.kind} ${issue.id}.${issue.field}: ${issue.message}`
+      + (issue.relatedID ? ` (${issue.relatedKind} ${issue.relatedID})` : ''));
+  }
+  if (report.candidate) {
+    console.log(`Candidate ${report.candidate.source && report.candidate.source.version}: ${summary(report.candidate)}; `
+      + (report.candidate.safeToReplace ? 'no deletions/structural regressions detected' : 'HOLD: removals, structural errors or increased unresolved references require review'));
+    for (const [kind, changes] of Object.entries(report.candidate.changes)) {
+      console.log(`  ${kind}: +${changes.added.length} -${changes.removed.length} ~${changes.changed.length} (candidate relative to shipped base)`);
+    }
+  }
+  if (report.pfQuest) console.log(`pfQuest NPC names: ${report.pfQuest.matched} agree, `
+    + `${report.pfQuest.disagreements.length} differ, ${report.pfQuest.absent} absent (not evidence of invalid Forever records).`);
+  if (options['--output']) {
+    fs.writeFileSync(options['--output'], JSON.stringify(report, null, 2) + '\n', 'utf8');
+    console.log('Report: ' + options['--output']);
+  }
+  if ([...report.base.issues, ...report.effective.issues].some((issue) => issue.severity === 'error')) process.exitCode = 1;
+  else if (report.candidate && !report.candidate.safeToReplace) process.exitCode = 2;
 }
 
 // ---------------------------------------------------------------- diff / stats
@@ -881,13 +973,13 @@ module.exports = { decodeRow, encodeRow, decodeSpawns, encodeSpawns, normalizeSp
 if (require.main !== module) return;
 const [command, ...rest] = process.argv.slice(2);
 const commands = {
-  import: cmdImport, harvest: cmdHarvest, overlay: cmdOverlay, verify: cmdVerify, diff: cmdDiff, stats: cmdStats,
+  import: cmdImport, harvest: cmdHarvest, overlay: cmdOverlay, verify: cmdVerify, diff: cmdDiff, stats: cmdStats, audit: cmdAudit,
   package: cmdPackage, review: (args) => { process.exitCode = cmdReview(args) || 0; },
   build: (args) => { cmdImport(args); cmdOverlay(); cmdVerify([]); },
 };
 const wantsHelp = (a) => a === '-h' || a === '--help' || a === 'help';
 if (!commands[command] || rest.some(wantsHelp)) {
-  console.log(fs.readFileSync(__filename, 'utf8').split('\n').slice(1, 21).map((l) => l.replace(/^\/\/ ?/, '')).join('\n'));
+  console.log(fs.readFileSync(__filename, 'utf8').split('\n').slice(1, 23).map((l) => l.replace(/^\/\/ ?/, '')).join('\n'));
   process.exit(!command || wantsHelp(command) || commands[command] ? 0 : 1);
 }
 commands[command](rest);

@@ -1,0 +1,96 @@
+{
+  "schemaVersion": 1,
+  "reviewedAt": "2026-10-07",
+  "scope": "Complete structural audit of shipped rows and overlays; full candidate source comparison; independent Vanilla NPC-name comparison; targeted public Wowhead quest checks. This is not certification of every Forever spawn or loot relationship.",
+  "policy": "External absence or disagreement is a review signal, never grounds to delete Forever content. No Wowhead descriptions, comments or bulk database are imported.",
+  "sources": [
+    {
+      "name": "QuestieDB shipped Forever baseline",
+      "version": "1.0.4",
+      "commit": "365537a340473291f5af3b7a53a5eca94e2a5f1a",
+      "url": "https://github.com/Questie/QuestieDB",
+      "role": "Version-matched base data; preserves resized Forever map coordinates."
+    },
+    {
+      "name": "QuestieDB candidate Forever release",
+      "version": "1.0.5",
+      "commit": "e0a6eaa86f181ac99262e34126bcd2ed1a1712d6",
+      "url": "https://github.com/Questie/QuestieDB/releases/tag/v1.0.5",
+      "releaseAsset": "QuestieDB-Forever.zip",
+      "releaseSha256": "993680e91b8bcc1f5454af94478b1f70e0bf02bc4bd596001c8136b440939712",
+      "status": "held",
+      "reason": "Isolated conversion removes 2589 existing named quests and NPC 89 has minLevel 51 / maxLevel 50. Same-source parity passed, showing why independent structural and coverage gates are necessary. Investigate source/getter compatibility before adopting.",
+      "changes": {
+        "Npc": { "added": 3187, "removed": 0, "changed": 8 },
+        "Object": { "added": 307, "removed": 0, "changed": 98 },
+        "Item": { "added": 6261, "removed": 0, "changed": 1844 },
+        "Quest": { "added": 317, "removed": 2589, "changed": 1 }
+      }
+    },
+    {
+      "name": "pfQuest Vanilla / VMangos reference",
+      "commit": "7786596f8b08a07f2b10a266ab696e7d31c24805",
+      "sourceFile": "db/enUS/units.lua",
+      "sourceSha256": "f2ae827b04668c0236919f702485038a4d56330be00652d7c2970dc7e27e2922",
+      "url": "https://github.com/shagu/pfQuest/commit/7786596f8b08a07f2b10a266ab696e7d31c24805",
+      "role": "Independent English NPC-name comparison only; not Forever placements or a second independent confirmation of Questie lineage."
+    },
+    {
+      "name": "AtlasLootClassic",
+      "commit": "8e99341e4e779328460bf7684c0d5b22ce50ddf1",
+      "url": "https://github.com/Hoizame/AtlasLootClassic",
+      "role": "Reproducible Classic boss-loot comparison; separate reference layer, not Forever-confirmed."
+    }
+  ],
+  "independentNPCNames": {
+    "matched": 10107,
+    "disagreed": 9,
+    "absent": 6,
+    "action": "Retain modern Classic/Forever names. Disagreements include known renamed NPCs, formatting and placeholder names; absence is not a deletion criterion.",
+    "wowheadCanonicalRoutes": [
+      { "npcID": 10776, "name": "Pip Quickwit", "url": "https://www.wowhead.com/classic/npc=10776/pip-quickwit", "evidence": "Canonical redirect only; page body did not expose NPC statistics." },
+      { "npcID": 11058, "name": "Ezra Grimm", "url": "https://www.wowhead.com/classic/npc=11058/ezra-grimm", "evidence": "Canonical redirect only; page body did not expose NPC statistics." },
+      { "npcID": 14721, "name": "Field Marshal Stonebridge", "url": "https://www.wowhead.com/classic/npc=14721/field-marshal-stonebridge", "evidence": "Canonical redirect and page name corroborate the shipped name." }
+    ]
+  },
+  "unresolvedItemQuests": [
+    {
+      "itemID": 10590,
+      "questID": 3482,
+      "url": "https://www.wowhead.com/classic/quest=3482/nyi-txt-the-pocked-black-box",
+      "observation": "Wowhead redirects to an NYI-labelled quest. Page body did not expose database details; no claim of a playable Forever quest.",
+      "action": "Retain source reference; do not invent or enable an unimplemented quest."
+    },
+    {
+      "itemID": 20483,
+      "questID": 8338,
+      "url": "https://www.wowhead.com/tbc/quest=8338/tainted-arcane-sliver",
+      "observation": "TBC page confirms the item-to-quest relationship. This is an expansion mismatch, not Forever proof.",
+      "action": "Retain source reference; do not import TBC quest or coordinates into Forever."
+    },
+    {
+      "itemID": 22719,
+      "questID": 9233,
+      "url": "https://www.wowhead.com/classic/quest=9233/omarions-handbook",
+      "observation": "Classic page confirms item 22719 and recipient NPC 16376; quest is absent in both tested Forever source conversions.",
+      "action": "Hold for Forever quest-availability verification; do not remove a valid published relationship."
+    },
+    {
+      "itemID": 227911,
+      "questID": 84377,
+      "url": "https://www.wowhead.com/classic/quest=84377/end-of-the-dark-horde",
+      "observation": "Classic page confirms quest title, item 227911 and recipient NPC 332. Modern Classic data must not be treated as an original Vanilla or Forever guarantee.",
+      "action": "Hold for Forever quest-availability verification; do not remove or fabricate the missing quest."
+    }
+  ],
+  "limitedWowheadChecks": [
+    {
+      "url": "https://www.wowhead.com/classic/npc=11520/taragaman-the-hungerer",
+      "result": "Fetched page exposed only generic client information; NPC statistics and drop data were not verified."
+    },
+    {
+      "url": "https://www.wowhead.com/classic/item=14145/cursed-felblade",
+      "result": "Fetched page exposed only generic client information; loot relationship was not verified from Wowhead."
+    }
+  ]
+}

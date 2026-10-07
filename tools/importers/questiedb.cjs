@@ -307,7 +307,6 @@ for (const key of ['Npc', 'Object', 'Item', 'Quest', 'npcSpawns', 'objectSpawns'
 lua.lua_pop(state, 1);
 counts.objectClasses = counts.objectClasses ? counts.objectClasses.toString('utf8') : '';
 
-fs.mkdirSync(out, { recursive: true });
 const version = meta.get('version') || 'unknown';
 const commit = meta.get('x-build-commit') || 'unknown';
 const credits = meta.get('author') || 'QuestieDB contributors';
@@ -321,6 +320,7 @@ const header = (kind) => [
 ].join('\r\n');
 global('NATIVE_OUTPUT');
 let total = 0;
+const generated = new Map(), candidate = {};
 const manifest = {
   generator: 'tools/importers/questiedb.cjs',
   source: { name: 'QuestieDB', version, flavor, commit, homepage: 'https://github.com/Questie/QuestieDB',
@@ -334,25 +334,36 @@ const manifest = {
 };
 for (const kind of ['Npc', 'Object', 'Item', 'Quest']) {
   const body = field(kind).toString('utf8').replace(/\n/g, '\r\n');
-  const file = path.join(out, `${kind}s.lua`);
   const text = header(kind) + body + '\r\n';
-  fs.writeFileSync(file, text, 'utf8');
-  const size = fs.statSync(file).size;
+  generated.set(`${kind}s.lua`, text);
+  const size = Buffer.byteLength(text, 'utf8');
   total += size;
   manifest.files[`${kind}s.lua`] = { kind, entries: counts[kind], bytes: size,
     sha256: crypto.createHash('sha256').update(text, 'utf8').digest('hex') };
   console.log(`${kind}s.lua: ${counts[kind]} entries, ${(size / 1048576).toFixed(2)} MB`);
 }
-fs.writeFileSync(path.join(out, 'manifest.json'), JSON.stringify(manifest, null, 2) + '\n', 'utf8');
 console.log(`NPC spawn points: ${counts.npcSpawns}, object spawn points: ${counts.objectSpawns}, total ${(total / 1048576).toFixed(2)} MB`);
 console.log(`Directory object classes (points): ${counts.objectClasses}`);
 
-// Parity check: decode the files just written through the real NativeDB.lua and compare every entity and
-// field against the live QuestieDB. Any loss fails the conversion so a regression can never ship.
+// Validate before writing: parity alone can pass when the source itself loses named entities.
+const { parseRows, readTables, replacementIssues } = require('../database-audit.cjs');
+for (const kind of ['Npc', 'Object', 'Item', 'Quest']) {
+  const parsed = parseRows(generated.get(`${kind}s.lua`), kind);
+  if (parsed.issues.length) throw new Error(JSON.stringify(parsed.issues.slice(0, 10)));
+  candidate[kind] = parsed.rows;
+}
+const previous = fs.existsSync(path.join(out, 'manifest.json')) ? readTables(out).tables : null;
+const blockers = replacementIssues(previous, candidate, process.argv.slice(4).includes('--allow-removals'));
+if (blockers.length) {
+  for (const issue of blockers.slice(0, 20)) console.error(`${issue.kind} ${issue.id || ''}: ${issue.message}`);
+  throw new Error('Import rejected before writing: structural errors or unreviewed coverage loss');
+}
+
+// Decode the candidate in memory and compare every entity/field against the live source.
 run('NATIVE_M = {}', 'native-namespace');
 run(fs.readFileSync(path.join(root, 'NativeDB.lua'), 'utf8'), 'NativeDB.lua', ['Monstrator', { global: 'NATIVE_M' }]);
 for (const kind of ['Npc', 'Object', 'Item', 'Quest'])
-  run(fs.readFileSync(path.join(out, `${kind}s.lua`), 'utf8'), `${kind}s.lua`, ['Monstrator', { global: 'NATIVE_M' }]);
+  run(generated.get(`${kind}s.lua`), `${kind}s.lua`, ['Monstrator', { global: 'NATIVE_M' }]);
 run(String.raw`
 local live, native = LibQuestieDB, NATIVE_M:NativeProvider()
 local problems, checked, rounded, maxError = {}, 0, 0, 0
@@ -453,4 +464,7 @@ lua.lua_pop(state, 1);
 global('PARITY_PROBLEMS');
 const problems = to_jsstring(lua.lua_tostring(state, -1));
 lua.lua_pop(state, 1);
-if (problems) { console.error(problems); process.exitCode = 1; }
+if (problems) throw new Error('Import rejected before writing: ' + problems);
+fs.mkdirSync(out, { recursive: true });
+for (const [name, text] of generated) fs.writeFileSync(path.join(out, name), text, 'utf8');
+fs.writeFileSync(path.join(out, 'manifest.json'), JSON.stringify(manifest, null, 2) + '\n', 'utf8');

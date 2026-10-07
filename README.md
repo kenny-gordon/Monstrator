@@ -208,6 +208,15 @@ and ambiguous multi-boss pools.
 The standalone build excludes this imported data. Source, GPLv2 licence and
 attribution are included in the full package.
 
+Database maintenance includes a repeatable full structural/relationship audit
+(`node tools\monstrator-db.cjs audit`) and optional external-source comparisons.
+The 2026-10-07 review found no structural errors or exact duplicate relationships/
+spawns in the shipped data. Four item-to-quest references remain unresolved and
+are explicitly tracked for version/availability review, not silently deleted.
+Targeted Wowhead checks and an independent Vanilla-name comparison are references,
+not certification of Forever's custom content. A newer source conversion that
+loses quests is held rather than replacing working data.
+
 **3D model** (Details pane, or `/mon model`) shows the selected NPC: drag to rotate,
 scroll to zoom, or turn on auto-rotate. If the server never sends a model, the
 viewer says so. **3D preview** in the item window tries wearable items on your

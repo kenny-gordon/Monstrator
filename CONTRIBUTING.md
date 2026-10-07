@@ -62,6 +62,7 @@ for `tools\convert-db2.ps1`.
 | `verify [--determinism [importer args]]` | Schema, references, coordinates and manifest hashes; `--determinism` re-imports and compares bytes |
 | `diff <other Data\Native>` | Added, removed and changed IDs per kind |
 | `stats` | Database summary |
+| `audit [--compare dir] [--pfquest dir] [--output report.json]` | Exact structural/relationship issues for base and effective overlays; optional full candidate comparison and independent Vanilla NPC-name comparison |
 | `package [--standalone]` | Build `dist\Monstrator-<version>[-standalone].zip` with a generated `CREDITS.md` |
 | `build [import args]` | `import`, then `overlay`, then `verify` |
 
@@ -74,8 +75,42 @@ Rules for imported data:
   diagnostic output and the release `CREDITS.md`. Imported data is credited,
   never relicensed.
 - Re-importing the same source must be byte-identical (`verify --determinism`).
+- The QuestieDB importer validates candidate structure and source parity **before
+  writing** any database files. When replacing an existing output it rejects
+  disappearing entity IDs. After reviewing intentional deletions, append
+  `--allow-removals` after the flavor; this never bypasses structural errors.
 - Maps that Forever resized (Mulgore, Eastern Plaguelands, Redridge Mountains,
   Stormwind City) are converted with Forever's rescales.
+
+### Database audits and external references
+
+```powershell
+node .\tools\monstrator-db.cjs audit --output C:\Reviews\database-audit.json
+node .\tools\monstrator-db.cjs audit --compare C:\Reviews\candidate-native --pfquest C:\Sources\pfQuest --output C:\Reviews\comparison.json
+```
+
+`audit` reports exact entity IDs, fields and missing targets, rather than only
+warning totals. It checks raw assignment order/duplicate IDs, field counts,
+finite numbers, level ranges, relationship IDs/duplicates, spawn formatting,
+coordinate bounds, duplicate points/maps, names, base manifest counts/hashes and
+effective overlays. `startQuest=0` means no quest, not an invalid reference.
+Exit codes: 0 = shipped data structurally sound (warnings may remain), 1 =
+shipped structural/integrity errors, 2 = candidate held for structural errors,
+removed IDs or an increased unresolved-reference count.
+
+Candidate changes are always **candidate relative to shipped base**. They are
+not applied automatically. Source parity does not prove content completeness:
+the 2026-10-07 review held QuestieDB 1.0.5 because conversion lost 2,589 named
+quests and produced NPC 89 with minimum level above maximum level. Keep 1.0.4
+until the source/getter issue is understood.
+
+Reviewed source links and the four unresolved item quests are tracked in
+`Data\Source\DatabaseReview.json` (not packaged). Wowhead checks are targeted,
+read-only facts; no descriptions/comments or bulk scraped content are imported.
+Vanilla, TBC, modern Classic and Forever are not interchangeable. Differences
+from pfQuest's Vanilla names do not justify reverting modern NPC renames.
+Only Forever observations or explicit compatible corrections can establish a
+server placement; ordinary reference records remain unverified.
 
 ### AtlasLoot database enrichment
 

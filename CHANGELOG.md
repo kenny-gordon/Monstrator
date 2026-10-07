@@ -2,6 +2,8 @@
 
 ## 1.0.0
 
+- **Database hygiene and cross-reference audit**: added exact-ID structural/relationship auditing, effective-overlay checks, full candidate comparisons and independent Vanilla NPC-name comparisons. Recorded targeted Wowhead evidence for unresolved quests and renamed NPCs. Held QuestieDB 1.0.5's conversion after detecting 2,589 missing existing quests and an inverted NPC level range; preserved current Forever data. Imports now validate structure/coverage/parity before writing. Fixed tooling JSON control-character escaping and made inverted level ranges verification errors.
+
 - **Database loot enrichment**: imported 884 missing item-to-boss relationships from pinned AtlasLootClassic Classic dungeon/raid tables. No AtlasLoot addon dependency. Supplementary item sources are attributed and marked not Forever-confirmed; existing data/corrections and coordinates remain authoritative. Vendor-priced rows, quest rewards and ambiguous multi-boss pools are excluded. Full packages retain source, GPLv2 licence and integrity manifest; standalone packages omit the import.
 
 - **Browse sidebar polish**: clearer section spacing/dividers, consistently aligned 20px icons and 32px entry-type rows, gold selection-edge accents and full-label hover tooltips. All six categories and their sub-group controls remain within the panel; filtering behavior is unchanged.

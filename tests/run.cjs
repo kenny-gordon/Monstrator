@@ -40,6 +40,7 @@ execute(fs.readFileSync(path.join(__dirname, 'map-preview.lua'), 'utf8'), 'map-p
 execute(fs.readFileSync(path.join(__dirname, 'scanner.lua'), 'utf8'), 'scanner.lua');
 execute(fs.readFileSync(path.join(__dirname, 'submission.lua'), 'utf8'), 'submission.lua');
 require('./atlasloot.cjs');
+require('./database-audit.cjs');
 
 // Locales: every file loads only for its own client locale, translates keys the addon actually uses, and keeps
 // the same format specifiers as English so string.format can never fail in another language.
@@ -331,5 +332,5 @@ try {
     fs.rmSync(work, { recursive: true, force: true });
   }
 }
-console.log('PASS: Lua/UI behavior, native database index/overlay/standalone/audit, 10 locales, zone browsing, grouping, incremental map indexes, native-map providers, journal editing, import/CSV validation' +
+console.log('PASS: Lua/UI behavior, native database index/overlay/standalone/audit, database cross-reference/import guards, 10 locales, zone browsing, grouping, incremental map indexes, native-map providers, journal editing, import/CSV validation' +
   (process.env.MONSTRATOR_DBC2CSV ? ', and real DBC2CSV failure-safety checks.' : '.'));
