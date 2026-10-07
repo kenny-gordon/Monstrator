@@ -93,6 +93,23 @@ assert(M.window.rows[1].icon.texture == M:EntryIcon(reference))
 assert(info.icon.texture == M.window.rows[1].icon.texture, "list and details use the same category icon")
 assert(M.window.rows[1].iconBorder.texture == "Interface\\Buttons\\UI-Quickslot2")
 assert(M.window.categoryButtons[1].browseIcon, "browse filters have visual category cues")
+local browse = M.window.viewButtons.directory
+assert(not browse.Left:IsShown() and not browse.Middle:IsShown() and not browse.Right:IsShown(),
+    "list styling hides template regions without passing nil texture assets")
+local currentWindow, currentRefresh = M.window, M.Refresh
+local refreshed = false
+M.Refresh = function() refreshed = true end
+local timerStart = #pendingTimers
+currentWindow.search:GetScript("OnTextChanged")()
+assert(#pendingTimers == timerStart + 1)
+M.window = nil
+pendingTimers[#pendingTimers]()
+assert(not refreshed, "a queued search must not refresh a missing or replaced window")
+local queued = #pendingTimers
+currentWindow.search:GetScript("OnTextChanged")()
+assert(#pendingTimers == queued, "an incomplete window must not queue search work")
+M.window, M.Refresh = currentWindow, currentRefresh
+M.searchPending = nil
 assert(info.location:GetText():find("/way #1 ", 1, true))
 assert(info.identity:GetText():find("NPC ID 123", 1, true))
 assert(info.scroll.scrollChild == info.content and #info.sections == 3)

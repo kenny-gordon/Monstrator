@@ -52,6 +52,14 @@ function methods:SetSize(width, height) self.width, self.height = width, height 
 function methods:SetWidth(width) self.width = width end
 function methods:SetHeight(height) self.height = height end
 function methods:SetTexture(texture) self.texture = texture end
+function methods:SetNormalTexture(asset)
+    assert(asset ~= nil, "SetNormalTexture requires an asset")
+    self.normalTexture = asset
+end
+function methods:SetPushedTexture(asset)
+    assert(asset ~= nil, "SetPushedTexture requires an asset")
+    self.pushedTexture = asset
+end
 function methods:SetBackdrop(value) self.backdrop = value end
 function methods:SetScrollChild(child) self.scrollChild = child end
 function methods:SetVerticalScroll(value) self.verticalScroll = value end
@@ -104,6 +112,9 @@ function methods:CreateTexture() return object() end
 function CreateFrame(kind, name, parent, template)
     local frame = object()
     frame.kind, frame.name, frame.parent, frame.template = kind, name, parent, template
+    if template == "UIPanelButtonTemplate" then
+        frame.Left, frame.Middle, frame.Right = object(), object(), object()
+    end
     return frame
 end
 UIParent, Minimap, GameTooltip = object(), object(), object()

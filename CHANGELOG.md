@@ -2,6 +2,8 @@
 
 ## 1.0.0
 
+- **Compatibility fix**: icon-led sidebar controls hide their template artwork without passing nil to texture setters, which Forever rejects. Search callbacks ignore incomplete or replaced windows to prevent a follow-on error after failed construction.
+
 First release for WoW Forever (interface 16001, client 1.60.1).
 
 - **Directory**: three-column browser for NPCs, static locations and objects, with search across names, titles, IDs, zones, tags and service keywords. Includes zone/region/world scope, a zone picker, categories and sub-groups, distance sorting and keyboard navigation.

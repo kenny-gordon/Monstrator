@@ -234,8 +234,7 @@ button = function(parent, text, x, y, width, callback, listIcon)
     local fontString = b:GetFontString()
     fontString:SetMaxLines(1)
     if listIcon then
-        b:SetNormalTexture(nil)
-        b:SetPushedTexture(nil)
+        for _, region in ipairs({ b.Left, b.Middle, b.Right }) do region:Hide() end
         b:SetHighlightTexture("Interface\\QuestFrame\\UI-QuestTitleHighlight", "ADD")
         fontString:ClearAllPoints()
         fontString:SetPoint("LEFT", 34, 0)
@@ -1007,12 +1006,13 @@ function M:CreateWindow()
     f.search:SetMaxLetters(200)
     f.search:SetScript("OnTextChanged", function()
         f.searchHint:SetShown(f.search:GetText() == "" and not f.search:HasFocus())
+        if self.window ~= f then return end
         self.searchGeneration = (self.searchGeneration or 0) + 1
         local generation = self.searchGeneration
         self.searchPending = true
         if C_Timer and C_Timer.After then
             C_Timer.After(0.2, function()
-                if generation ~= self.searchGeneration or not f:IsShown() then return end
+                if generation ~= self.searchGeneration or self.window ~= f or not f:IsShown() then return end
                 self.searchPending, self.offset = nil, 0
                 self:Refresh()
             end)
