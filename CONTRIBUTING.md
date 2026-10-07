@@ -185,8 +185,8 @@ Use the same square frame for portraits and static icons; do not add
 separate circular masks or gold rings to directory NPCs. Keep herb artwork
 keyed by canonical object ID rather than localized names. Rejected static
 assets must produce a visible fallback and a once-per-asset diagnostic.
-Selected artwork must use the same helper, size and border as list artwork;
-do not add a separate Details border or enlarge its corners.
+Selected artwork uses the same helper and border style as list artwork, but
+retains its 48px size while list icons remain 30px. Keep the square portrait crop.
 
 Design research also examined
 [Journalator's tabbed display](https://github.com/TheMouseNest/Journalator)

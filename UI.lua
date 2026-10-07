@@ -1556,9 +1556,9 @@ function M:CreateWindow()
 
     f.info = {}
     f.info.parchment = parchment ~= nil and parchment ~= false
-    f.info.icon, f.info.iconBorder = entrySlot(f, 824, -151, 30)
-    f.info.name = label(f, "", 868, -146, 17)
-    f.info.name:SetWidth(222)
+    f.info.icon, f.info.iconBorder = entrySlot(f, 824, -151, 48)
+    f.info.name = label(f, "", 886, -146, 17)
+    f.info.name:SetWidth(204)
     f.info.name:SetHeight(48)
     f.info.name:SetMaxLines(2)
     f.info.name:SetJustifyH("LEFT")

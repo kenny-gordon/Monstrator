@@ -2,7 +2,7 @@
 
 ## 1.0.0
 
-- **Selected portrait consistency**: selected artwork now uses exactly the same size, helper and Auction House border as list artwork, with no separate Details frame. Both surfaces crop NPC images inside the client's circular portrait so the artwork fills the square corners.
+- **Selected portrait consistency**: selected artwork retains its larger 48px size while sharing the helper and Auction House border style of 30px list artwork. Both surfaces crop NPC images inside the client's circular portrait so the artwork fills the square corners. Corrects the unintended Details icon size reduction.
 
 - **Consistent entry icons**: use the Auction House's square border atlas and native proportions for NPC portraits, objects and fallbacks, removing separate gold portrait rings and masks. Replace the invalid generic treasure-chest asset with native box artwork, add chest/cooking/quest-object mappings, and distinguish six common herb nodes by object ID. Rejected entry/sidebar icon assets are reported once and replaced with a visible question mark, preserving static/portrait separation.
 

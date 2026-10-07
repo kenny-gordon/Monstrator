@@ -67,7 +67,7 @@ action tray beneath the parchment. Secondary
 actions, filters and footer utilities use neutral text with native hover/focus
 highlights instead of a grid of red buttons. Gold result names emphasize the
 selected row; evidence remains in colored row badges, tooltips and Details.
-The selected entry uses the same icon size as the list, and parchment sections use fine
+The selected entry retains a larger square icon, and parchment sections use fine
 dividers rather than heavy gold heading bars.
 The tray packs only applicable actions into consecutive rows, so static
 locations do not leave blank spaces for NPC-only controls. Hover an action to
@@ -96,8 +96,8 @@ object icons and fallbacks have consistent framing with no separate gold rings.
 NPC portrait images are cropped inside the client's circular artwork to fill
 the square, rather than showing a circular cutout inside a square border.
 List icons use `auctionhouse-itemicon-small-border` when available, with a
-native square-slot fallback on clients without it. Selected artwork uses exactly
-the same size and border as list artwork, with no separate Details styling.
+native square-slot fallback on clients without it. Selected artwork uses the
+same border style as list artwork at its larger 48px size; list icons stay 30px.
 Creature portrait camera angles come from the client and can vary
 for animals; **3D model** provides a rotatable view when a portrait is unclear.
 
