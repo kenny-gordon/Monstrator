@@ -1,0 +1,22 @@
+{
+  "source": "AtlasLootClassic",
+  "flavor": "Classic reference (not Forever-confirmed)",
+  "commit": "8e99341e4e779328460bf7684c0d5b22ce50ddf1",
+  "homepage": "https://github.com/Hoizame/AtlasLootClassic",
+  "license": "GPL-2.0",
+  "sourceFile": "AtlasLootClassic_DungeonsAndRaids/data.lua",
+  "sourceSha256": "ab12de3f642620ff52e5bb0c47139e4146e3c7021be99d55af76e5eae7bda557",
+  "counts": {
+    "relationships": 2108,
+    "existing": 1223,
+    "added": 884,
+    "unknownItems": 1,
+    "unknownNPCs": 0,
+    "ambiguousGroups": 9
+  },
+  "files": {
+    "LootReference.lua": "1f665edcd82d450d5751ef3ea86bc59fd2d32107db1516f1da31ccbc874efe57",
+    "AtlasLoot-LICENSE.txt": "8177f97513213526df2cf6184d8ff986c675afb514d4e68a404010521b880643",
+    "AtlasLoot-source.lua": "ab12de3f642620ff52e5bb0c47139e4146e3c7021be99d55af76e5eae7bda557"
+  }
+}

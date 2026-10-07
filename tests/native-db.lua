@@ -112,6 +112,48 @@ assert(M:ItemProvider() == lib and M:StartItemIndex().ready)
 local offline = M:ResolveItemSources(M:ItemDetails(2672), "vendor")[1]
 assert(offline.mapID == 1 and M:ValidateRecord(M:SourceRecord(offline)), "item sources must resolve without the NPC index")
 
+-- Loot imports supplement reference relationships, never placements or corrected item rows.
+M.native.lootReference = { source = "AtlasLootClassic", drops = { [2589] = "11,22,999", [999] = "11" } }
+M.native.provider, M.items, M.itemSearch = nil, nil, nil
+local enriched = M:NativeProvider()
+assert(table.concat(enriched.Item.npcDrops(2589), ",") == "22,11", "new drops append without duplicating base drops or unknown NPCs")
+assert(enriched.Item.npcDrops(999) == nil, "loot imports cannot create unknown items")
+assert(enriched.Item.npcDropReference(2589, 11) == "AtlasLootClassic"
+    and enriched.Item.npcDropReference(2589, 22) == nil, "only supplementary relationships carry AtlasLoot attribution")
+M:StartItemIndex()
+assert(#M:SearchItems("", 11) == 1 and M:SearchItems("", 11)[1] == 2589,
+    "NPC item lists include imported loot without an AtlasLoot addon")
+local lootSources = M:ResolveItemSources(M:ItemDetails(2589), "drop")
+local added
+for _, source in ipairs(lootSources) do if source.id == 11 then added = source end end
+assert(added and added.lootReference == "AtlasLootClassic" and added.x == 20 and added.y == 30,
+    "loot sources preserve attribution and use existing Monstrator coordinates")
+assert(M:SourceRecord(added).verification == "reference", "loot imports must not promote sources to verified")
+M:ShowItemLookup("2589")
+M.itemTab = "drop"
+M:RenderItemWindow()
+local visible
+for _, row in ipairs(M.itemFrame.sourceRows) do
+    if row.source and row.source.id == 11 then
+        visible = row
+        assert(row.detail:GetText():find("AtlasLootClassic", 1, true), "imported loot is visibly attributed")
+    end
+end
+assert(visible, "imported loot appears in item lookup")
+local tooltip, originalAddLine = {}, GameTooltip.AddLine
+GameTooltip.AddLine = function(_, text) tooltip[#tooltip + 1] = text end
+visible:GetScript("OnEnter")(visible)
+GameTooltip.AddLine = originalAddLine
+assert(tooltip[1] == M.L["AtlasLoot reference (not Forever-confirmed)"], "loot tooltip discloses Classic reference status")
+local correctedItems, itemOrigins = M.NativeOverlay("Item")
+correctedItems[2589], itemOrigins[2589] = I[2589], "correction"
+local corrected = M:NativeProvider()
+assert(table.concat(corrected.Item.npcDrops(2589), ",") == "22" and not corrected.Item.npcDropReference(2589, 11),
+    "explicit item corrections override all supplementary reference drops")
+correctedItems[2589] = false
+M.native.provider = nil
+assert(M:NativeProvider().Item.npcDrops(2589) == nil, "a deleted item is not resurrected by imported loot")
+
 -- Standalone build: no imported base rows, only Monstrator's own overlay. Everything must still work.
 M.native = { data = {}, meta = {} }
 assert(M:NativeProvider() == nil, "an empty standalone database has no provider")

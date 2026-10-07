@@ -39,6 +39,7 @@ execute(fs.readFileSync(path.join(__dirname, 'portraits.lua'), 'utf8'), 'portrai
 execute(fs.readFileSync(path.join(__dirname, 'map-preview.lua'), 'utf8'), 'map-preview.lua');
 execute(fs.readFileSync(path.join(__dirname, 'scanner.lua'), 'utf8'), 'scanner.lua');
 execute(fs.readFileSync(path.join(__dirname, 'submission.lua'), 'utf8'), 'submission.lua');
+require('./atlasloot.cjs');
 
 // Locales: every file loads only for its own client locale, translates keys the addon actually uses, and keeps
 // the same format specifiers as English so string.format can never fail in another language.

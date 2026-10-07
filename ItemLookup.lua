@@ -210,7 +210,13 @@ function M:ResolveItemSources(details, tab)
         table.insert(sources, source)
     end
     if tab == "vendor" or tab == "drop" then
-        for _, npcID in ipairs(details[tab]) do npcSource(npcID) end
+        for _, npcID in ipairs(details[tab]) do
+            local reference
+            if tab == "drop" and lib.Item.npcDropReference then
+                reference = lib.Item.npcDropReference(details.id, npcID)
+            end
+            npcSource(npcID, { lootReference = reference })
+        end
     elseif tab == "object" and lib.Object then
         for _, objectID in ipairs(details.object) do
             local name = read(lib.Object.name, objectID)
@@ -473,6 +479,7 @@ function M:RenderItemDetails()
             else where = L["Location not listed"] end
             if source.level then where = L["Lv "] .. source.level .. " | " .. where end
             if source.title then where = "<" .. source.title .. "> " .. where end
+            if source.lootReference then where = where .. " | " .. source.lootReference end
             row.detail:SetText(where)
             if source.distance then
                 local yards = math.floor(source.distance + 0.5)
@@ -692,6 +699,9 @@ function M:CreateItemWindow()
             if not source then return end
             GameTooltip:SetOwner(b, "ANCHOR_RIGHT")
             GameTooltip:SetText(source.name)
+            if source.lootReference then
+                GameTooltip:AddLine(L["AtlasLoot reference (not Forever-confirmed)"], 1, 0.82, 0, true)
+            end
             if source.title then GameTooltip:AddLine("<" .. source.title .. ">", 0.9, 0.82, 0.5) end
             if source.questName then
                 GameTooltip:AddLine(L["Quest: "] .. source.questName .. (source.questLevel and (" [" .. source.questLevel .. "]") or ""), 1, 0.82, 0)

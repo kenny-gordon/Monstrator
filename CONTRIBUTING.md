@@ -77,6 +77,28 @@ Rules for imported data:
 - Maps that Forever resized (Mulgore, Eastern Plaguelands, Redridge Mountains,
   Stormwind City) are converted with Forever's rescales.
 
+### AtlasLoot database enrichment
+
+`tools\atlasloot.cjs` reads a local, pinned copy of
+`AtlasLootClassic_DungeonsAndRaids\data.lua` with its original `LICENSE` alongside
+it. This is an offline import, not a runtime addon dependency:
+
+```powershell
+node .\tools\atlasloot.cjs C:\Sources\AtlasLoot\data.lua 8e99341e4e779328460bf7684c0d5b22ce50ddf1
+node .\tools\atlasloot.cjs C:\Sources\AtlasLoot\data.lua 8e99341e4e779328460bf7684c0d5b22ce50ddf1 --apply
+node .\tools\monstrator-db.cjs verify
+node .\tests\run.cjs
+```
+
+The first command only reports coverage. `--apply` writes the compact
+`LootReference.lua`, original source, GPLv2 licence and attribution/hash manifest.
+Keep these four generated files together. The tool selects Classic game-version
+branches, skips ignored/set/extra lists, vendor-priced/quest-reward rows and ambiguous multi-NPC pools, and adds only
+missing relationships whose item and NPC IDs already exist in our base database.
+It imports no names, placements, display IDs or drop rates. Reference loot cannot
+override explicit item corrections or resurrect deleted entities. Full packages
+retain its source/licence; standalone packages omit all imported loot.
+
 ### Corrections and discoveries
 
 - Hand-reviewed fixes go in `Data\Source\Corrections.lua` (see the examples there).

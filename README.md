@@ -198,6 +198,16 @@ Shift-click an item to link it in chat. For the selected item, tabs list who
 are red. Left-click a source to navigate, right-click an NPC to see its model.
 **Show sources in directory** filters the main window to every vendor and dropper.
 
+The full build includes **884 additional item-to-boss loot relationships** imported
+from AtlasLootClassic's Classic dungeon/raid tables. No AtlasLoot addon is required.
+Supplementary sources show **AtlasLootClassic** and their tooltip explicitly says
+they are **not Forever-confirmed**. Existing item sources are retained; explicit
+Monstrator item corrections take priority. The import supplies no coordinates,
+drop rates or custom Forever loot, and excludes vendor-priced rows, quest rewards
+and ambiguous multi-boss pools.
+The standalone build excludes this imported data. Source, GPLv2 licence and
+attribution are included in the full package.
+
 **3D model** (Details pane, or `/mon model`) shows the selected NPC: drag to rotate,
 scroll to zoom, or turn on auto-rotate. If the server never sends a model, the
 viewer says so. **3D preview** in the item window tries wearable items on your

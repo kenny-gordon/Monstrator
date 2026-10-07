@@ -1,6 +1,7 @@
 local _, M = ...
 if GetLocale() ~= "koKR" then return end
 local L = M.L
+L["AtlasLoot reference (not Forever-confirmed)"] = "AtlasLoot 참고 자료 (Forever에서 확인되지 않음)"
 L["Icon asset unavailable: %s"] = "아이콘 이미지를 사용할 수 없습니다: %s"
 L["map.view"] = "지도에서 보기"
 L["map.combat"] = "전투가 끝난 후 지도 미리보기를 여세요."

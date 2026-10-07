@@ -2,6 +2,7 @@ local _, M = ...
 local locale = GetLocale()
 if locale ~= "esES" and locale ~= "esMX" then return end
 local L = M.L
+L["AtlasLoot reference (not Forever-confirmed)"] = "Referencia de AtlasLoot (sin confirmar en Forever)"
 L["Icon asset unavailable: %s"] = "Recurso de icono no disponible: %s"
 L["map.view"] = "Ver en el mapa"
 L["map.combat"] = "Abre la vista del mapa después del combate."

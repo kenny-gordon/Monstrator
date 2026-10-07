@@ -144,6 +144,35 @@ function M:NativeProvider()
             subClass = { 5, number }, startQuest = { 6, number }, vendors = { 7, idList }, npcDrops = { 8, idList },
             objectDrops = { 9, idList }, questRewards = { 10, idList }, itemDrops = { 11, idList },
         })
+        local reference = native.lootReference
+        if reference then
+            local baseDrops = lib.Item.npcDrops
+            local function additionalDrops(id)
+                if not lib.Item.Has(id) or lib.Item.Origin(id) then return {} end
+                local existing, result = {}, {}
+                for _, npcID in ipairs(baseDrops(id) or {}) do existing[npcID] = true end
+                for _, npcID in ipairs(idList(reference.drops[id]) or {}) do
+                    if not existing[npcID] and lib.Npc.Has(npcID) then
+                        result[#result + 1] = npcID
+                        existing[npcID] = true
+                    end
+                end
+                return result
+            end
+            lib.Item.npcDrops = function(id)
+                local base, extra = baseDrops(id), additionalDrops(id)
+                if #extra == 0 then return base end
+                local result = {}
+                for _, npcID in ipairs(base or {}) do result[#result + 1] = npcID end
+                for _, npcID in ipairs(extra) do result[#result + 1] = npcID end
+                return result
+            end
+            lib.Item.npcDropReference = function(id, npcID)
+                for _, ref in ipairs(additionalDrops(id)) do
+                    if ref == npcID then return reference.source end
+                end
+            end
+        end
     end
     if native.data.Quest or native.overlay.Quest then
         local quest = tableOf("Quest", {

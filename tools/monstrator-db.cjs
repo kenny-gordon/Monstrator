@@ -222,6 +222,25 @@ function manifest() {
   return fs.existsSync(file) ? JSON.parse(fs.readFileSync(file, 'utf8')) : null;
 }
 
+function lootManifest() {
+  const file = path.join(nativeDir, 'atlasloot-manifest.json');
+  if (!fs.existsSync(file)) {
+    const reference = path.join(nativeDir, 'LootReference.lua');
+    if (fs.existsSync(reference) && /lootReference\s*=/.test(fs.readFileSync(reference, 'utf8'))) {
+      throw new Error('AtlasLoot reference data has no attribution manifest');
+    }
+    return null;
+  }
+  const metadata = JSON.parse(fs.readFileSync(file, 'utf8'));
+  for (const name of ['LootReference.lua', 'AtlasLoot-LICENSE.txt', 'AtlasLoot-source.lua']) {
+    const full = path.join(nativeDir, name);
+    if (!fs.existsSync(full) || sha256(fs.readFileSync(full)) !== metadata.files[name]) {
+      throw new Error(`${name}: AtlasLoot manifest hash mismatch`);
+    }
+  }
+  return metadata;
+}
+
 // ---------------------------------------------------------------- import
 // Importers live in tools\importers\<name>.cjs. Each reads an installed copy of another data source and writes
 // Data\Native\<Kind>s.lua + manifest.json in Monstrator's own format (with a parity check against the source).
@@ -574,13 +593,16 @@ function cmdOverlay() {
 
 // ---------------------------------------------------------------- verify
 function loadRuntime(dir) {
-  const files = KINDS.map((k) => path.join(dir, `${k}s.lua`)).concat([path.join(dir, 'Overlay.lua')]).filter(fs.existsSync);
+  const files = KINDS.map((k) => path.join(dir, `${k}s.lua`))
+    .concat([path.join(dir, 'Overlay.lua'), path.join(dir, 'LootReference.lua')]).filter(fs.existsSync);
   const chunks = files.map((f) => `assert(load(${luaLiteral(fs.readFileSync(f, 'utf8'))}, ${luaQuote(path.basename(f))}))("Monstrator", M)`);
   return `M = {}\nassert(load(${luaLiteral(fs.readFileSync(path.join(root, 'NativeDB.lua'), 'utf8'))}, "NativeDB.lua"))("Monstrator", M)\n${chunks.join('\n')}`;
 }
 
 function cmdVerify(args) {
   const errors = [];
+  const loot = lootManifest();
+  if (loot) console.log(`AtlasLoot reference: ${loot.counts.added} imported relationships (${loot.commit.slice(0, 10)}); source/license hashes OK.`);
   const m = manifest();
   const imported = KINDS.some((k) => readNative(nativeDir, k).size > 0);
   if (!m && imported) errors.push('Data\\Native\\manifest.json missing (run import)');
@@ -640,6 +662,20 @@ for _, kind in ipairs({ "Npc", "Object", "Item", "Quest" }) do
     elseif kind == "Quest" then
       for _, f in ipairs({ "starterNpcs", "finisherNpcs" }) do for _, ref in ipairs(t[f](id) or {}) do if not db.Npc.Has(ref) then warn("quest " .. f .. " -> unknown NPC") end end end
       for _, f in ipairs({ "starterObjects", "finisherObjects" }) do for _, ref in ipairs(t[f](id) or {}) do if not (db.Object and db.Object.Has(ref)) then warn("quest " .. f .. " -> unknown object") end end end
+    end
+  end
+end
+local loot = M.native.lootReference
+if loot then
+  for itemID, list in pairs(loot.drops) do
+    if type(itemID) ~= "number" or itemID <= 0 or itemID % 1 ~= 0 or not db.Item or not db.Item.Has(itemID) then
+      err("loot reference: unknown item " .. tostring(itemID))
+    end
+    if type(list) ~= "string" or not list:match("^%d+[,0-9]*$") then err("loot reference: malformed NPC list")
+    else
+      for id in list:gmatch("%d+") do
+        if not db.Npc.Has(tonumber(id)) then err("loot reference: unknown NPC " .. id) end
+      end
     end
   end
 end
@@ -704,6 +740,8 @@ function cmdStats() {
   const m = manifest();
   if (m) console.log(`Imported base: ${m.source.name} ${m.source.version} (${m.source.flavor}, ${String(m.source.commit).slice(0, 10)})`);
   else console.log('Standalone database: no imported base data.');
+  const loot = lootManifest();
+  if (loot) console.log(`AtlasLoot Classic reference: ${loot.counts.added} supplementary loot relationships.`);
   const flagNames = { 4: 'vendors', 8: 'flight masters', 16: 'trainers', 128: 'innkeepers', 256: 'bankers', 2: 'quest givers', 4096: 'auctioneers', 8192: 'stable masters', 16384: 'repair' };
   for (const kind of KINDS) {
     const rows = readNative(nativeDir, kind);
@@ -731,7 +769,7 @@ function crc32(buf) { let c = 0xffffffff; for (const b of buf) c = CRC_TABLE[(c 
 
 // Release notes for the data a package carries, generated from manifest.json so attribution always matches
 // exactly what ships (replaces a hand-maintained third-party notice).
-function creditsText(m, standalone) {
+function creditsText(m, standalone, loot) {
   const lines = ['# Monstrator data credits', '',
     'Monstrator code, UI, tools, overlay (`Data/Native/Overlay.lua`, built from hand-reviewed corrections and',
     'confirmed in-game discoveries) and locales are original Monstrator work by Metalbullz.',
@@ -752,6 +790,18 @@ function creditsText(m, standalone) {
       'If you redistribute this build publicly, confirm redistribution terms with the source project first, or',
       'publish the standalone build (`node tools/monstrator-db.cjs package --standalone`) instead.');
   }
+  if (!standalone && loot) {
+    lines.push('', '## AtlasLootClassic loot reference', '',
+      `\`Data/Native/LootReference.lua\` adds ${loot.counts.added} item-to-boss relationships from **AtlasLootClassic**`,
+      `Classic dungeon/raid data, commit \`${loot.commit}\` (${loot.homepage}).`,
+      'Credits: the AtlasLootClassic authors and contributors.',
+      'This reference data is **not confirmed for WoW Forever** and supplies no coordinates or drop rates.',
+      'It is kept separate from the base database and from Monstrator corrections.',
+      'The derived data retains GPLv2 terms; see `Data/Native/AtlasLoot-LICENSE.txt`.',
+      'The corresponding original source is included as `Data/Native/AtlasLoot-source.lua` (not loaded in-game).',
+      'Conversion code is `tools/atlasloot.cjs` in the Monstrator source checkout.',
+      'Hashes, excluded groups and import counts are recorded in `Data/Native/atlasloot-manifest.json`.');
+  }
   return lines.join('\r\n') + '\r\n';
 }
 
@@ -771,9 +821,17 @@ function cmdPackage(args = []) {
   // Every file the TOC loads must ship.
   for (const line of toc.split(/\r?\n/)) if (/\.lua$/i.test(line.trim()) && !line.trim().startsWith('#') && !files.includes(line.trim())) fail(`TOC file missing from package: ${line.trim()}`);
   const m = manifest();
+  const loot = lootManifest();
+  const lootFiles = new Set(['AtlasLoot-LICENSE.txt', 'AtlasLoot-source.lua', 'atlasloot-manifest.json']
+    .map((name) => path.join('Data', 'Native', name)));
   const imported = new Set(KINDS.map((k) => path.join('Data', 'Native', `${k}s.lua`)));
   const contents = new Map();
   for (const file of files) {
+    if (standalone && lootFiles.has(file)) continue;
+    if (standalone && file === path.join('Data', 'Native', 'LootReference.lua')) {
+      contents.set(file, Buffer.from('-- Standalone: no imported loot reference data.\r\nlocal _, M = ...\r\n'));
+      continue;
+    }
     if (standalone && file === path.join('Data', 'Native', 'manifest.json')) continue;
     if (standalone && imported.has(file)) {
       const kind = path.basename(file, 's.lua');
@@ -786,7 +844,7 @@ function cmdPackage(args = []) {
     contents.set(path.join('Data', 'Native', 'Overlay.lua'), Buffer.from(own.text, 'utf8'));
     console.log(`Standalone overlay: ${own.summary.join('; ') || 'empty'}${own.dropped ? ` (${own.dropped} base-only corrections dropped)` : ''}`);
   }
-  contents.set('CREDITS.md', Buffer.from(creditsText(m, standalone), 'utf8'));
+  contents.set('CREDITS.md', Buffer.from(creditsText(m, standalone, loot), 'utf8'));
   const names = [...contents.keys()].sort();
   const locals = [], central = [];
   let offset = 0;
@@ -819,7 +877,7 @@ function cmdPackage(args = []) {
 }
 
 // ---------------------------------------------------------------- main
-module.exports = { decodeRow, encodeRow, decodeSpawns, encodeSpawns, normalizeSpawns, readNative, LAYOUT };
+module.exports = { decodeRow, encodeRow, decodeSpawns, encodeSpawns, normalizeSpawns, readNative, evalLua, LAYOUT };
 if (require.main !== module) return;
 const [command, ...rest] = process.argv.slice(2);
 const commands = {

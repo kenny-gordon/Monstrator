@@ -21,5 +21,6 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 This license covers Monstrator's own code, interface, translations, tools and
-data. Imported base data shipped in the full build is not covered; its source
-and terms are listed in the CREDITS.md file inside each release.
+data. Imported base and supplementary loot data shipped in the full build are
+not covered; their sources and terms are listed in the CREDITS.md file inside
+each release.

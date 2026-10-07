@@ -1,6 +1,7 @@
 local _, M = ...
 if GetLocale() ~= "frFR" then return end
 local L = M.L
+L["AtlasLoot reference (not Forever-confirmed)"] = "Référence AtlasLoot (non confirmée pour Forever)"
 L["Icon asset unavailable: %s"] = "Image d'icône indisponible : %s"
 L["map.view"] = "Voir sur la carte"
 L["map.combat"] = "Ouvrez la carte après le combat."

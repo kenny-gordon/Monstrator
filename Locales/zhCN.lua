@@ -1,6 +1,7 @@
 local _, M = ...
 if GetLocale() ~= "zhCN" then return end
 local L = M.L
+L["AtlasLoot reference (not Forever-confirmed)"] = "AtlasLoot 参考数据（未经 Forever 验证）"
 L["Icon asset unavailable: %s"] = "图标资源不可用：%s"
 L["map.view"] = "在地图上查看"
 L["map.combat"] = "请在战斗结束后打开地图预览。"

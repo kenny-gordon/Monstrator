@@ -1,0 +1,4 @@
+# Preserve the exact bytes recorded by the supplementary loot manifest.
+AtlasLoot-source.lua -text
+AtlasLoot-LICENSE.txt -text
+LootReference.lua -text

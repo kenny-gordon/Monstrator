@@ -1,5 +1,6 @@
 local _, M = ...
 local L = M.L
+L["AtlasLoot reference (not Forever-confirmed)"] = "AtlasLoot reference (not Forever-confirmed)"
 L["Icon asset unavailable: %s"] = "Icon asset unavailable: %s"
 L["map.view"] = "View on map"
 L["map.combat"] = "Open the map preview after combat."

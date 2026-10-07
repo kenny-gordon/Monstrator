@@ -38,6 +38,7 @@ Data\Native\Objects.lua
 Data\Native\Items.lua
 Data\Native\Quests.lua
 Data\Native\Overlay.lua
+Data\Native\LootReference.lua
 NativeIndex.lua
 Directory.lua
 Collector.lua

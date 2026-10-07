@@ -1,6 +1,7 @@
 local _, M = ...
 if GetLocale() ~= "ruRU" then return end
 local L = M.L
+L["AtlasLoot reference (not Forever-confirmed)"] = "Данные AtlasLoot (не подтверждены для Forever)"
 L["Icon asset unavailable: %s"] = "Изображение значка недоступно: %s"
 L["map.view"] = "Показать на карте"
 L["map.combat"] = "Откройте карту после боя."

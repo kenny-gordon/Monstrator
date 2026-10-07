@@ -61,6 +61,19 @@ they describe the object, not its destination or an inferred service.
 
 ## Monstrator database source
 
+`Data\Native\LootReference.lua` is a separate supplementary Classic loot layer,
+not a placement or curated-data import. It registers
+`native.lootReference = { source, commit, drops }`, where each `drops[itemID]` is
+a comma-separated list of NPC IDs already known to the base database. The Item
+provider appends these to `npcDrops` without changing its underlying row, skipping
+duplicates, deleted NPCs, unknown items and explicitly overlaid item rows.
+`Item.npcDropReference(itemID, npcID)` identifies only effective supplementary
+relationships. NPC item lists and item source lookup share this provider, so both
+surfaces see the same enriched data. All coordinates still come from Monstrator.
+`atlasloot-manifest.json` records provenance, coverage and SHA-256 hashes of the
+derived data, original source and GPLv2 licence. None ship in the standalone build
+(the required TOC loot module is replaced with an empty stub).
+
 Records from the built-in database (`Data\Native`, read through `NativeDB.lua`
 and indexed by `NativeIndex.lua`) are built at runtime and never persisted except
 as favorite snapshots. They use these keys:

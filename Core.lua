@@ -78,6 +78,15 @@ function M:Diagnostic()
     else
         self:Notice("Monstrator database is empty (standalone build). Collect NPCs in game, or import data with tools\\monstrator-db.cjs.")
     end
+    local loot = self.native.lootReference
+    if loot then
+        local relationships = 0
+        for _, ids in pairs(loot.drops) do
+            for _ in ids:gmatch("%d+") do relationships = relationships + 1 end
+        end
+        self:Notice(("%s Classic loot reference: %d imported relationships; commit %s (not Forever-confirmed)."):format(
+            loot.source, relationships, tostring(loot.commit)))
+    end
     local q = self.dbIndex
     if q then
         self:Notice(("Directory index: %s; %d NPCs and %d objects across %d maps; %d maps expanded."):format(
