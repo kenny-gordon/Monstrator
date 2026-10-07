@@ -76,7 +76,11 @@ assert(not M.portraits.model:IsShown(), "idle appearance resolver does not keep 
 assert(row.portraitTexture.texture == "portrait:501" and detail.portraitTexture.texture == "portrait:501")
 assert(row.portraitDisplayID == 501)
 assert(row.isPortrait and not row.portraitTexture.mask and row.texCoords[1] == 0 and row.texCoords[2] == 1,
-    "resolved portraits retain the full creature image in a square slot")
+    "resolved portraits use a square slot without a circular mask")
+assert(row.portraitTexture.texCoords[1] == 0.15 and row.portraitTexture.texCoords[2] == 0.85
+    and row.portraitTexture.texCoords[3] == 0.15 and row.portraitTexture.texCoords[4] == 0.85
+    and detail.portraitTexture.texCoords[1] == row.portraitTexture.texCoords[1],
+    "list and Details crop inside the circular client portrait so all square corners contain artwork")
 assert(row.slotBorder:IsShown() and not row.portraitBorder,
     "NPC portraits use the same square native border as objects, with no gold portrait ring")
 local oldQueries, oldPaints = queries, paints

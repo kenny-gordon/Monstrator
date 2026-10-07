@@ -118,6 +118,10 @@ local function artworkStyle(texture, portrait)
     if texture.portraitTexture then
         texture:SetShown(not portrait)
         texture.portraitTexture:SetShown(portrait)
+        if portrait then
+            -- Crop inside the client portrait's circular image so square corners contain artwork.
+            texture.portraitTexture:SetTexCoord(0.15, 0.85, 0.15, 0.85)
+        end
     end
     if texture.slotBorder then texture.slotBorder:Show() end
     texture:SetTexCoord(portrait and 0 or 0.07, portrait and 1 or 0.93,
@@ -252,35 +256,25 @@ function M:SetEntryArtwork(texture, record)
     resolvePortrait()
 end
 
-local function entrySlot(parent, x, y, size, detail)
+local function entrySlot(parent, x, y, size)
     local icon = parent:CreateTexture(nil, "ARTWORK")
     icon:SetPoint("TOPLEFT", x, y)
     icon:SetSize(size, size)
     icon:SetTexCoord(0.07, 0.93, 0.07, 0.93)
-    local border
-    if detail then
-        -- A sliced edge stays thin at portrait size; the small AH atlas magnifies its corners.
-        border = CreateFrame("Frame", nil, parent, "BackdropTemplate")
-        border:SetPoint("TOPLEFT", x - 2, y + 2)
-        border:SetSize(size + 4, size + 4)
-        border:SetBackdrop({ edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border", edgeSize = 8 })
-        border:SetBackdropBorderColor(0.5, 0.45, 0.35, 1)
+    local border = parent:CreateTexture(nil, "OVERLAY")
+    if C_Texture and C_Texture.GetAtlasInfo and C_Texture.GetAtlasInfo("auctionhouse-itemicon-small-border") then
+        border:SetPoint("TOPLEFT", x - size / 14, y + size / 14)
+        border:SetSize(size * 16 / 14, size * 16 / 14)
+        border:SetAtlas("auctionhouse-itemicon-small-border")
     else
-        border = parent:CreateTexture(nil, "OVERLAY")
-        if C_Texture and C_Texture.GetAtlasInfo and C_Texture.GetAtlasInfo("auctionhouse-itemicon-small-border") then
-            border:SetPoint("TOPLEFT", x - size / 14, y + size / 14)
-            border:SetSize(size * 16 / 14, size * 16 / 14)
-            border:SetAtlas("auctionhouse-itemicon-small-border")
-        else
-            border:SetPoint("TOPLEFT", x - size * 0.18, y + size * 0.18)
-            border:SetSize(size * 1.36, size * 1.36)
-            border:SetTexture("Interface\\Buttons\\UI-Quickslot2")
-        end
+        border:SetPoint("TOPLEFT", x - size * 0.18, y + size * 0.18)
+        border:SetSize(size * 1.36, size * 1.36)
+        border:SetTexture("Interface\\Buttons\\UI-Quickslot2")
     end
     icon.slotBorder = border
     icon.portraitTexture = parent:CreateTexture(nil, "ARTWORK")
     icon.portraitTexture:SetAllPoints(icon)
-    icon.portraitTexture:SetTexCoord(0, 1, 0, 1)
+    icon.portraitTexture:SetTexCoord(0.15, 0.85, 0.15, 0.85)
     icon.portraitTexture:Hide()
     return icon, border
 end
@@ -1562,9 +1556,9 @@ function M:CreateWindow()
 
     f.info = {}
     f.info.parchment = parchment ~= nil and parchment ~= false
-    f.info.icon, f.info.iconBorder = entrySlot(f, 824, -151, 48, true)
-    f.info.name = label(f, "", 886, -146, 17)
-    f.info.name:SetWidth(204)
+    f.info.icon, f.info.iconBorder = entrySlot(f, 824, -151, 30)
+    f.info.name = label(f, "", 868, -146, 17)
+    f.info.name:SetWidth(222)
     f.info.name:SetHeight(48)
     f.info.name:SetMaxLines(2)
     f.info.name:SetJustifyH("LEFT")

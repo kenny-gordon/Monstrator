@@ -123,15 +123,16 @@ for _, b in ipairs({ M.window.sort, M.window.evidence, M.window.itemsButton,
     assert(b.quiet and not b.Left:IsShown() and b.labelFont.color[1] > 0.7,
         "toolbar and utility controls are neutral but readable on dark panels")
 end
-assert(info.icon.width == 48 and info.name.fontSize == 17, "the selected NPC has a larger portrait and name")
+assert(info.icon.width == M.window.rows[1].icon.width and info.icon.height == M.window.rows[1].icon.height
+    and info.name.fontSize == 17, "selected artwork is exactly the same size as list artwork")
 assert(M.window.rows[1].icon.texture == M:EntryIcon(reference))
 assert(info.icon.texture == M.window.rows[1].icon.texture, "list and details use the same category icon")
 assert(M.window.rows[1].iconBorder.atlas == "auctionhouse-itemicon-small-border",
     "list icons keep the Auction House's restrained square border")
-assert(info.iconBorder.template == "BackdropTemplate" and info.iconBorder.width == info.icon.width + 4
-    and info.iconBorder.backdrop.edgeFile == "Interface\\Tooltips\\UI-Tooltip-Border"
-    and info.iconBorder.backdrop.edgeSize == 8 and not info.iconBorder.backdrop.bgFile,
-    "selected portrait uses a thin sliced native edge without magnified AH corners or an opaque background")
+assert(info.iconBorder.atlas == M.window.rows[1].iconBorder.atlas
+    and info.iconBorder.width == M.window.rows[1].iconBorder.width
+    and info.iconBorder.height == M.window.rows[1].iconBorder.height,
+    "selected artwork uses the exact same border and dimensions as list artwork")
 assert(M.window.rows[1].iconBorder.width == M.window.rows[1].icon.width * 16 / 14,
     "icon borders preserve the Auction House template's proportions")
 assert(not M.window.rows[1].icon.portraitMask and not M.window.rows[1].icon.portraitBorder,
