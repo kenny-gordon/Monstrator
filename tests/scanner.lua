@@ -30,7 +30,17 @@ fire(nil, "NAME_PLATE_UNIT_ADDED", "nameplate1")
 assert(#s.scanLog == 0 and not M.scanAlert, "ordinary NPCs never alert")
 
 npc("nameplate2", 502, "Mirelow", "rare")
-M:CreateScanAlert()
+local initialCombat = InCombatLockdown
+InCombatLockdown = function() return true end
+local deferredHit = { npcID = 502, name = "Mirelow", reason = "rare" }
+M:ShowScanAlert(deferredHit)
+assert(not M.scanAlert and M.scanAlertPending == deferredHit,
+    "first combat sighting must not create protected action buttons during lockdown")
+InCombatLockdown = function() return false end
+fire(nil, "PLAYER_REGEN_ENABLED")
+assert(M.scanAlert and not M.scanAlertPending, "first alert's secure controls are created once combat ends")
+M.scanAlert:Hide()
+InCombatLockdown = initialCombat
 local target = M.scanTargetButton
 local attributes = {}
 target.SetAttribute = function(_, key, value) attributes[key] = value end
@@ -48,15 +58,22 @@ do
     local savedSet, savedGet, savedRaid = SetRaidTarget, GetRaidTargetIndex, IsInRaid
     local savedLeader, savedAssistant, savedCombat = UnitIsGroupLeader, UnitIsGroupAssistant, InCombatLockdown
     local markers, markCalls = {}, 0
-    SetRaidTarget = function(unit, index) markCalls = markCalls + 1; markers[unit] = index end
+    SetRaidTarget = function() error("direct protected marking must never be called") end
     GetRaidTargetIndex = function(unit) return markers[unit] end
     IsInRaid = function() return false end
     InCombatLockdown = function() return false end
     M.scanAlert.mark:Click()
-    assert(markers.nameplate2 == 8 and markCalls == 1, "alert button places a skull over the actual sighted rare")
+    assert(M.scanAlert.mark:GetAttribute("macrotext") == "/tm [@nameplate2,exists,nodead] 8",
+        "hardware click prepares a secure marker macro for the actual sighted rare")
+    assert(M.scanAlert.mark.template == "SecureActionButtonTemplate,SecureHandlerStateTemplate,UIPanelButtonTemplate")
+    assert(M.scanAlert.mark.parent == UIParent and M.scanAlert.mark.stateDriver[2] == "[combat] combat; peace",
+        "mark action is isolated from insecure alert visibility and hidden securely during combat")
+    markers.nameplate2, markCalls = 8, 1
     assert(M:MarkScanNPC() and markCalls == 1, "already marked NPC does not trigger another change")
     markers.nameplate2 = 4
     assert(not M:MarkScanNPC() and markers.nameplate2 == 4, "existing raid markers are preserved")
+    M.scanAlert.mark:Click()
+    assert(M.scanAlert.mark:GetAttribute("macrotext") == "", "failed validation clears the previous secure action")
     markers.nameplate2 = nil
     InCombatLockdown = function() return true end
     assert(not M:MarkScanNPC() and markCalls == 1, "combat must never queue an automatic later marker")
@@ -65,7 +82,10 @@ do
     UnitIsGroupLeader, UnitIsGroupAssistant = function() return false end, function() return false end
     assert(not M:MarkScanNPC() and markCalls == 1, "raid permission is checked before marking")
     UnitIsGroupAssistant = function() return true end
-    assert(M:MarkScanNPC() and markCalls == 2, "raid assistant can place the marker")
+    assert(M:MarkScanNPC() == "nameplate2", "raid assistant can prepare the marker")
+    M.scanAlert.mark:Click()
+    assert(M.scanAlert.mark:GetAttribute("macrotext") == "/tm [@nameplate2,exists,nodead] 8")
+    markCalls = 2
     markers.nameplate2 = nil
     local rare = units.nameplate2
     npc("nameplate2", 777, "Unrelated creature")
@@ -75,7 +95,9 @@ do
     assert(not M:MarkScanNPC() and markCalls == 2, "a different spawn of the same NPC is not the sighted rare")
     units.nameplate2 = nil
     units.target = rare
-    assert(M:MarkScanNPC() and markers.target == 8, "targeted rare can be marked after its nameplate disappears")
+    assert(M:MarkScanNPC() == "target", "targeted rare can be marked after its nameplate disappears")
+    M.scanAlert.mark:Click()
+    assert(M.scanAlert.mark:GetAttribute("macrotext") == "/tm [@target,exists,nodead] 8")
     units.target = nil
     units.nameplate2 = rare
     SetRaidTarget, GetRaidTargetIndex, IsInRaid = savedSet, savedGet, savedRaid
@@ -152,6 +174,8 @@ assert(attributes.macrotext == "/targetexact Other Rare" and target:GetText() ==
 M:SetScanTarget("Combat Rare")
 M.scanAlert.close:Click()
 assert(not M.scanAlert:IsShown() and not target:IsShown(), "closing the alert hides the target button")
+assert(not M.scanMarkButton:IsShown() and M.scanMarkButton:GetAttribute("macrotext") == "",
+    "closing an alert hides and clears its secure marking button outside combat")
 
 -- Minimap vignettes, with exact positions when the client provides them.
 C_VignetteInfo = {

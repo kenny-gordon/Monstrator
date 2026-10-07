@@ -114,7 +114,16 @@ function methods:HasFocus() return rawget(self, "focused") == true end
 function methods:GetCenter() return 100, 100 end
 function methods:GetEffectiveScale() return 1 end
 function methods:GetFrameLevel() return 1 end
-function methods:Click() if self.scripts.OnClick then self.scripts.OnClick(self, "LeftButton") end end
+function methods:SetAttribute(key, value)
+    self.attributes = self.attributes or {}
+    self.attributes[key] = value
+end
+function methods:GetAttribute(key) return self.attributes and self.attributes[key] end
+function methods:Click()
+    if self.scripts.PreClick then self.scripts.PreClick(self, "LeftButton") end
+    if self.scripts.OnClick then self.scripts.OnClick(self, "LeftButton") end
+end
+function RegisterStateDriver(frame, state, condition) frame.stateDriver = { state, condition } end
 local function object()
     return setmetatable({ shown = true, scripts = {} }, { __index = function(_, key)
         if methods[key] then return methods[key] end

@@ -175,6 +175,10 @@ when clicked. It requires a matching live target, mouseover or nameplate and is
 unavailable during combat. Existing marks on that NPC are preserved; raid
 leader/assistant permission is required in raids. A minimap sighting alone
 cannot mark an NPC that is no longer visible. Nothing is marked automatically.
+Marking uses a secure raid-marker macro on your click, never a direct addon
+call to the protected marker API. The button is hidden by a secure combat state
+driver during combat and validates the sighted unit again before preparing the
+out-of-combat click action.
 Each NPC alerts at most once every five minutes; dead NPCs and players are ignored.
 
 Add NPCs with **Watch for this NPC** in the Details pane, by ID or name in the

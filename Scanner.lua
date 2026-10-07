@@ -311,7 +311,7 @@ end
 function M:MarkScanNPC()
     local hit = self.scanHit
     if inCombat() then self:Error(L["scan.markCombat"]); return false end
-    if not SetRaidTarget or not GetRaidTargetIndex then
+    if not GetRaidTargetIndex then
         self:Error(L["scan.markUnavailable"]); return false
     end
     if IsInRaid and IsInRaid() and not ((UnitIsGroupLeader and UnitIsGroupLeader("player"))
@@ -330,11 +330,7 @@ function M:MarkScanNPC()
             if not readable(marker) then self:Error(L["scan.markUnavailable"]); return false end
             if marker == 8 then return true end
             if marker and marker ~= 0 then self:Error(L["scan.markOccupied"]); return false end
-            local ok, err = pcall(SetRaidTarget, unit, 8)
-            if not ok then self:Error(tostring(err)); return false end
-            local applied = GetRaidTargetIndex(unit)
-            if not readable(applied) or applied ~= 8 then self:Error(L["scan.markPermission"]); return false end
-            return true
+            return unit
         end
     end
     self:Error(L["scan.markMissing"])
@@ -362,6 +358,11 @@ function M:ApplyScanTarget()
         return
     end
     self.scanTargetPending = nil
+    if self.scanMarkButton then
+        self.scanMarkButton:SetAttribute("active", name ~= nil)
+        self.scanMarkButton:SetAttribute("macrotext", "")
+        self.scanMarkButton:SetShown(name ~= nil)
+    end
     b.appliedName = name
     b:SetAlpha(1)
     b:SetText(L["Target"])
@@ -402,7 +403,40 @@ function M:CreateScanAlert()
         if self.scanHit then self:ShowModel("npc", self.scanHit.npcID, self.scanHit.name) end
     end)
     f.close = W.button(f, "Close", 284, -80, 82, function() f:Hide() end)
-    f.mark = W.button(f, "scan.mark", 14, -110, 352, function() self:MarkScanNPC() end)
+    local mark = CreateFrame("Button", "MonstratorScanMark", UIParent,
+        "SecureActionButtonTemplate,SecureHandlerStateTemplate,UIPanelButtonTemplate")
+    mark:SetSize(352, 24)
+    mark:SetPoint("TOPLEFT", UIParent, "TOP", -176, -260)
+    mark:SetFrameStrata("FULLSCREEN_DIALOG")
+    mark:SetFrameLevel((f:GetFrameLevel() or 1) + 10)
+    mark:SetText(L["scan.mark"])
+    mark:RegisterForClicks("AnyUp", "AnyDown")
+    mark:SetAttribute("type", "macro")
+    mark:SetAttribute("macrotext", "")
+    mark:SetAttribute("_onstate-combat", [[
+        self:SetAttribute("macrotext", "")
+        if newstate == "combat" then
+            self:Hide()
+        elseif self:GetAttribute("active") then
+            self:Show()
+        end
+    ]])
+    if RegisterStateDriver then
+        RegisterStateDriver(mark, "combat", "[combat] combat; peace")
+        mark:SetScript("PreClick", function(button)
+            if inCombat() then return end
+            button:SetAttribute("macrotext", "")
+            local unit = self:MarkScanNPC()
+            if type(unit) == "string" then
+                button:SetAttribute("macrotext", "/tm [@" .. unit .. ",exists,nodead] 8")
+            end
+        end)
+    else
+        mark:Disable()
+        self:Error(L["scan.markUnavailable"])
+    end
+    mark:Hide()
+    self.scanMarkButton, f.mark = mark, mark
     f.mark:SetScript("OnEnter", function(owner)
         GameTooltip:SetOwner(owner, "ANCHOR_BOTTOM")
         GameTooltip:SetText(L["scan.mark"])
@@ -428,7 +462,10 @@ function M:CreateScanAlert()
 end
 
 function M:ShowScanAlert(hit)
-    if not self.scanAlert then self:CreateScanAlert() end
+    if not self.scanAlert then
+        if inCombat() then self.scanAlertPending = hit; return end
+        self:CreateScanAlert()
+    end
     local f = self.scanAlert
     self.scanHit = hit
     f.heading:SetText(hit.reason == "watch" and L["WATCHED NPC SPOTTED"] or L["RARE SPOTTED"])
@@ -675,6 +712,11 @@ for _, event in ipairs({ "NAME_PLATE_UNIT_ADDED", "PLAYER_TARGET_CHANGED", "UPDA
 end
 events:SetScript("OnEvent", function(_, event, arg)
     if event == "PLAYER_REGEN_ENABLED" then
+        if M.scanAlertPending then
+            local hit = M.scanAlertPending
+            M.scanAlertPending = nil
+            M:ShowScanAlert(hit)
+        end
         if M.scanTargetPending then M:ApplyScanTarget() end
     elseif event == "NAME_PLATE_UNIT_ADDED" then M:ScanUnit(arg, "nameplate")
     elseif event == "PLAYER_TARGET_CHANGED" then M:ScanUnit("target", "target")

@@ -2,6 +2,8 @@
 
 ## 1.0.0
 
+- **Protected-action fix for NPC scan**: replace the direct raid-marker API call with a hardware-click secure macro button. The action validates the sighted GUID, preserves existing marks, clears rejected actions and uses a secure combat state driver to hide/clear marking during combat. Its top-level secure frame is independent of the alert's unprotected visibility.
+
 - **Native area trail and nearby landing view**: use the world map's breadcrumb templates for World, continent and zone navigation. The trail reflects pinned-zone ancestry and follows player-zone changes. Normal directory opening resets to the current zone, all entries and nearest-first sorting rather than restoring distant scopes or stale filters; explicit browsing and journal/favorite commands are preserved.
 
 - **Coordinate map preview and screenshot corrections**: View on map in Details, or Shift-click a result, opens its zone on the native world map with a coordinate marker, without changing navigation or confirming encounters. Object icons and engine-generated NPC portraits now use separate textures so recycled rows cannot show delayed creature artwork on static locations. Appearance resolution waits for model completion before caching a display ID. Sidebar fitting measures full text width; empty/short content hides unnecessary paging and scroll controls.
