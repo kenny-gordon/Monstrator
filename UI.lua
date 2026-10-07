@@ -438,6 +438,7 @@ button = function(parent, text, x, y, width, callback, listIcon)
     end
     local spec = trackFont(fontString, (width or 150) - (listIcon and 42 or 14))
     b.labelFont = fontString
+    b.labelSpec = spec
     local setText = b.SetText
     b.SetText = function(self, value)
         setText(self, value)
@@ -1058,6 +1059,15 @@ function M:Render()
         f.viewButtons.review:SetText(reviewText)
         f.viewButtons.review.renderText = reviewText
     end
+    local visibleNames = {}
+    for i = 1, #f.rows do
+        local entry = self.results and self.results[(self.offset or 0) + i]
+        if entry then
+            local r = entry.record
+            local key = ("%s:%s:%.1f:%.1f"):format(r.name, r.mapID, r.x, r.y)
+            visibleNames[key] = (visibleNames[key] or 0) + 1
+        end
+    end
     for i, row in ipairs(f.rows) do
         local index = (self.offset or 0) + i
         local entry = self.results and self.results[index]
@@ -1076,13 +1086,15 @@ function M:Render()
             end
             local yards = entry.distance and math.floor(entry.distance + 0.5)
             local evidence = entry.stale and L["Stale favorite"] or shortEvidenceName(r)
+            local ambiguous = visibleNames[("%s:%s:%.1f:%.1f"):format(r.name, r.mapID, r.x, r.y)] > 1
             if row.renderKey ~= r.key or row.renderX ~= r.x or row.renderY ~= r.y
                 or row.renderStale ~= entry.stale or row.renderVerification ~= r.verification
                 or row.renderEvidence ~= evidence or row.renderNPCID ~= r.npcID
-                or row.renderCategory ~= r.category or row.renderMap ~= r.mapID then
+                or row.renderCategory ~= r.category or row.renderMap ~= r.mapID
+                or row.renderAmbiguous ~= ambiguous then
                 local map = C_Map and C_Map.GetMapInfo and C_Map.GetMapInfo(r.mapID)
                 row.detail:SetText((map and map.name or (L["Map %d"]):format(r.mapID))
-                    .. ("  %.1f, %.1f"):format(r.x, r.y))
+                    .. ("  %.1f, %.1f"):format(r.x, r.y) .. (ambiguous and (" | " .. evidence) or ""))
                 local group = (r.verification == "curated" or r.verification == "user-confirmed") and "confirmed"
                     or (r.verification == "client-map" or r.verification == "client-object") and "map"
                     or isReferenceRecord(r) and "reference" or r.verification
@@ -1092,6 +1104,7 @@ function M:Render()
                 row.renderStale, row.renderVerification = entry.stale, r.verification
                 row.renderEvidence, row.renderNPCID = evidence, r.npcID
                 row.renderCategory, row.renderMap = r.category, r.mapID
+                row.renderAmbiguous = ambiguous
             end
             if row.renderYards ~= yards or row.renderLabel ~= entry.distanceLabel then
                 row.distance:SetText(yards and string.format(L["%d yd"], yards)
@@ -1132,12 +1145,15 @@ function M:UpdatePositionDisplay()
     if not f then return end
     local mapID, x, y = self:PlayerPosition()
     local rx, ry = x and math.floor(x * 10 + 0.5), y and math.floor(y * 10 + 0.5)
-    if f.positionInitialized and f.positionMap == mapID and f.positionX == rx and f.positionY == ry then return end
+    if f.positionInitialized and f.positionMap == mapID and f.positionX == rx and f.positionY == ry
+        and f.positionScale == self.settings.textScale then return end
     local info = mapID and C_Map.GetMapInfo and C_Map.GetMapInfo(mapID)
     if mapID and rx and ry then
         f.position:SetText(L["You are in "] .. (info and info.name or tostring(mapID)) .. string.format("  (%.1f, %.1f)", rx / 10, ry / 10))
     else f.position:SetText(L["Position unavailable"]) end
+    applyFont(f.positionSpec, self.settings.textScale)
     f.positionInitialized, f.positionMap, f.positionX, f.positionY = true, mapID, rx, ry
+    f.positionScale = self.settings.textScale
 end
 
 function M:ObservationCount()
@@ -1227,13 +1243,14 @@ function M:CreateWindow()
     f.PortraitContainer.portrait:SetTexture("Interface\\Icons\\INV_Misc_Map02")
     f.TitleContainer.TitleText:SetText("MONSTRATOR")
     trackFont(f.TitleContainer.TitleText)
-    f.subtitle = label(f, "WoW Forever NPC & location directory - by Metalbullz", 70, -40, 12, 630)
-    f.subtitle:SetWidth(630)
+    f.subtitle = label(f, "WoW Forever NPC & location directory - by Metalbullz", 70, -40, 12, 420)
+    f.subtitle:SetWidth(420)
     f.subtitle:SetMaxLines(1)
     f.subtitle:SetJustifyH("LEFT")
     f.subtitle:SetTextColor(0.72, 0.7, 0.64)
-    f.position = label(f, "", 710, -40, 12, 202)
-    f.position:SetWidth(202)
+    f.position = label(f, "", 510, -40, 12)
+    f.positionSpec = trackFont(f.position, 402)
+    f.position:SetWidth(402)
     f.position:SetMaxLines(1)
     f.position:SetJustifyH("RIGHT")
     f.position:SetTextColor(0.85, 0.86, 0.9)
@@ -1365,6 +1382,12 @@ function M:CreateWindow()
             if f.subpicker then f.subpicker:Hide() end
             self:UpdateCategories()
         end, 180, "INV_Misc_Map02")
+        b:SetHeight(32)
+        b.labelFont:SetHeight(30)
+        b.labelFont:SetMaxLines(2)
+        b.labelFont:SetWordWrap(true)
+        b.labelFont:SetNonSpaceWrap(true)
+        b.labelSpec.fit = 276
         selectionMarker(b)
         f.categoryButtons[i] = b
         local more = control(">", 212, -350 - (i - 1) * 38, function()

@@ -2,6 +2,8 @@
 
 ## 1.0.0
 
+- **Screenshot readability follow-up**: widen and dynamically fit the player-position readout, allow category/count labels to wrap within their rows, and show evidence labels only for otherwise identical visible rows. Distinct database/client/confirmed records remain separate.
+
 - **Native directory polish**: remove the map breadcrumb strip entirely; restore a simple subtitle and keep all area browsing in the sidebar/picker. Separate the parchment from a dark action tray, use native primary buttons for navigation/map preview, pack applicable actions without NPC-only gaps and add full-label action tooltips. Result paging uses native scrollbar arrows instead of text carets.
 
 - **Quieter directory presentation**: use neutral native-highlight actions for filters, secondary entry actions and footer utilities. Increase the selected portrait/name, replace parchment heading bars with fine rules, reserve gold NPC names for selection, and move repeated evidence labels out of rows while retaining evidence badges/tooltips.

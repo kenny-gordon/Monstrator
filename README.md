@@ -73,6 +73,11 @@ The tray packs only applicable actions into consecutive rows, so static
 locations do not leave blank spaces for NPC-only controls. Hover an action to
 see its full label. Controls no longer sit on the parchment's torn bottom edge.
 Result paging uses native scrollbar arrow artwork, not text carets.
+Long category labels/counts can wrap onto two lines. The header reserves a wider
+position readout and refits it when coordinates or text scale change.
+If visible rows share the same name and rounded coordinates, their evidence
+labels are shown inline to distinguish database records from live/client data;
+the separate records are not silently merged or promoted to confirmed evidence.
 Parchment text uses shadow-free dark ink and extra line spacing; long distance
 labels can wrap in the result list rather than being limited to one line.
 NPC results and selected entries use real creature portraits when the client

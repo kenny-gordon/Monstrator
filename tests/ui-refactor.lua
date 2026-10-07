@@ -194,9 +194,11 @@ local categoryButton = M.window.categoryButtons[1]
 local font = categoryButton.labelFont
 local oldWidth, oldUnboundedWidth = rawget(font, "GetStringWidth"), rawget(font, "GetUnboundedStringWidth")
 font.GetStringWidth = function() return 100 end
-font.GetUnboundedStringWidth = function() return 300 end
+font.GetUnboundedStringWidth = function() return 600 end
 categoryButton:SetText("NPCs & creatures (12345)")
 assert(font.fontSize == 8, "sidebar fitting uses unbounded width rather than a clipped label's apparent width")
+assert(font.maxLines == 2 and font.wordWrap and categoryButton.height == 32,
+    "long category/count labels wrap inside their row rather than losing the count to an ellipsis")
 font.GetStringWidth, font.GetUnboundedStringWidth = oldWidth, oldUnboundedWidth
 categoryButton.renderText = nil
 M:Render()
@@ -217,6 +219,9 @@ local oldSelected = M.selected
 M.results[2] = { record = confirmed }
 M.selected = 1
 M:Render()
+assert(M.window.rows[1].detail:GetText():find("Legacy", 1, true)
+    and M.window.rows[2].detail:GetText() ~= M.window.rows[1].detail:GetText(),
+    "otherwise identical visible rows identify their different evidence instead of looking duplicated")
 assert(M.window.rows[1].name.color[1] == 1 and M.window.rows[2].name.color[1] < 1,
     "gold text distinguishes selection instead of coloring every NPC name")
 M.selected = 2
@@ -229,6 +234,24 @@ assert(M.window.rows[1].name.color[1] == 1, "high contrast preserves bright name
 M.settings.highContrast = false
 M.results[2], M.selected = nil, oldSelected
 M:Render()
+assert(not M.window.rows[1].detail:GetText():find("Legacy", 1, true),
+    "the evidence suffix disappears when the ambiguous row leaves the page")
+assert(M.window.subtitle.x + M.window.subtitle.width < M.window.position.x
+    and M.window.position.x + M.window.position.width < M.window.itemsButton.x,
+    "header allocates separate nonoverlapping subtitle, full position and utility regions")
+local position = M.window.position
+local positionMeasure = position.GetUnboundedStringWidth
+position.GetUnboundedStringWidth = function() return 800 end
+M.window.positionInitialized = nil
+M:UpdatePositionDisplay()
+assert(position.fontSize == 8, "position text is fitted after dynamic text assignment")
+M.settings.textScale = 1.5
+M:UpdatePositionDisplay()
+assert(M.window.positionScale == 1.5 and position.fontSize < 18,
+    "position fitting updates even when coordinates stay unchanged")
+position.GetUnboundedStringWidth = positionMeasure
+M.settings.textScale = 1
+M:UpdatePositionDisplay()
 assert(M:EntryIcon({ kind = "npc", category = "Combat", tags = {} })
     == "Interface\\Icons\\Ability_Tracking", "unresolved creatures use a tracking symbol, not a fake human portrait")
 assert(M.window.rows[1].name.fontSize == 14 and M.window.rows[1].detail.fontSize == 13,
