@@ -101,6 +101,8 @@ assert(M:SourceRecord({ kind = "quest", id = 1, name = "x" }) == nil, "sources w
 M:ShowItemLookup("haunch")
 local f = M.itemFrame
 assert(f and f:IsShown())
+assert(f.template == "PortraitFrameTemplate" and f.CloseButton:GetScript("OnClick"),
+    "item lookup uses the same native window chrome as the directory")
 assert(M.itemResults[1] == 101 and M.itemDetails.id == 101)
 assert(f.empty:IsShown() == false)
 assert(f.itemRows[1].name:GetText():find("Haunch", 1, true))

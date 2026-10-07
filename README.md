@@ -235,6 +235,13 @@ describe the sign, not where it points.
 
 Open **Settings** from the footer. It has:
 
+Settings uses the native WoW portrait window, with journal options and display
+options in separate panels. Checkboxes show the saved state directly; hover one
+for its enabled/disabled status. Item Lookup and copy/export windows use the same
+native window framing. Copy windows select all text for Ctrl+C and do not upload
+anything. In Review Journal, **Review placement** opens the editor rather than
+setting a waypoint. Sidebar database totals appear only in Directory.
+
 - Local collection, NPC discovery and the journal limit.
 - Text and window scale, high contrast and the minimap button.
 - **Group NPC locations**, and the **Monstrator database** toggle (hides all database records).

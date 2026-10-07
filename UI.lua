@@ -269,6 +269,27 @@ local function edit(parent, x, y, width, text)
     return box
 end
 
+local function check(parent, text, x, y, width, callback, statusLabel)
+    local b = CreateFrame("CheckButton", nil, parent, "UICheckButtonTemplate")
+    b:SetPoint("TOPLEFT", x, y)
+    b:SetSize(26, 26)
+    b.caption = label(b, text, 30, -6, 13)
+    b.caption:SetWidth(width - 30)
+    b.caption:SetJustifyH("LEFT")
+    b.caption:SetMaxLines(2)
+    b:SetHitRectInsets(0, -(width - 26), 0, 0)
+    b.SetText = function(self, value) self.caption:SetText(value) end
+    b.GetText = function(self) return self.caption:GetText() end
+    b:SetScript("OnClick", callback)
+    b:SetScript("OnEnter", function(self)
+        GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+        GameTooltip:SetText(L[statusLabel] .. L[self:GetChecked() and "Enabled" or "Disabled"])
+        GameTooltip:Show()
+    end)
+    b:SetScript("OnLeave", function() GameTooltip:Hide() end)
+    return b
+end
+
 panel = function(parent, title, x, y, width, height)
     local frame = CreateFrame("Frame", nil, parent, "BackdropTemplate")
     frame:SetPoint("TOPLEFT", x, y)
@@ -314,28 +335,41 @@ end
 
 function M:ShowCopy(text)
     if not self.copyFrame then
-        local f = CreateFrame("Frame", nil, UIParent, "BackdropTemplate")
-        f:SetSize(640, 400)
+        local f = CreateFrame("Frame", "MonstratorCopy", UIParent, "PortraitFrameTemplate")
+        f:SetSize(760, 460)
         f:SetPoint("CENTER")
         f:SetFrameStrata("DIALOG")
-        applyWindowBackdrop(f)
+        f:SetToplevel(true)
+        f.PortraitContainer.portrait:SetTexture("Interface\\Icons\\INV_Misc_Note_01")
+        f.TitleContainer.TitleText:SetText(L["Select text and press Ctrl+C. Nothing is uploaded."])
+        trackFont(f.TitleContainer.TitleText)
+        f.CloseButton:SetScript("OnClick", function() f:Hide() end)
+        f:SetMovable(true)
+        f:EnableMouse(true)
+        f:RegisterForDrag("LeftButton")
+        f:SetScript("OnDragStart", f.StartMoving)
+        f:SetScript("OnDragStop", f.StopMovingOrSizing)
+        f:SetClampedToScreen(true)
         escapeCloses(f)
-        label(f, "Select text and press Ctrl+C. Nothing is uploaded.", 18, -16)
-        button(f, "Close", 550, -10, 70, function() f:Hide() end)
+        panel(f, "", 16, -60, 728, 382)
         local scroll = CreateFrame("ScrollFrame", nil, f, "UIPanelScrollFrameTemplate")
-        scroll:SetPoint("TOPLEFT", 20, -55)
+        scroll:SetPoint("TOPLEFT", 32, -78)
         scroll:SetPoint("BOTTOMRIGHT", -40, 20)
         local box = CreateFrame("EditBox", nil, scroll)
         box:SetMultiLine(true)
         box:SetFontObject(ChatFontNormal)
-        box:SetWidth(570)
+        box:SetWidth(680)
+        box:SetFont(STANDARD_TEXT_FONT, 14)
+        trackFont(box)
         box:SetAutoFocus(false)
         scroll:SetScrollChild(box)
         box:SetScript("OnEscapePressed", function() f:Hide() end)
         f.box = box
+        f.scroll = scroll
         self.copyFrame = f
     end
     self.copyFrame.box:SetText(text)
+    self.copyFrame.scroll:SetVerticalScroll(0)
     self.copyFrame:Show()
     self.copyFrame.box:SetFocus()
     self.copyFrame.box:HighlightText()
@@ -569,23 +603,72 @@ end
 
 function M:ShowSettings()
     if not self.options then
-        local f = CreateFrame("Frame", nil, UIParent, "BackdropTemplate")
-        f:SetSize(470, 550)
+        local f = CreateFrame("Frame", "MonstratorSettings", UIParent, "PortraitFrameTemplate")
+        f:SetSize(700, 550)
         f:SetPoint("CENTER")
         f:SetFrameStrata("DIALOG")
-        applyWindowBackdrop(f)
-        label(f, "Monstrator Settings", 20, -20)
-        f.collect = button(f, "Collection", 20, -60, 390, function()
+        f:SetToplevel(true)
+        f.PortraitContainer.portrait:SetTexture("Interface\\Icons\\Trade_Engineering")
+        f.TitleContainer.TitleText:SetText(L["Monstrator Settings"])
+        trackFont(f.TitleContainer.TitleText)
+        f.CloseButton:SetScript("OnClick", function() f:Hide() end)
+        f.journalPanel = panel(f, "Review journal", 16, -62, 328, 420)
+        f.displayPanel = panel(f, "Details", 352, -62, 332, 420)
+        f.collect = check(f, "Collection", 28, -110, 300, function()
             self.settings.collecting = not self.settings.collecting
             self:ShowSettings()
+        end, "Local collection: ")
+        f.discover = check(f, "NPC discovery", 28, -146, 300, function()
+            SlashCmdList.MONSTRATOR("discover")
+            self:ShowSettings()
+        end, "NPC discovery: ")
+        f.references = check(f, "Monstrator database", 28, -182, 300, function()
+            self.settings.referenceEnabled = not self.settings.referenceEnabled
+            self:ShowSettings()
+            self:RefreshIfVisible()
+        end, "Monstrator database: ")
+        local warning = label(f, "Reference identities are not confirmed placements for this server.", 34, -220, 12)
+        warning:SetWidth(290)
+        warning:SetJustifyH("LEFT")
+        warning:SetTextColor(0.8, 0.78, 0.7)
+        warning:SetMaxLines(3)
+        label(f, "Observation limit (1-100000)", 34, -276, 12)
+        f.limit = edit(f, 40, -302, 140)
+        f.applyLimit = button(f, "Apply", 194, -302, 128, function()
+            local n = tonumber(f.limit:GetText())
+            if not self:IsFinite(n) or n < 1 or n > 100000 or n % 1 ~= 0 then
+                self:Error(L["Observation limit must be an integer from 1 to 100000."]); return
+            end
+            self.settings.observationLimit, self.fullNotice = n, nil
+            self:Notice(L["Observation limit updated."])
         end)
-        f.contrast = button(f, "High contrast", 20, -95, 390, function()
+        button(f, "Export journal", 30, -350, 140, function() self:ShowExport() end)
+        button(f, "Share discoveries", 178, -350, 150, function() self:ShowSubmission() end)
+        button(f, "Manage journal", 30, -386, 298, function()
+            f:Hide()
+            self:Toggle("journal")
+        end)
+        button(f, "Load map data", 30, -422, 298, function() self:SyncClientData() end)
+        f.contrast = check(f, "High contrast", 364, -110, 302, function()
             self.settings.highContrast = not self.settings.highContrast
             self:ShowSettings()
             self:RefreshIfVisible()
-        end)
-        f.scale = label(f, "Frame scale", 20, -140)
-        f.text = label(f, "Text scale", 20, -180)
+        end, "High contrast: ")
+        f.group = check(f, "Group NPC locations", 364, -146, 302, function()
+            self.settings.groupNPCs = not self.settings.groupNPCs
+            self:ShowSettings()
+            self:RefreshIfVisible()
+        end, "Group NPC locations: ")
+        f.minimap = check(f, "Minimap button", 364, -182, 302, function()
+            SlashCmdList.MONSTRATOR("minimap")
+            self:ShowSettings()
+        end, "Minimap button: ")
+        f.scale = label(f, "Frame scale", 370, -244, 13)
+        f.scale:SetWidth(190)
+        f.scale:SetJustifyH("LEFT")
+        f.text = label(f, "Text scale", 370, -290, 13)
+        f.text:SetWidth(190)
+        f.text:SetJustifyH("LEFT")
         local function scale(key, delta, minimum)
             local value = math.max(minimum, math.min(1.5, self.settings[key] + delta))
             self.settings[key] = math.floor(value * 10 + 0.5) / 10
@@ -595,48 +678,12 @@ function M:ShowSettings()
                 self:Render()
             end
         end
-        button(f, "-", 255, -135, 60, function() scale("frameScale", -0.1, 0.6) end)
-        button(f, "+", 330, -135, 60, function() scale("frameScale", 0.1, 0.6) end)
-        button(f, "-", 255, -175, 60, function() scale("textScale", -0.1, 0.8) end)
-        button(f, "+", 330, -175, 60, function() scale("textScale", 0.1, 0.8) end)
-        f.limit = edit(f, 25, -230, 160)
-        label(f, "Observation limit (1-100000)", 20, -205)
-        button(f, "Apply", 210, -230, 180, function()
-            local n = tonumber(f.limit:GetText())
-            if not self:IsFinite(n) or n < 1 or n > 100000 or n % 1 ~= 0 then
-                self:Error(L["Observation limit must be an integer from 1 to 100000."]); return
-            end
-            self.settings.observationLimit, self.fullNotice = n, nil
-            self:Notice(L["Observation limit updated."])
-        end)
-        button(f, "Export journal", 20, -280, 125, function() self:ShowExport() end)
-        button(f, "Share discoveries", 150, -280, 140, function() self:ShowSubmission() end)
-        button(f, "Close", 295, -280, 115, function() f:Hide() end)
-        button(f, "Manage journal", 20, -320, 180, function()
-            f:Hide()
-            self:Toggle("journal")
-        end)
-        button(f, "Load map data", 220, -320, 180, function() self:SyncClientData() end)
-        f.discover = button(f, "NPC discovery", 20, -358, 410, function()
-            SlashCmdList.MONSTRATOR("discover")
-            self:ShowSettings()
-        end)
-        f.references = button(f, "Monstrator database", 20, -398, 410, function()
-            self.settings.referenceEnabled = not (self.settings.referenceEnabled == true)
-            self:ShowSettings()
-            self:RefreshIfVisible()
-        end)
-        label(f, "Reference identities are not confirmed placements for this server.", 20, -434, 12)
-        f.group = button(f, "Group NPC locations", 20, -466, 410, function()
-            self.settings.groupNPCs = not self.settings.groupNPCs
-            self:ShowSettings()
-            self:RefreshIfVisible()
-        end)
-        f.minimap = button(f, "Minimap button", 20, -504, 200, function()
-            SlashCmdList.MONSTRATOR("minimap")
-            self:ShowSettings()
-        end)
-        button(f, "Reset window & filters", 230, -504, 200, function() self:ResetView() end)
+        button(f, "-", 576, -240, 38, function() scale("frameScale", -0.1, 0.6) end)
+        button(f, "+", 626, -240, 38, function() scale("frameScale", 0.1, 0.6) end)
+        button(f, "-", 576, -286, 38, function() scale("textScale", -0.1, 0.8) end)
+        button(f, "+", 626, -286, 38, function() scale("textScale", 0.1, 0.8) end)
+        button(f, "Reset window & filters", 370, -350, 298, function() self:ResetView() end)
+        button(f, "Close", 550, -502, 124, function() f:Hide() end)
         f:SetMovable(true)
         f:EnableMouse(true)
         f:RegisterForDrag("LeftButton")
@@ -647,15 +694,15 @@ function M:ShowSettings()
         self.options = f
     end
     local f = self.options
-    f.minimap:SetText(L["Minimap button: "] .. L[self.settings.minimapHidden and "Disabled" or "Enabled"])
-    f.collect:SetText(L["Local collection: "] .. L[self.settings.collecting and "Enabled" or "Disabled"])
-    f.contrast:SetText(L["High contrast: "] .. L[self.settings.highContrast and "Enabled" or "Disabled"])
+    f.minimap:SetChecked(not self.settings.minimapHidden)
+    f.collect:SetChecked(self.settings.collecting)
+    f.contrast:SetChecked(self.settings.highContrast)
     f.scale:SetText(L["Frame scale: "] .. string.format("%.1f", self.settings.frameScale))
     f.text:SetText(L["Text scale: "] .. string.format("%.1f", self.settings.textScale))
     f.limit:SetText(tostring(self.settings.observationLimit))
-    f.discover:SetText(L["NPC discovery: "] .. L[self.settings.discovering and "Enabled" or "Disabled"])
-    f.references:SetText(L["Monstrator database: "] .. L[self.settings.referenceEnabled and "Enabled" or "Disabled"])
-    f.group:SetText(L["Group NPC locations: "] .. L[self.settings.groupNPCs and "Enabled" or "Disabled"])
+    f.discover:SetChecked(self.settings.discovering)
+    f.references:SetChecked(self.settings.referenceEnabled)
+    f.group:SetChecked(self.settings.groupNPCs)
     f:Show()
 end
 
@@ -690,7 +737,9 @@ function M:Render()
     local counts = self.directoryCounts or { all = 0, npc = 0, location = 0, categories = {} }
     for key, b in pairs(f.kindButtons) do
         local text
-        if key == "npc" then
+        if self.view ~= "directory" then
+            text = L[key == "npc" and "NPCs" or (key == "all" and "All entries" or "Static locations")]
+        elseif key == "npc" then
             text = (L["NPCs (%d)"]):format(counts.uniqueNPCs or counts.npc)
         else
             text = (key == "all" and L["All entries"] or L["Static locations"]) .. " (" .. counts[key] .. ")"
@@ -707,6 +756,7 @@ function M:Render()
             local sub = self.category == category and self:ActiveSubgroup()
             local text = sub and (L[category] .. ": " .. L[sub.label] .. " (" .. ((counts.subgroups or {})[sub.key] or 0) .. ")")
                 or (L[category] .. " (" .. amount .. ")")
+            if self.view ~= "directory" then text = L[category] end
             if b.renderText ~= text then b:SetText(text); b.renderText = text end
         end
     end
@@ -1771,13 +1821,16 @@ function M:RenderDetailsPane()
     if info.renderKey == (r and r.key) and info.renderYards == yards and info.renderFavorite == favorite
         and info.renderLabel == (entry and entry.distanceLabel) and info.renderStale == (entry and entry.stale)
         and info.renderPlacements == (entry and entry.placementCount) and info.renderPlace == placeKey
-        and info.renderTextScale == self.settings.textScale and info.renderRecordKey == recordKey then return end
+        and info.renderTextScale == self.settings.textScale and info.renderRecordKey == recordKey
+        and info.renderView == self.view then return end
     local selectionChanged = info.renderKey ~= (r and r.key)
     info.renderKey, info.renderYards, info.renderFavorite = r and r.key, yards, favorite
     info.renderLabel, info.renderStale = entry and entry.distanceLabel, entry and entry.stale
     info.renderPlacements, info.renderPlace = entry and entry.placementCount, placeKey
     info.renderTextScale = self.settings.textScale
     info.renderRecordKey = recordKey
+    info.renderView = self.view
+    info.navigate:SetText(L[(self.view == "review" or self.view == "journal") and "Review placement" or "Navigate"])
     if selectionChanged then info.scroll:SetVerticalScroll(0) end
     for _, control in ipairs({ info.navigate, info.favorite, info.zone, f.detailsButton }) do control:SetShown(r ~= nil) end
     info.model:SetShown(r ~= nil and r.npcID ~= nil)

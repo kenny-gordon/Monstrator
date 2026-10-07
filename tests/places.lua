@@ -134,6 +134,11 @@ assert(M.settings.minimapHidden ~= hidden and M.options.minimap:GetText():find("
 M.options.minimap:Click()
 M.options:GetScript("OnKeyDown")(M.options, "ESCAPE")
 assert(not M.options:IsShown(), "Escape closes Settings")
+M:ShowCopy("Synthetic inventory\n123 | Sample NPC")
+assert(M.copyFrame.template == "PortraitFrameTemplate" and M.copyFrame.box.width == 680)
+assert(M.copyFrame.box:GetText() == "Synthetic inventory\n123 | Sample NPC",
+    "native copy dialog preserves the entire export without changing its contents")
+assert(M.copyFrame.scroll:GetVerticalScroll() == 0)
 if M.copyFrame then
     M.copyFrame:Show()
     M.copyFrame:GetScript("OnKeyDown")(M.copyFrame, "ESCAPE")

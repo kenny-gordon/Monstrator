@@ -58,6 +58,8 @@ function methods:SetMaxLines(value) self.maxLines = value end
 function methods:SetWordWrap(value) self.wordWrap = value end
 function methods:SetShadowOffset(x, y) self.shadowX, self.shadowY = x, y end
 function methods:SetSpacing(value) self.spacing = value end
+function methods:SetChecked(value) self.checked = value end
+function methods:GetChecked() return self.checked == true end
 function methods:SetTexture(texture) self.texture = texture end
 function methods:SetAtlas(atlas) self.atlas = atlas end
 function methods:SetNormalTexture(asset)

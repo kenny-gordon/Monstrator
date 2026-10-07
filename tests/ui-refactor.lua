@@ -200,18 +200,59 @@ M.window.onboarding = onboarding
 M.window.viewButtons.review = reviewButton
 
 M:ShowSettings()
+assert(M.options.template == "PortraitFrameTemplate" and M.options.width == 700)
+for key, setting in pairs({ collect = "collecting", discover = "discovering", references = "referenceEnabled",
+    group = "groupNPCs", contrast = "highContrast" }) do
+    assert(M.options[key].template == "UICheckButtonTemplate")
+    assert(M.options[key]:GetChecked() == M.settings[setting], "checkbox reflects saved setting " .. setting)
+end
+assert(M.options.minimap:GetChecked() == not M.settings.minimapHidden)
 local refreshCalls = 0
 M.RefreshIfVisible = function() refreshCalls = refreshCalls + 1 end
 local grouped = M.settings.groupNPCs
 M.options.group:Click()
 assert(M.settings.groupNPCs ~= grouped and refreshCalls == 1)
+assert(M.options.group:GetChecked() == M.settings.groupNPCs)
 M.options.group:Click()
 assert(M.settings.groupNPCs == grouped and refreshCalls == 2)
 local enabled = M.settings.referenceEnabled
 M.options.references:Click()
 assert(M.settings.referenceEnabled ~= enabled and refreshCalls == 3)
+assert(M.options.references:GetChecked() == M.settings.referenceEnabled)
+local collection = M.settings.collecting
+M.options.collect:Click()
+assert(M.settings.collecting ~= collection and M.options.collect:GetChecked() == M.settings.collecting)
+M.options.collect:Click()
+for control, setting in pairs({ discover = "discovering", contrast = "highContrast" }) do
+    local previous = M.settings[setting]
+    M.options[control]:Click()
+    assert(M.settings[setting] ~= previous and M.options[control]:GetChecked() == M.settings[setting])
+    M.options[control]:Click()
+    assert(M.settings[setting] == previous)
+end
+local oldLimit = M.settings.observationLimit
+M.options.limit:SetText("0")
+M.options.applyLimit:Click()
+assert(M.settings.observationLimit == oldLimit, "invalid limits leave settings untouched")
+M.options.limit:SetText("2000")
+M.options.applyLimit:Click()
+assert(M.settings.observationLimit == 2000)
+M.settings.observationLimit = oldLimit
 M.options:Hide()
 M.RefreshIfVisible = refresh
+local savedView = M.view
+M.view = "review"
+M:Render()
+assert(M.window.info.navigate:GetText() == M.L["Review placement"], "journal primary action explains review")
+M.view = "favorites"
+M:Render()
+assert(M.window.kindButtons.npc:GetText() == M.L["NPCs"],
+    "favorites must not display unrelated directory totals in the sidebar")
+M.view = "directory"
+M:Render()
+assert(M.window.info.navigate:GetText() == M.L["Navigate"], "directory primary action explains navigation")
+M.view = savedView
+M:Render()
 
 local inventoryText
 M.NPCInventory = function()

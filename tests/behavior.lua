@@ -78,6 +78,7 @@ local export = M:ExportText()
 local exported = assert(load(export))()
 assert(exported[1].key == observation.key)
 assert(not M:SetNavigationWaypoint(1, -1, 1, "invalid"))
+local showCopy = M.ShowCopy
 M.ShowCopy = function(_, text) assert(text:find("Map ID")); M.copied = true end
 assert(not M:SetNavigationWaypoint(1, 10, 10, "Synthetic"))
 assert(M.copied)
@@ -102,6 +103,7 @@ C_Map.GetUserWaypoint = function() return pin end
 assert(M:SetNavigationWaypoint(1, 10, 20, "Synthetic"))
 C_Map.CanSetUserWaypointOnMap = function() return false end
 assert(not M:SetNavigationWaypoint(1, 10, 20, "Synthetic"))
+M.ShowCopy = showCopy
 TomTom = nil
 M:Toggle()
 assert(M.window:IsShown() and M.ticker.interval == 0.5)
