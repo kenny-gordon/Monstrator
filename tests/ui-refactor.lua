@@ -85,17 +85,35 @@ M.SetNavigationWaypoint = navigate
 
 M:Render()
 assert(M.window.rows[1].name:GetText():find("(3 locations)", 1, true))
-assert(M.window.backdrop.edgeFile == "Interface\\DialogFrame\\UI-DialogBox-Border",
-    "windows use the native dialog border")
-assert(M.window.close.template == "UIPanelCloseButton")
+assert(M.window.template == "PortraitFrameTemplate", "directory inherits the client's native window chrome")
+assert(M.window.TitleContainer.TitleText:GetText() == "MONSTRATOR")
+assert(M.window.PortraitContainer.portrait.texture == "Interface\\Icons\\INV_Misc_Map02")
+assert(M.window.close == M.window.CloseButton)
+assert(M.window.resultsPanel.backdrop.bgFile == "Interface\\FrameGeneral\\UI-Background-Rock")
+assert(M.window.detailsPanel.parchment.atlas == "QuestBG-Parchment",
+    "selected entry uses the client's quest parchment, not bundled artwork")
 local info = M.window.info
 assert(M.window.rows[1].icon.texture == M:EntryIcon(reference))
 assert(info.icon.texture == M.window.rows[1].icon.texture, "list and details use the same category icon")
 assert(M.window.rows[1].iconBorder.texture == "Interface\\Buttons\\UI-Quickslot2")
 assert(M.window.categoryButtons[1].browseIcon, "browse filters have visual category cues")
-local browse = M.window.viewButtons.directory
+local browse = M.window.kindButtons.all
 assert(not browse.Left:IsShown() and not browse.Middle:IsShown() and not browse.Right:IsShown(),
     "list styling hides template regions without passing nil texture assets")
+assert(M.window.viewButtons.directory.template == "PanelTabButtonTemplate")
+assert(M.window.viewButtons.directory.activeMarker:IsShown() and not M.window.viewButtons.review.activeMarker:IsShown())
+local changeView = M.ChangeView
+local tabView
+M.ChangeView = function(_, view) tabView = view end
+for _, view in ipairs({ "directory", "favorites", "review" }) do
+    M.window.viewButtons[view]:Click()
+    assert(tabView == view, "each native tab switches its own list")
+end
+M.ChangeView = changeView
+assert(info.scroll.height == 274, "selection has more room than the previous 180px viewport")
+assert(info.name.color[1] < 0.4 and info.body.color[1] < 0.4, "parchment uses readable dark ink")
+assert(not M.window.coverage:IsShown() and not M.window.onboarding:IsShown()
+    and M.window.status:GetScript("OnEnter"), "diagnostic summaries are available in the footer tooltip")
 local currentWindow, currentRefresh = M.window, M.Refresh
 local refreshed = false
 M.Refresh = function() refreshed = true end
@@ -235,6 +253,21 @@ M.StepClientWorldSync, M.Refresh, M.AddExtractedObjects = stepWorld, refreshWind
 C_TaxiMap, C_AreaPoiInfo = taxi, poi
 if not windowShown then M.window:Hide() end
 M.searchPending, M.lastMap = searchPending, lastMap
+local getAtlasInfo, originalWindow = C_Texture.GetAtlasInfo, M.window
+local originalFonts, originalFocus, originalPending = M.fonts, M.focusOrder, M.searchPending
+local errorsBefore = #messages
+C_Texture.GetAtlasInfo = function() return nil end
+M.fonts = {}
+M:CreateWindow()
+assert(not M.window.info.parchment and M.window.detailsPanel.parchment == nil,
+    "clients without the quest atlas retain the dark native layout")
+local fallbackReported = false
+for i = errorsBefore + 1, #messages do
+    if messages[i]:find("Quest parchment atlas unavailable", 1, true) then fallbackReported = true end
+end
+assert(fallbackReported, "missing artwork is reported, not silently hidden")
+C_Texture.GetAtlasInfo = getAtlasInfo
+M.window, M.fonts, M.focusOrder, M.searchPending = originalWindow, originalFonts, originalFocus, originalPending
 for _, key in ipairs({ "settings", "observations", "data", "clientData", "dbIndex",
     "index", "results", "directoryCounts", "scope", "kind", "category", "view", "offset", "selected" }) do
     M[key] = saved[key]

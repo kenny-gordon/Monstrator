@@ -48,23 +48,30 @@ Two release builds exist:
 
 ## Using the directory
 
-The window uses WoW's native dialog borders, item-slot icon frames and list
-highlights. Service and profession icons identify what an entry does; these are
-category cues, not NPC portraits or proof of a confirmed location.
+The directory inherits the Forever client's native portrait-window frame:
+centered title, circular map portrait, close control and native bottom tabs.
+Textured browsing panels sit beside a quest-parchment Details page with dark
+ink and section headings. If the parchment atlas is unavailable, Monstrator
+reports it and retains the dark readable layout. No third-party artwork is bundled.
+Service and profession icons are category cues, not NPC portraits or proof of
+a confirmed location.
+
+Use the bottom **Directory**, **Favorites** and **Review journal** tabs to switch
+lists. Hover the footer's result summary for database coverage and journal
+progress; these statistics no longer crowd the selected entry.
 
 The window has three columns:
 
-- **Browse** (left): scope, list, entry type and category.
+- **Browse** (left): scope, entry type and category.
   - **Zone**, **Region** (continent) or **World** scope. The button below them opens
     the zone picker; type to filter it, click a continent to browse the whole region.
-  - **Directory**, **Favorites** or **Review journal**.
   - **All entries**, **NPCs** or **Static locations**, then a category with counts.
     The **>** button beside a category opens its sub-groups, for example each
     trainer class and profession, vendor types, services, level ranges and
     rare/elite ranks, or herbs, ore and chests.
 - **Results** (middle): name and title, colour-coded distance, zone, coordinates
   and an evidence badge. Scroll with the mouse wheel.
-- **Details** (right): separate **Location**, **Details** and **Evidence** cards
+- **Details** (right): separate **Location**, **Details** and **Evidence** sections
   in a scrollable reading area, with **Navigate**,
   **Favorite**, **Browse this zone**, **3D model**, **Items sold/dropped** and
   **Watch for this NPC**.

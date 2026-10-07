@@ -45,6 +45,9 @@ C_Timer = {
         return ticker
     end,
 }
+C_Texture = { GetAtlasInfo = function(atlas)
+    if atlas == "QuestBG-Parchment" then return { width = 384, height = 512 } end
+end }
 local methods = {}
 uiCalls = { text = 0, font = 0, color = 0 }
 function methods:SetPoint(point, x, y) self.point, self.x, self.y = point, x, y end
@@ -52,6 +55,7 @@ function methods:SetSize(width, height) self.width, self.height = width, height 
 function methods:SetWidth(width) self.width = width end
 function methods:SetHeight(height) self.height = height end
 function methods:SetTexture(texture) self.texture = texture end
+function methods:SetAtlas(atlas) self.atlas = atlas end
 function methods:SetNormalTexture(asset)
     assert(asset ~= nil, "SetNormalTexture requires an asset")
     self.normalTexture = asset
@@ -115,7 +119,26 @@ function CreateFrame(kind, name, parent, template)
     if template == "UIPanelButtonTemplate" then
         frame.Left, frame.Middle, frame.Right = object(), object(), object()
     end
+    if template == "PortraitFrameTemplate" then
+        frame.PortraitContainer = { portrait = object() }
+        frame.TitleContainer = { TitleText = object() }
+        frame.CloseButton = object()
+        frame.CloseButton.template = "UIPanelCloseButtonDefaultAnchors"
+    end
+    if template == "PanelTabButtonTemplate" then
+        frame.Text = object()
+        frame.Left, frame.Middle, frame.Right = object(), object(), object()
+        frame.LeftActive, frame.MiddleActive, frame.RightActive = object(), object(), object()
+    end
     return frame
+end
+function PanelTemplates_SelectTab(tab)
+    tab.Left:Hide(); tab.Middle:Hide(); tab.Right:Hide()
+    tab.LeftActive:Show(); tab.MiddleActive:Show(); tab.RightActive:Show()
+end
+function PanelTemplates_DeselectTab(tab)
+    tab.Left:Show(); tab.Middle:Show(); tab.Right:Show()
+    tab.LeftActive:Hide(); tab.MiddleActive:Hide(); tab.RightActive:Hide()
 end
 UIParent, Minimap, GameTooltip = object(), object(), object()
 math.atan2 = math.atan

@@ -150,12 +150,30 @@ Notes:
 
 ## Coding guidelines
 
-- Target the Classic Era client API (Lua 5.1). Guard newer APIs (`C_Map`,
+- Target the Forever client (interface 16001), not Classic Era FrameXML. Preserve Lua 5.1 compatibility. Guard optional APIs (`C_Map`,
   `C_Timer`, `C_VignetteInfo` and similar) with existence checks.
 - No new globals besides the SavedVariables, slash commands and named frames.
 - Do not touch secure frames in combat.
 - User-facing text goes through `L[...]` and must be added to every locale.
 - Never invent placement data: every record keeps its source and evidence level.
+
+### Interface references
+
+The directory uses `PortraitFrameTemplate` and `PanelTabButtonTemplate` from
+[Forever's shared panel templates](https://github.com/Gethe/wow-ui-source/blob/forever/Interface/AddOns/Blizzard_SharedXML/Mainline/SharedUIPanelTemplates.xml).
+The parchment atlas is `QuestBG-Parchment`, defined in
+[Forever's quest templates](https://github.com/Gethe/wow-ui-source/blob/forever/Interface/AddOns/Blizzard_UIPanels_Game/Mainline/QuestFrameTemplates.xml).
+The textured background is `Interface\FrameGeneral\UI-Background-Rock`.
+These are client-owned references, not bundled assets.
+
+Design research also examined
+[Journalator's tabbed display](https://github.com/TheMouseNest/Journalator)
+and [AtlasLoot's visual entry controls](https://github.com/Hoizame/AtlasLootClassic).
+Use these for layout ideas only; do not copy their implementation or artwork.
+Validate native templates in Forever's branch rather than assuming an Era
+template or a texture setter's nil behavior is compatible. In-game release
+checks must cover native tabs, enlarged/localized text, parchment contrast and
+the reported dark-layout fallback when the atlas is missing.
 
 ## Release checklist
 
