@@ -7,7 +7,11 @@ CreateFrame = function(kind, ...)
     if kind == "PlayerModel" then
         modelCount = modelCount + 1
         frame.ClearModel = function(self) self.creature = nil end
-        frame.SetCreature = function(self, id) self.creature = id; queries = queries + 1 end
+        frame.SetCreature = function(self, id)
+            self.creature = id
+            queries = queries + 1
+            if available[id] and self:GetScript("OnModelLoaded") then self:GetScript("OnModelLoaded")(self) end
+        end
         frame.GetDisplayInfo = function(self) return available[self.creature] or 0 end
     end
     return frame
@@ -38,9 +42,9 @@ M:SetEntryArtwork(row, npc(2001))
 M:SetEntryArtwork(detail, npc(2001))
 assert(queries == 1, "row and details share one creature lookup")
 drain()
-assert(row.texture == "portrait:501" and detail.texture == "portrait:501")
+assert(row.portraitTexture.texture == "portrait:501" and detail.portraitTexture.texture == "portrait:501")
 assert(row.portraitDisplayID == 501)
-assert(row.isPortrait and row.mask == row.portraitMask and row.texCoords[1] == 0 and row.texCoords[2] == 1,
+assert(row.isPortrait and row.portraitTexture.mask == row.portraitMask and row.texCoords[1] == 0 and row.texCoords[2] == 1,
     "resolved portraits use a circular mask without item-icon cropping")
 assert(not row.slotBorder:IsShown() and row.portraitBorder:IsShown(),
     "resolved NPC portraits show a round native ring, not an overlapping square item slot")
@@ -51,14 +55,17 @@ M:SetEntryArtwork(row, npc(2002))
 M:SetEntryArtwork(row, { kind = "location", category = "Mailboxes", tags = {} })
 drain()
 assert(row.texture == "Interface\\Icons\\INV_Letter_15", "late portrait cannot overwrite a recycled location row")
-assert(not row.isPortrait and not row.mask and row.slotBorder:IsShown() and not row.portraitBorder:IsShown(),
+row.portraitTexture:SetTexture("late engine portrait")
+assert(row:IsShown() and not row.portraitTexture:IsShown(),
+    "engine-side portrait updates cannot overwrite static icons because the textures are separate")
+assert(not row.isPortrait and not row.portraitTexture.mask and row.slotBorder:IsShown() and not row.portraitBorder:IsShown(),
     "recycling a portrait into a location removes its circular mask and restores square icon framing")
 assert(row.texCoords[1] == 0.07 and row.texCoords[2] == 0.93)
 M:SetEntryArtwork(row, npc(2002))
-assert(row.texture == "portrait:502", "recycled rows can use the resolved display cache")
+assert(row.portraitTexture.texture == "portrait:502", "recycled rows can use the resolved display cache")
 M:SetEntryArtwork(row, npc(2003))
 drain()
-assert(row.texture == "portrait:501", "NPCs that share a display still reset correctly on recycled rows")
+assert(row.portraitTexture.texture == "portrait:501", "NPCs that share a display still reset correctly on recycled rows")
 M:SetEntryArtwork(row, npc(2999))
 drain()
 assert(row.texture == M:EntryIcon(npc(2999)), "uncached NPC keeps the honest icon fallback")
@@ -70,8 +77,14 @@ clock = clock + 61
 available[2999] = 502
 M:SetEntryArtwork(row, npc(2999))
 drain()
-assert(row.texture == "portrait:502", "an unavailable creature can resolve after the retry cooldown")
+assert(row.portraitTexture.texture == "portrait:502", "an unavailable creature can resolve after the retry cooldown")
 assert(modelCount == 1, "all visible NPCs share one hidden model resolver")
+local getDisplay = M.portraits.model.GetDisplayInfo
+M.portraits.model.GetDisplayInfo = function() return 501 end
+M:SetEntryArtwork(row, npc(2996))
+drain()
+assert(not row.isPortrait and row:IsShown(), "a stale display ID without OnModelLoaded must not become the next NPC portrait")
+M.portraits.model.GetDisplayInfo = getDisplay
 for i = 1, 257 do
     available[3000 + i] = 501
     M:SetEntryArtwork(row, npc(3000 + i))
@@ -84,7 +97,7 @@ assert(cacheCount == 256 and #M.portraits.cacheOrder == 256,
 oldQueries = queries
 M:SetEntryArtwork(row, npc(2001))
 drain()
-assert(row.texture == "portrait:501" and queries == oldQueries + 1,
+assert(row.portraitTexture.texture == "portrait:501" and queries == oldQueries + 1,
     "evicted appearance data can be resolved again without stale artwork")
 local liveUnit
 UnitGUID = function(unit)
@@ -93,18 +106,18 @@ end
 SetPortraitTexture = function(texture, unit) liveUnit = unit; texture:SetTexture("live portrait") end
 M:SetEntryArtwork(row, npc(2002))
 drain()
-assert(row.texture == "portrait:502", "unrelated target must never supply the portrait")
+assert(row.portraitTexture.texture == "portrait:502", "unrelated target must never supply the portrait")
 M:SetEntryArtwork(row, npc(2001))
-assert(liveUnit == "target" and row.texture == "live portrait", "matching live unit supplies its actual portrait")
+assert(liveUnit == "target" and row.portraitTexture.texture == "live portrait", "matching live unit supplies its actual portrait")
 UnitGUID = function() return nil end
 M:SetEntryArtwork(row, npc(2001))
-assert(row.texture == "portrait:501" and not row.portraitUnitGUID,
+assert(row.portraitTexture.texture == "portrait:501" and not row.portraitUnitGUID,
     "when the live unit disappears the same row restores its cached database portrait")
 UnitGUID = function(unit)
     if unit == "target" then return "Creature-0-0-0-0-2998-0001" end
 end
 M:SetEntryArtwork(row, npc(2998))
-assert(row.texture == "live portrait")
+assert(row.portraitTexture.texture == "live portrait")
 UnitGUID = function() return nil end
 M:SetEntryArtwork(row, npc(2998))
 drain()
@@ -117,11 +130,11 @@ UnitGUID = function(unit)
 end
 M:SetEntryArtwork(row, npc(2997))
 drain()
-assert(row.texture == "live portrait" and row.portraitUnitGUID,
+assert(row.portraitTexture.texture == "live portrait" and row.portraitUnitGUID,
     "late generic appearance must not overwrite a live portrait of the selected spawn")
 UnitGUID = function() return nil end
 M:SetEntryArtwork(row, npc(2997))
-assert(row.texture == "portrait:501", "resolved generic appearance is available once the live unit disappears")
+assert(row.portraitTexture.texture == "portrait:501", "resolved generic appearance is available once the live unit disappears")
 SetPortraitTexture, SetPortraitTextureFromCreatureDisplayID = nil, nil
 M:SetEntryArtwork(row, npc(2002))
 assert(row.texture == M:EntryIcon(npc(2002)), "clients without portrait APIs retain category icons")

@@ -1,5 +1,8 @@
 local _, M = ...
 local L = M.L
+L["map.view"] = "View on map"
+L["map.combat"] = "Open the map preview after combat."
+L["map.unavailable"] = "The world map preview is unavailable on this client."
 L["mapScan.limited"] = "World map scanning is unavailable for this client build. Current-zone markers and the directory database remain available."
 L["scan.mark"] = "Mark NPC with skull"
 L["scan.markHint"] = "Click to place a skull over the sighted NPC. It must still be visible or targeted. Existing marks are preserved; raid leader/assistant permission is required in raids. Unavailable during combat."

@@ -1,6 +1,9 @@
 local _, M = ...
 if GetLocale() ~= "itIT" then return end
 local L = M.L
+L["map.view"] = "Mostra sulla mappa"
+L["map.combat"] = "Apri la mappa dopo il combattimento."
+L["map.unavailable"] = "L'anteprima della mappa del mondo non è disponibile su questo client."
 L["mapScan.limited"] = "La scansione mondiale non è disponibile per questa versione del client. Gli indicatori della zona attuale e il database restano disponibili."
 L["scan.mark"] = "Segna PNG con teschio"
 L["scan.markHint"] = "Clicca per mettere un teschio sul PNG avvistato. Deve essere ancora visibile o selezionato. I marchi esistenti sono conservati. Nelle incursioni servono i permessi di capo o assistente. Non disponibile in combattimento."

@@ -1,6 +1,9 @@
 local _, M = ...
 if GetLocale() ~= "koKR" then return end
 local L = M.L
+L["map.view"] = "지도에서 보기"
+L["map.combat"] = "전투가 끝난 후 지도 미리보기를 여세요."
+L["map.unavailable"] = "이 클라이언트에서는 세계 지도 미리보기를 사용할 수 없습니다."
 L["mapScan.limited"] = "이 클라이언트 버전에서는 월드 지도 탐색을 사용할 수 없습니다. 현재 지역 표시와 디렉터리 데이터베이스는 계속 사용할 수 있습니다."
 L["scan.mark"] = "NPC에 해골 표시"
 L["scan.markHint"] = "클릭하여 발견한 NPC에 해골을 표시합니다. NPC가 보이거나 대상으로 선택되어 있어야 합니다. 기존 표시는 유지됩니다. 공격대에서는 공대장 또는 부공대장 권한이 필요합니다. 전투 중에는 사용할 수 없습니다."

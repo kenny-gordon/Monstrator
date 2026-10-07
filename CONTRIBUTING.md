@@ -185,6 +185,10 @@ Also check portraits after scrolling, Keyboard button help, rare marking with
 and without raid permissions, combat restrictions, and live world-map discovery
 on a client build newer than the extracted catalog. Build/locale gates on
 extracted object coordinates must remain intact.
+Map previews must keep normalized coordinates correct when the world-map canvas
+resizes, hide on unrelated zones, preserve existing navigation, and label
+pending encounter coordinates without confirming them. Check Shift-click and
+the Details map button, including combat and unsupported-map failures.
 
 ## Release checklist
 

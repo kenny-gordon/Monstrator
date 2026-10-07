@@ -1,6 +1,9 @@
 local _, M = ...
 if GetLocale() ~= "zhCN" then return end
 local L = M.L
+L["map.view"] = "在地图上查看"
+L["map.combat"] = "请在战斗结束后打开地图预览。"
+L["map.unavailable"] = "此客户端无法预览世界地图。"
 L["mapScan.limited"] = "此客户端版本无法扫描世界地图。当前区域标记和目录数据库仍可使用。"
 L["scan.mark"] = "用骷髅标记NPC"
 L["scan.markHint"] = "点击为发现的NPC添加骷髅标记。NPC必须仍可见或已被选为目标。保留已有标记；在团队中需要团长或助理权限。战斗中不可使用。"

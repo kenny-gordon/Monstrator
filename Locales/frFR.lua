@@ -1,6 +1,9 @@
 local _, M = ...
 if GetLocale() ~= "frFR" then return end
 local L = M.L
+L["map.view"] = "Voir sur la carte"
+L["map.combat"] = "Ouvrez la carte après le combat."
+L["map.unavailable"] = "L'aperçu de la carte du monde est indisponible sur ce client."
 L["mapScan.limited"] = "Le scan mondial est indisponible pour cette version du client. Les repères de la zone actuelle et la base restent disponibles."
 L["scan.mark"] = "Marquer le PNJ d'un crâne"
 L["scan.markHint"] = "Cliquez pour placer un crâne sur le PNJ aperçu. Il doit rester visible ou ciblé. Les marques existantes sont conservées. En raid, il faut être chef ou assistant. Indisponible en combat."

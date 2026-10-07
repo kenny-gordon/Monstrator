@@ -69,6 +69,16 @@ Use the bottom **Directory**, **Favorites** and **Review journal** tabs to switc
 lists. Hover the footer's result summary for database coverage and journal
 progress; these statistics no longer crowd the selected entry.
 
+**View on map** in Details, clicking the Location coordinates, or Shift-clicking
+a result opens the native world map
+at the selected entry's zone, with a gold star at its coordinates. The directory
+closes to leave the map unobstructed; reopen it normally when done. This preview
+does not change your TomTom arrow or native waypoint. Pending journal encounters
+can be previewed without confirming them; their tooltip retains the review
+warning. The marker disappears when browsing a different map. Normal left-click
+still navigates, and right-click still toggles a favorite or opens journal review.
+Map preview is unavailable during combat.
+
 The window has three columns:
 
 - **Browse** (left): scope, entry type and category.

@@ -123,11 +123,14 @@ local function object()
 end
 function methods:CreateFontString() return object() end
 function methods:GetFontString() return object() end
+function methods:GetWidth() return self.width or 0 end
+function methods:GetHeight() return self.height or 0 end
 function methods:CreateTexture() return object() end
 function methods:CreateMaskTexture() return object() end
 function CreateFrame(kind, name, parent, template)
     local frame = object()
     frame.kind, frame.name, frame.parent, frame.template = kind, name, parent, template
+    if template == "UIPanelScrollFrameTemplate" then frame.ScrollBar = object() end
     if template == "UIPanelButtonTemplate" then
         frame.Left, frame.Middle, frame.Right = object(), object(), object()
     end

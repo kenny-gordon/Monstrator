@@ -2,6 +2,8 @@
 
 ## 1.0.0
 
+- **Coordinate map preview and screenshot corrections**: View on map in Details, or Shift-click a result, opens its zone on the native world map with a coordinate marker, without changing navigation or confirming encounters. Object icons and engine-generated NPC portraits now use separate textures so recycled rows cannot show delayed creature artwork on static locations. Appearance resolution waits for model completion before caching a display ID. Sidebar fitting measures full text width; empty/short content hides unnecessary paging and scroll controls.
+
 - **Portrait framing fix**: resolved NPC portraits use a circular mask and native round ring rather than overlapping square item-slot artwork. Location and fallback icons retain square framing. Losing a live target restores the cached appearance or fallback instead of retaining stale artwork.
 
 - **NPC portraits and screenshot fixes**: directory rows and selected entries use matching live-unit portraits or client-resolved creature display portraits, with a shared bounded loader and icon fallback for unavailable NPCs. Recycled rows ignore late portrait results. Unknown NPCs no longer default to a hostile-looking sword. Larger result text and explicit, unlimited parchment word wrapping prevent the Evidence section from overflowing horizontally.

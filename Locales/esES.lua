@@ -2,6 +2,9 @@ local _, M = ...
 local locale = GetLocale()
 if locale ~= "esES" and locale ~= "esMX" then return end
 local L = M.L
+L["map.view"] = "Ver en el mapa"
+L["map.combat"] = "Abre la vista del mapa después del combate."
+L["map.unavailable"] = "La vista del mapa mundial no está disponible en este cliente."
 L["mapScan.limited"] = "El escaneo mundial no está disponible para esta versión del cliente. Los marcadores de la zona actual y la base siguen disponibles."
 L["scan.mark"] = "Marcar PNJ con calavera"
 L["scan.markHint"] = "Haz clic para poner una calavera sobre el PNJ avistado. Debe seguir visible o seleccionado. Se conservan las marcas existentes. En banda se requiere permiso de líder o ayudante. No disponible en combate."

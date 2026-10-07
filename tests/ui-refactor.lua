@@ -99,6 +99,8 @@ assert(M.window.rows[1].iconBorder.texture == "Interface\\Buttons\\UI-Quickslot2
 assert(M.window.rows[1].icon.portraitMask.texture == "Interface\\CharacterFrame\\TempPortraitAlphaMask"
     and M.window.rows[1].icon.portraitBorder.atlas == "honorsystem-bar-rewardborder-circle",
     "NPC artwork has separate native round portrait framing and square fallback framing")
+assert(M.window.rows[1].icon.portraitTexture ~= M.window.rows[1].icon,
+    "engine-generated portraits never share the static object texture")
 assert(M.window.categoryButtons[1].browseIcon, "browse filters have visual category cues")
 local browse = M.window.kindButtons.all
 assert(not browse.Left:IsShown() and not browse.Middle:IsShown() and not browse.Right:IsShown(),
@@ -153,6 +155,16 @@ assert(info.location:GetText():find("/way #1 ", 1, true))
 assert(info.identity:GetText():find("NPC ID 123", 1, true))
 assert(info.scroll.scrollChild == info.content and #info.sections == 3)
 assert(info.content.height > info.scroll.height, "long details remain accessible by scrolling")
+local categoryButton = M.window.categoryButtons[1]
+local font = categoryButton.labelFont
+local oldWidth, oldUnboundedWidth = rawget(font, "GetStringWidth"), rawget(font, "GetUnboundedStringWidth")
+font.GetStringWidth = function() return 100 end
+font.GetUnboundedStringWidth = function() return 300 end
+categoryButton:SetText("NPCs & creatures (12345)")
+assert(font.fontSize == 8, "sidebar fitting uses unbounded width rather than a clipped label's apparent width")
+font.GetStringWidth, font.GetUnboundedStringWidth = oldWidth, oldUnboundedWidth
+categoryButton.renderText = nil
+M:Render()
 assert(M:EntryIcon({ kind = "npc", category = "Trainers", title = "Fishing Trainer", tags = {} })
     == "Interface\\Icons\\Trade_Fishing")
 assert(M:EntryIcon({ kind = "location", category = "Objects", tags = { "ore" } })
@@ -186,7 +198,11 @@ assert(info.scroll:GetVerticalScroll() == 0, "a new selection starts at the top 
 M.results = {}
 M:Render()
 assert(not info.sections[1]:IsShown() and not info.sections[2]:IsShown() and info.sections[3]:IsShown())
+assert(not M.window.pageUp:IsShown() and not M.window.pageDown:IsShown(),
+    "empty lists must not show unusable page controls")
+assert(not info.scroll.ScrollBar:IsShown(), "short empty-state instructions need no scroll arrows")
 assert(not info.navigate:IsShown() and info.body:GetText():find("Select a result", 1, true))
+assert(not info.map:IsShown(), "map preview is unavailable without a selected coordinate record")
 M.results = { { record = reference, placementCount = 3 } }
 M:Render()
 local originalHeight = rawget(info.body, "GetStringHeight")

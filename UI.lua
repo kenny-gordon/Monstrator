@@ -78,18 +78,24 @@ local function artworkStyle(texture, portrait)
     if texture.isPortrait == portrait then return end
     local wasPortrait = texture.isPortrait
     texture.isPortrait = portrait
+    if texture.portraitTexture then
+        texture:SetShown(not portrait)
+        texture.portraitTexture:SetShown(portrait)
+    end
     if texture.slotBorder then texture.slotBorder:SetShown(not portrait) end
     if texture.portraitBorder then texture.portraitBorder:SetShown(portrait) end
     if texture.portraitMask then
-        if portrait then texture:AddMaskTexture(texture.portraitMask)
-        elseif wasPortrait then texture:RemoveMaskTexture(texture.portraitMask) end
+        local artwork = texture.portraitTexture or texture
+        if portrait then artwork:AddMaskTexture(texture.portraitMask)
+        elseif wasPortrait then artwork:RemoveMaskTexture(texture.portraitMask) end
     end
     texture:SetTexCoord(portrait and 0 or 0.07, portrait and 1 or 0.93,
         portrait and 0 or 0.07, portrait and 1 or 0.93)
 end
 
 local function paintPortrait(texture, displayID)
-    local _, ok = portraitCall(SetPortraitTextureFromCreatureDisplayID, texture, displayID)
+    local artwork = texture.portraitTexture or texture
+    local _, ok = portraitCall(SetPortraitTextureFromCreatureDisplayID, artwork, displayID)
     if ok then
         artworkStyle(texture, true)
         texture.portraitDisplayID = displayID
@@ -112,7 +118,9 @@ local function resolvePortrait()
         state.pending[job.id] = nil
     end
     state.busy = true
+    local modelLoaded = false
     portraitCall(state.model.ClearModel, state.model)
+    state.model:SetScript("OnModelLoaded", function() modelLoaded = true end)
     local _, started = portraitCall(state.model.SetCreature, state.model, job.id)
     local attempts = 0
     local function finish(displayID)
@@ -127,14 +135,15 @@ local function resolvePortrait()
             end
         end
         state.pending[job.id], state.busy = nil, false
+        state.model:SetScript("OnModelLoaded", nil)
         C_Timer.After(0, resolvePortrait)
     end
     local function loaded()
         attempts = attempts + 1
         local displayID, ok = portraitCall(state.model.GetDisplayInfo, state.model)
-        if ok and M:IsFinite(displayID) and displayID > 0 and displayID % 1 == 0 then
+        if modelLoaded and ok and M:IsFinite(displayID) and displayID > 0 and displayID % 1 == 0 then
             finish(displayID)
-        elseif ok and attempts < 3 then
+        elseif ok and attempts < 6 then
             C_Timer.After(0.2, loaded)
         else
             finish()
@@ -160,7 +169,7 @@ function M:SetEntryArtwork(texture, record)
             if not (issecretvalue and issecretvalue(guid)) and type(guid) == "string" then
                 local kind, _, _, _, _, id = strsplit("-", guid)
                 if (kind == "Creature" or kind == "Vehicle") and tonumber(id) == npcID then
-                    local _, ok = portraitCall(SetPortraitTexture, texture, unit)
+                    local _, ok = portraitCall(SetPortraitTexture, texture.portraitTexture or texture, unit)
                     if ok then
                         artworkStyle(texture, true)
                         texture.portraitDisplayID = nil
@@ -214,6 +223,10 @@ local function entrySlot(parent, x, y, size)
     border:SetSize(size * 1.36, size * 1.36)
     border:SetTexture("Interface\\Buttons\\UI-Quickslot2")
     icon.slotBorder = border
+    icon.portraitTexture = parent:CreateTexture(nil, "ARTWORK")
+    icon.portraitTexture:SetAllPoints(icon)
+    icon.portraitTexture:SetTexCoord(0, 1, 0, 1)
+    icon.portraitTexture:Hide()
     if parent.CreateMaskTexture and icon.AddMaskTexture and icon.RemoveMaskTexture then
         local mask = parent:CreateMaskTexture(nil, "ARTWORK")
         mask:SetAllPoints(icon)
@@ -235,7 +248,8 @@ local function applyFont(spec, scale)
     local size = spec.size * scale
     spec.font:SetFont(spec.path, size, spec.flags)
     if spec.fit and spec.font.GetStringWidth then
-        local width = spec.font:GetStringWidth()
+        local width = spec.font.GetUnboundedStringWidth and spec.font:GetUnboundedStringWidth()
+        if type(width) ~= "number" then width = spec.font:GetStringWidth() end
         if type(width) == "number" and width > spec.fit then
             spec.font:SetFont(spec.path, math.max(8, size * spec.fit / width), spec.flags)
         end
@@ -394,12 +408,15 @@ button = function(parent, text, x, y, width, callback, listIcon)
         fontString:SetPoint("LEFT", 34, 0)
         fontString:SetWidth((width or 150) - 42)
         fontString:SetJustifyH("LEFT")
+        fontString:SetWordWrap(false)
+        fontString:SetNonSpaceWrap(false)
         b.browseIcon = b:CreateTexture(nil, "ARTWORK")
         b.browseIcon:SetPoint("TOPLEFT", 10, -4)
         b.browseIcon:SetSize(16, 16)
         b.browseIcon:SetTexture("Interface\\Icons\\" .. listIcon)
     end
     local spec = trackFont(fontString, (width or 150) - (listIcon and 42 or 14))
+    b.labelFont = fontString
     local setText = b.SetText
     b.SetText = function(self, value)
         setText(self, value)
@@ -940,6 +957,8 @@ function M:Render()
     if f.clearFilter:IsShown() ~= filtering then f.clearFilter:SetShown(filtering) end
     local count, journalCount, pendingCount, confirmedNPCs, confirmedNPCIDs =
         #self.results, self:ObservationCount(), self:PendingObservationCount(), 0
+    f.pageUp:SetShown(count > #f.rows)
+    f.pageDown:SetShown(count > #f.rows)
     confirmedNPCIDs = {}
     self:EnsureIndex()
     if self.confirmedNPCCountIndex ~= self.index then
@@ -1388,6 +1407,7 @@ function M:CreateWindow()
             if mouse == "RightButton" then
                 if self.view == "review" or self.view == "journal" then self:ShowReview(b.entry.record)
                 else self:ToggleFavorite(b.entry.record) end
+            elseif IsShiftKeyDown() then self:ViewRecordOnMap(b.entry.record)
             else self:Activate(b.entry) end
             self:Render()
         end)
@@ -1409,6 +1429,7 @@ function M:CreateWindow()
             if r.npcID then GameTooltip:AddLine(L["NPC ID "] .. r.npcID, 1, 1, 1) end
             GameTooltip:AddLine(r.source, 0.7, 0.7, 0.7, true)
             GameTooltip:AddLine(L["Left: navigate/review. Right: favorite/review."], 0.6, 0.85, 1, true)
+            GameTooltip:AddLine("Shift: " .. L["map.view"], 0.6, 0.85, 1, true)
             GameTooltip:Show()
         end)
         row:SetScript("OnLeave", function() GameTooltip:Hide() end)
@@ -1499,6 +1520,19 @@ function M:CreateWindow()
     f.info.location = f.info.sections[1].body
     f.info.identity = f.info.sections[2].body
     f.info.body = f.info.sections[3].body
+    local location = f.info.sections[1]
+    location.mapButton = CreateFrame("Button", nil, location)
+    location.mapButton:SetAllPoints()
+    location.mapButton:SetScript("OnClick", function()
+        local entry = self.results and self.results[self.selected]
+        if entry then self:ViewRecordOnMap(entry.record) end
+    end)
+    location.mapButton:SetScript("OnEnter", function(owner)
+        GameTooltip:SetOwner(owner, "ANCHOR_RIGHT")
+        GameTooltip:SetText(L["map.view"])
+        GameTooltip:Show()
+    end)
+    location.mapButton:SetScript("OnLeave", function() GameTooltip:Hide() end)
     f.info.navigate = control("Navigate", 818, -508, function()
         self:Activate(self.results and self.results[self.selected])
     end, 132)
@@ -1516,7 +1550,11 @@ function M:CreateWindow()
         local entry = self.results and self.results[self.selected]
         local r = entry and entry.record
         if r and r.npcID then self:ToggleWatch(r.npcID, r.name) end
-    end, 272)
+    end, 132)
+    f.info.map = control("map.view", 958, -598, function()
+        local entry = self.results and self.results[self.selected]
+        if entry then self:ViewRecordOnMap(entry.record) end
+    end, 132)
     f.coverage = label(f, "", 818, -534, 11)
     f.coverage:SetWidth(272)
     f.coverage:SetHeight(30)
@@ -1993,7 +2031,7 @@ function M:RenderDetailsPane()
     info.renderView = self.view
     info.navigate:SetText(L[(self.view == "review" or self.view == "journal") and "Review placement" or "Navigate"])
     if selectionChanged then info.scroll:SetVerticalScroll(0) end
-    for _, control in ipairs({ info.navigate, info.favorite, info.zone, f.detailsButton }) do control:SetShown(r ~= nil) end
+    for _, control in ipairs({ info.navigate, info.favorite, info.zone, f.detailsButton, info.map }) do control:SetShown(r ~= nil) end
     info.model:SetShown(r ~= nil and r.npcID ~= nil)
     info.items:SetShown(r ~= nil and r.npcID ~= nil and self:ItemProvider() ~= nil)
     self:RenderWatchButton()
@@ -2056,6 +2094,7 @@ function M:RenderDetailsPane()
     end
     info.content:SetHeight(math.max(274, offset))
     info.scroll:SetVerticalScroll(math.min(info.scroll:GetVerticalScroll(), math.max(0, offset - 274)))
+    if info.scroll.ScrollBar then info.scroll.ScrollBar:SetShown(offset > 274) end
 end
 
 function M:ResetView()

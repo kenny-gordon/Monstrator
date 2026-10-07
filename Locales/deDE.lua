@@ -1,6 +1,9 @@
 local _, M = ...
 if GetLocale() ~= "deDE" then return end
 local L = M.L
+L["map.view"] = "Auf Karte zeigen"
+L["map.combat"] = "Öffne die Kartenvorschau nach dem Kampf."
+L["map.unavailable"] = "Die Weltkartenvorschau ist auf diesem Client nicht verfügbar."
 L["mapScan.limited"] = "Der Weltkartenscan ist für diese Client-Version nicht verfügbar. Markierungen der aktuellen Zone und die Datenbank bleiben verfügbar."
 L["scan.mark"] = "NPC mit Totenkopf markieren"
 L["scan.markHint"] = "Klicken, um den gesichteten NPC mit einem Totenkopf zu markieren. Er muss noch sichtbar oder anvisiert sein. Vorhandene Markierungen bleiben erhalten. Im Schlachtzug sind Leiter- oder Assistentenrechte nötig. Nicht im Kampf verfügbar."

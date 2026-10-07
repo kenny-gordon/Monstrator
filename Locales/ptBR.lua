@@ -1,6 +1,9 @@
 local _, M = ...
 if GetLocale() ~= "ptBR" then return end
 local L = M.L
+L["map.view"] = "Ver no mapa"
+L["map.combat"] = "Abra a visualização do mapa após o combate."
+L["map.unavailable"] = "A visualização do mapa-múndi não está disponível neste cliente."
 L["mapScan.limited"] = "A varredura mundial não está disponível para esta versão do cliente. Os marcadores da zona atual e o banco de dados continuam disponíveis."
 L["scan.mark"] = "Marcar PNJ com caveira"
 L["scan.markHint"] = "Clique para colocar uma caveira no PNJ avistado. Ele deve continuar visível ou selecionado. Marcas existentes são preservadas. Em raides, exige permissão de líder ou assistente. Indisponível em combate."
