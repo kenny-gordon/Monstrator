@@ -98,6 +98,8 @@ the square, rather than showing a circular cutout inside a square border.
 List icons use `auctionhouse-itemicon-small-border` when available, with a
 native square-slot fallback on clients without it. Selected artwork uses the
 same border style as list artwork at its larger 48px size; list icons stay 30px.
+Details artwork is inset two pixels inside that slot to prevent edge overhang;
+the frame size is unchanged.
 Creature portrait camera angles come from the client and can vary
 for animals; **3D model** provides a rotatable view when a portrait is unclear.
 

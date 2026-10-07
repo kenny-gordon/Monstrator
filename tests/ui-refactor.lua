@@ -123,16 +123,19 @@ for _, b in ipairs({ M.window.sort, M.window.evidence, M.window.itemsButton,
     assert(b.quiet and not b.Left:IsShown() and b.labelFont.color[1] > 0.7,
         "toolbar and utility controls are neutral but readable on dark panels")
 end
-assert(info.icon.width == 48 and info.icon.height == 48 and M.window.rows[1].icon.width == 30
+assert(info.icon.slotSize == 48 and info.icon.width == 44 and info.icon.height == 44
+    and info.icon.artworkInset == 2 and M.window.rows[1].icon.width == 30
     and info.name.fontSize == 17, "Details retains its larger square artwork while list icons stay unchanged")
 assert(M.window.rows[1].icon.texture == M:EntryIcon(reference))
 assert(info.icon.texture == M.window.rows[1].icon.texture, "list and details use the same category icon")
 assert(M.window.rows[1].iconBorder.atlas == "auctionhouse-itemicon-small-border",
     "list icons keep the Auction House's restrained square border")
 assert(info.iconBorder.atlas == M.window.rows[1].iconBorder.atlas
-    and info.iconBorder.width == info.icon.width * 16 / 14
-    and info.iconBorder.height == info.icon.height * 16 / 14,
+    and info.iconBorder.width == info.icon.slotSize * 16 / 14
+    and info.iconBorder.height == info.icon.slotSize * 16 / 14,
     "selected artwork shares the list border style without shrinking its original size")
+assert(info.icon.x == 826 and info.icon.y == -153,
+    "both static and portrait artwork sit two pixels inside the original Details slot")
 assert(info.icon.x + info.icon.width < info.name.x and info.name.x + info.name.width <= 1090,
     "restored larger artwork leaves room for the selected name")
 assert(M.window.rows[1].iconBorder.width == M.window.rows[1].icon.width * 16 / 14,

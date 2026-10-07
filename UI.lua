@@ -257,9 +257,11 @@ function M:SetEntryArtwork(texture, record)
 end
 
 local function entrySlot(parent, x, y, size)
+    local inset = size > 30 and 2 or 0
     local icon = parent:CreateTexture(nil, "ARTWORK")
-    icon:SetPoint("TOPLEFT", x, y)
-    icon:SetSize(size, size)
+    icon:SetPoint("TOPLEFT", x + inset, y - inset)
+    icon:SetSize(size - inset * 2, size - inset * 2)
+    icon.slotSize, icon.artworkInset = size, inset
     icon:SetTexCoord(0.07, 0.93, 0.07, 0.93)
     local border = parent:CreateTexture(nil, "OVERLAY")
     if C_Texture and C_Texture.GetAtlasInfo and C_Texture.GetAtlasInfo("auctionhouse-itemicon-small-border") then
