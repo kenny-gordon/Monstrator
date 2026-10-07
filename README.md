@@ -53,6 +53,8 @@ centered title, circular map portrait, close control and native bottom tabs.
 Textured browsing panels sit beside a quest-parchment Details page with dark
 ink and section headings. If the parchment atlas is unavailable, Monstrator
 reports it and retains the dark readable layout. No third-party artwork is bundled.
+Parchment text uses shadow-free dark ink and extra line spacing; long distance
+labels can wrap in the result list rather than being limited to one line.
 Service and profession icons are category cues, not NPC portraits or proof of
 a confirmed location.
 

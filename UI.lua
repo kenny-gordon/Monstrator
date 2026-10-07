@@ -1165,15 +1165,18 @@ function M:CreateWindow()
         row.badge:SetColorTexture(0.6, 0.6, 0.6, 1)
         row.icon, row.iconBorder = entrySlot(row, 12, -7, 30)
         row.name = label(row, "", 52, -4)
-        row.distance = label(row, "", 396, -5, 12)
+        row.distance = label(row, "", 348, -5, 12)
         row.detail = label(row, "", 52, -24)
-        row.name:SetWidth(338)
+        row.name:SetWidth(288)
         row.name:SetMaxLines(1)
         row.name:SetJustifyH("LEFT")
-        row.distance:SetWidth(96)
-        row.distance:SetMaxLines(1)
+        row.distance:SetWidth(144)
+        row.distance:SetHeight(36)
+        row.distance:SetMaxLines(2)
+        row.distance:SetWordWrap(true)
+        row.distance:SetJustifyV("TOP")
         row.distance:SetJustifyH("RIGHT")
-        row.detail:SetWidth(440)
+        row.detail:SetWidth(288)
         row.detail:SetMaxLines(1)
         row.detail:SetJustifyH("LEFT")
         row.detail:SetTextColor(0.76, 0.78, 0.84)
@@ -1242,13 +1245,19 @@ function M:CreateWindow()
     f.info.name:SetHeight(48)
     f.info.name:SetMaxLines(2)
     f.info.name:SetJustifyH("LEFT")
-    if f.info.parchment then f.info.name:SetTextColor(0.2, 0.1, 0.03) end
+    if f.info.parchment then
+        f.info.name:SetTextColor(0.2, 0.1, 0.03)
+        f.info.name:SetShadowOffset(0, 0)
+    end
     f.info.title = label(f, "", 874, -198, 12)
     f.info.title:SetWidth(216)
     f.info.title:SetMaxLines(1)
     f.info.title:SetJustifyH("LEFT")
     f.info.title:SetTextColor(0.9, 0.82, 0.5)
-    if f.info.parchment then f.info.title:SetTextColor(0.38, 0.2, 0.06) end
+    if f.info.parchment then
+        f.info.title:SetTextColor(0.38, 0.2, 0.06)
+        f.info.title:SetShadowOffset(0, 0)
+    end
     f.info.scroll = CreateFrame("ScrollFrame", nil, f, "UIPanelScrollFrameTemplate")
     f.info.scroll:SetPoint("TOPLEFT", 818, -224)
     f.info.scroll:SetSize(250, 274)
@@ -1264,17 +1273,24 @@ function M:CreateWindow()
         card.rule:SetSize(240, 24)
         card.rule:SetTexture("Interface\\QuestFrame\\UI-QuestTitleHighlight")
         card.rule:SetVertexColor(0.8, 0.65, 0.35, 0.3)
-        card.heading = label(card, heading, 10, -10, 11)
+        card.heading = label(card, heading, 10, -10, 12)
         card.heading:SetWidth(230)
         card.heading:SetJustifyH("LEFT")
         card.heading:SetTextColor(1, 0.82, 0)
-        if f.info.parchment then card.heading:SetTextColor(0.3, 0.14, 0.04) end
-        card.body = label(card, "", 10, -30, 12)
+        if f.info.parchment then
+            card.heading:SetTextColor(0.3, 0.14, 0.04)
+            card.heading:SetShadowOffset(0, 0)
+        end
+        card.body = label(card, "", 10, -32, 13)
+        card.body:SetSpacing(2)
         card.body:SetWidth(230)
         card.body:SetJustifyH("LEFT")
         card.body:SetJustifyV("TOP")
         card.body:SetTextColor(0.88, 0.86, 0.8)
-        if f.info.parchment then card.body:SetTextColor(0.2, 0.13, 0.07) end
+        if f.info.parchment then
+            card.body:SetTextColor(0.2, 0.13, 0.07)
+            card.body:SetShadowOffset(0, 0)
+        end
         f.info.sections[i] = card
     end
     f.info.location = f.info.sections[1].body

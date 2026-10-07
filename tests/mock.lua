@@ -54,6 +54,10 @@ function methods:SetPoint(point, x, y) self.point, self.x, self.y = point, x, y 
 function methods:SetSize(width, height) self.width, self.height = width, height end
 function methods:SetWidth(width) self.width = width end
 function methods:SetHeight(height) self.height = height end
+function methods:SetMaxLines(value) self.maxLines = value end
+function methods:SetWordWrap(value) self.wordWrap = value end
+function methods:SetShadowOffset(x, y) self.shadowX, self.shadowY = x, y end
+function methods:SetSpacing(value) self.spacing = value end
 function methods:SetTexture(texture) self.texture = texture end
 function methods:SetAtlas(atlas) self.atlas = atlas end
 function methods:SetNormalTexture(asset)

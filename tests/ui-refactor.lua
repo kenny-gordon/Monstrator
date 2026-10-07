@@ -112,6 +112,14 @@ end
 M.ChangeView = changeView
 assert(info.scroll.height == 274, "selection has more room than the previous 180px viewport")
 assert(info.name.color[1] < 0.4 and info.body.color[1] < 0.4, "parchment uses readable dark ink")
+assert(info.name.shadowX == 0 and info.name.shadowY == 0
+    and info.body.shadowX == 0 and info.body.shadowY == 0,
+    "dark parchment text must not inherit the dark shadow used on native gold text")
+assert(info.body.fontSize == 13 and info.body.spacing == 2, "parchment body has readable type and leading")
+assert(M.window.rows[1].distance.width == 144 and M.window.rows[1].distance.maxLines == 2
+    and M.window.rows[1].distance.wordWrap, "long cross-world labels have a wider wrapping column")
+assert(M.window.rows[1].detail.x + M.window.rows[1].detail.width < M.window.rows[1].distance.x,
+    "wrapped distances do not overlap the secondary location text")
 assert(not M.window.coverage:IsShown() and not M.window.onboarding:IsShown()
     and M.window.status:GetScript("OnEnter"), "diagnostic summaries are available in the footer tooltip")
 local currentWindow, currentRefresh = M.window, M.Refresh

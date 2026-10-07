@@ -5,6 +5,7 @@
 - **Compatibility fix**: icon-led sidebar controls hide their template artwork without passing nil to texture setters, which Forever rejects. Search callbacks ignore incomplete or replaced windows to prevent a follow-on error after failed construction.
 - **Directory readability**: larger secondary row text, less repeated technical data, contextual service/quest-giver icons instead of generic keys, and neutral colors for faraway distances. NPC IDs and levels remain available in Details.
 - **Research-led window redesign**: use Forever's native portrait frame and bottom list tabs, textured browsing surfaces and a quest-parchment entry page. More space for entry details, integrated section headings instead of nested boxes, and coverage/progress moved to the footer tooltip. Built-in templates and artwork are referenced directly; no addon dependency or copied assets.
+- **Screenshot polish**: wider, wrapping distance labels for cross-world results; larger parchment body text with extra line spacing and no inherited dark font shadow.
 
 First release for WoW Forever (interface 16001, client 1.60.1).
 
