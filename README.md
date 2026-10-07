@@ -61,6 +61,9 @@ otherwise Monstrator resolves the cached creature display ID through one shared,
 hidden model. Unavailable NPCs retain a category icon and can retry later.
 Locations keep service/object icons. Neither a portrait nor an icon proves a
 confirmed location. Portrait resolution does not change journal or submission data.
+Resolved portraits use circular framing; fallback and location icons keep their
+square slots. Creature portrait camera angles come from the client and can vary
+for animals; **3D model** provides a rotatable view when a portrait is unclear.
 
 Use the bottom **Directory**, **Favorites** and **Review journal** tabs to switch
 lists. Hover the footer's result summary for database coverage and journal

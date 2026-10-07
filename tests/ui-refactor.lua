@@ -96,6 +96,9 @@ local info = M.window.info
 assert(M.window.rows[1].icon.texture == M:EntryIcon(reference))
 assert(info.icon.texture == M.window.rows[1].icon.texture, "list and details use the same category icon")
 assert(M.window.rows[1].iconBorder.texture == "Interface\\Buttons\\UI-Quickslot2")
+assert(M.window.rows[1].icon.portraitMask.texture == "Interface\\CharacterFrame\\TempPortraitAlphaMask"
+    and M.window.rows[1].icon.portraitBorder.atlas == "honorsystem-bar-rewardborder-circle",
+    "NPC artwork has separate native round portrait framing and square fallback framing")
 assert(M.window.categoryButtons[1].browseIcon, "browse filters have visual category cues")
 local browse = M.window.kindButtons.all
 assert(not browse.Left:IsShown() and not browse.Middle:IsShown() and not browse.Right:IsShown(),

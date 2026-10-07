@@ -2,6 +2,8 @@
 
 ## 1.0.0
 
+- **Portrait framing fix**: resolved NPC portraits use a circular mask and native round ring rather than overlapping square item-slot artwork. Location and fallback icons retain square framing. Losing a live target restores the cached appearance or fallback instead of retaining stale artwork.
+
 - **NPC portraits and screenshot fixes**: directory rows and selected entries use matching live-unit portraits or client-resolved creature display portraits, with a shared bounded loader and icon fallback for unavailable NPCs. Recycled rows ignore late portrait results. Unknown NPCs no longer default to a hostile-looking sword. Larger result text and explicit, unlimited parchment word wrapping prevent the Evidence section from overflowing horizontally.
 - **Beta-update compatibility and clearer controls**: newer client builds can discover world-zone maps from the live hierarchy without reusing incompatible extracted object coordinates. Unavailable automatic scans expose a nonfatal coverage status instead of the misleading build-mismatch error. The former Focus button is now Keyboard, with shortcut help. Scan alerts can mark the actual sighted NPC with a skull on click, preserving existing marks and checking combat, visibility and raid permissions.
 

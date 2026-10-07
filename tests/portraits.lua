@@ -32,14 +32,18 @@ end
 local function npc(id)
     return { kind = "npc", category = "Combat", npcID = id, tags = {} }
 end
-local row = CreateFrame("Frame"):CreateTexture()
-local detail = CreateFrame("Frame"):CreateTexture()
+local row = M.window.rows[1].icon
+local detail = M.window.info.icon
 M:SetEntryArtwork(row, npc(2001))
 M:SetEntryArtwork(detail, npc(2001))
 assert(queries == 1, "row and details share one creature lookup")
 drain()
 assert(row.texture == "portrait:501" and detail.texture == "portrait:501")
 assert(row.portraitDisplayID == 501)
+assert(row.isPortrait and row.mask == row.portraitMask and row.texCoords[1] == 0 and row.texCoords[2] == 1,
+    "resolved portraits use a circular mask without item-icon cropping")
+assert(not row.slotBorder:IsShown() and row.portraitBorder:IsShown(),
+    "resolved NPC portraits show a round native ring, not an overlapping square item slot")
 local oldQueries, oldPaints = queries, paints
 M:SetEntryArtwork(row, npc(2001))
 assert(queries == oldQueries and paints == oldPaints, "cached portraits do not reload on every render")
@@ -47,6 +51,9 @@ M:SetEntryArtwork(row, npc(2002))
 M:SetEntryArtwork(row, { kind = "location", category = "Mailboxes", tags = {} })
 drain()
 assert(row.texture == "Interface\\Icons\\INV_Letter_15", "late portrait cannot overwrite a recycled location row")
+assert(not row.isPortrait and not row.mask and row.slotBorder:IsShown() and not row.portraitBorder:IsShown(),
+    "recycling a portrait into a location removes its circular mask and restores square icon framing")
+assert(row.texCoords[1] == 0.07 and row.texCoords[2] == 0.93)
 M:SetEntryArtwork(row, npc(2002))
 assert(row.texture == "portrait:502", "recycled rows can use the resolved display cache")
 M:SetEntryArtwork(row, npc(2003))
@@ -55,6 +62,7 @@ assert(row.texture == "portrait:501", "NPCs that share a display still reset cor
 M:SetEntryArtwork(row, npc(2999))
 drain()
 assert(row.texture == M:EntryIcon(npc(2999)), "uncached NPC keeps the honest icon fallback")
+assert(row.slotBorder:IsShown() and not row.portraitBorder:IsShown())
 oldQueries = queries
 M:SetEntryArtwork(row, npc(2999))
 assert(queries == oldQueries, "unavailable creatures are not queried on every refresh")
@@ -88,9 +96,37 @@ drain()
 assert(row.texture == "portrait:502", "unrelated target must never supply the portrait")
 M:SetEntryArtwork(row, npc(2001))
 assert(liveUnit == "target" and row.texture == "live portrait", "matching live unit supplies its actual portrait")
+UnitGUID = function() return nil end
+M:SetEntryArtwork(row, npc(2001))
+assert(row.texture == "portrait:501" and not row.portraitUnitGUID,
+    "when the live unit disappears the same row restores its cached database portrait")
+UnitGUID = function(unit)
+    if unit == "target" then return "Creature-0-0-0-0-2998-0001" end
+end
+M:SetEntryArtwork(row, npc(2998))
+assert(row.texture == "live portrait")
+UnitGUID = function() return nil end
+M:SetEntryArtwork(row, npc(2998))
+drain()
+assert(row.texture == M:EntryIcon(npc(2998)) and not row.isPortrait,
+    "a vanished live unit with no cached appearance resets to its fallback, never the old portrait")
+available[2997] = 501
+M:SetEntryArtwork(row, npc(2997))
+UnitGUID = function(unit)
+    if unit == "target" then return "Creature-0-0-0-0-2997-0001" end
+end
+M:SetEntryArtwork(row, npc(2997))
+drain()
+assert(row.texture == "live portrait" and row.portraitUnitGUID,
+    "late generic appearance must not overwrite a live portrait of the selected spawn")
+UnitGUID = function() return nil end
+M:SetEntryArtwork(row, npc(2997))
+assert(row.texture == "portrait:501", "resolved generic appearance is available once the live unit disappears")
 SetPortraitTexture, SetPortraitTextureFromCreatureDisplayID = nil, nil
 M:SetEntryArtwork(row, npc(2002))
 assert(row.texture == M:EntryIcon(npc(2002)), "clients without portrait APIs retain category icons")
 CreateFrame, UnitGUID = saved.createFrame, saved.unitGUID
 SetPortraitTexture, SetPortraitTextureFromCreatureDisplayID = saved.portrait, saved.displayPortrait
 M.portraits, clock = saved.state, saved.clock
+row.entryIcon, row.portraitNPC, detail.entryIcon, detail.portraitNPC = nil, nil, nil, nil
+M:Render()

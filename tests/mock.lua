@@ -47,6 +47,7 @@ C_Timer = {
 }
 C_Texture = { GetAtlasInfo = function(atlas)
     if atlas == "QuestBG-Parchment" then return { width = 384, height = 512 } end
+    if atlas == "honorsystem-bar-rewardborder-circle" then return { width = 36, height = 36 } end
 end }
 local methods = {}
 uiCalls = { text = 0, font = 0, color = 0 }
@@ -62,6 +63,9 @@ function methods:SetSpacing(value) self.spacing = value end
 function methods:SetChecked(value) self.checked = value end
 function methods:GetChecked() return self.checked == true end
 function methods:SetTexture(texture) self.texture = texture end
+function methods:SetTexCoord(left, right, top, bottom) self.texCoords = { left, right, top, bottom } end
+function methods:AddMaskTexture(mask) self.mask = mask end
+function methods:RemoveMaskTexture(mask) assert(self.mask == mask); self.mask = nil end
 function methods:SetAtlas(atlas) self.atlas = atlas end
 function methods:SetNormalTexture(asset)
     assert(asset ~= nil, "SetNormalTexture requires an asset")
@@ -120,6 +124,7 @@ end
 function methods:CreateFontString() return object() end
 function methods:GetFontString() return object() end
 function methods:CreateTexture() return object() end
+function methods:CreateMaskTexture() return object() end
 function CreateFrame(kind, name, parent, template)
     local frame = object()
     frame.kind, frame.name, frame.parent, frame.template = kind, name, parent, template

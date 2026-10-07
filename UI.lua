@@ -74,11 +74,26 @@ local function portraitCall(fn, ...)
     return value, true
 end
 
+local function artworkStyle(texture, portrait)
+    if texture.isPortrait == portrait then return end
+    local wasPortrait = texture.isPortrait
+    texture.isPortrait = portrait
+    if texture.slotBorder then texture.slotBorder:SetShown(not portrait) end
+    if texture.portraitBorder then texture.portraitBorder:SetShown(portrait) end
+    if texture.portraitMask then
+        if portrait then texture:AddMaskTexture(texture.portraitMask)
+        elseif wasPortrait then texture:RemoveMaskTexture(texture.portraitMask) end
+    end
+    texture:SetTexCoord(portrait and 0 or 0.07, portrait and 1 or 0.93,
+        portrait and 0 or 0.07, portrait and 1 or 0.93)
+end
+
 local function paintPortrait(texture, displayID)
     local _, ok = portraitCall(SetPortraitTextureFromCreatureDisplayID, texture, displayID)
     if ok then
-        texture:SetTexCoord(0, 1, 0, 1)
+        artworkStyle(texture, true)
         texture.portraitDisplayID = displayID
+        texture.portraitUnitGUID = nil
     end
 end
 
@@ -107,7 +122,9 @@ local function resolvePortrait()
         end
         state.cache[job.id] = { displayID = displayID, time = GetTime() }
         for texture in pairs(job.textures) do
-            if displayID and texture.portraitNPC == job.id then paintPortrait(texture, displayID) end
+            if displayID and texture.portraitNPC == job.id and not texture.portraitUnitGUID then
+                paintPortrait(texture, displayID)
+            end
         end
         state.pending[job.id], state.busy = nil, false
         C_Timer.After(0, resolvePortrait)
@@ -131,9 +148,10 @@ function M:SetEntryArtwork(texture, record)
     local npcID = record.kind == "npc" and record.npcID or nil
     if texture.entryIcon ~= icon or texture.portraitNPC ~= npcID then
         texture:SetTexture(icon)
-        texture:SetTexCoord(0.07, 0.93, 0.07, 0.93)
+        artworkStyle(texture, false)
         texture.entryIcon, texture.portraitNPC = icon, npcID
         texture.portraitDisplayID = nil
+        texture.portraitUnitGUID = nil
     end
     if not self:IsFinite(npcID) or npcID < 1 or npcID % 1 ~= 0 then return end
     if SetPortraitTexture and UnitGUID then
@@ -143,10 +161,20 @@ function M:SetEntryArtwork(texture, record)
                 local kind, _, _, _, _, id = strsplit("-", guid)
                 if (kind == "Creature" or kind == "Vehicle") and tonumber(id) == npcID then
                     local _, ok = portraitCall(SetPortraitTexture, texture, unit)
-                    if ok then texture:SetTexCoord(0, 1, 0, 1); return end
+                    if ok then
+                        artworkStyle(texture, true)
+                        texture.portraitDisplayID = nil
+                        texture.portraitUnitGUID = guid
+                        return
+                    end
                 end
             end
         end
+    end
+    if texture.portraitUnitGUID then
+        texture:SetTexture(icon)
+        artworkStyle(texture, false)
+        texture.portraitUnitGUID = nil
     end
     if not SetPortraitTextureFromCreatureDisplayID or not C_Timer or not C_Timer.After then return end
     if not self.portraits then
@@ -185,6 +213,21 @@ local function entrySlot(parent, x, y, size)
     border:SetPoint("TOPLEFT", x - size * 0.18, y + size * 0.18)
     border:SetSize(size * 1.36, size * 1.36)
     border:SetTexture("Interface\\Buttons\\UI-Quickslot2")
+    icon.slotBorder = border
+    if parent.CreateMaskTexture and icon.AddMaskTexture and icon.RemoveMaskTexture then
+        local mask = parent:CreateMaskTexture(nil, "ARTWORK")
+        mask:SetAllPoints(icon)
+        mask:SetTexture("Interface\\CharacterFrame\\TempPortraitAlphaMask", "CLAMPTOBLACKADDITIVE", "CLAMPTOBLACKADDITIVE")
+        icon.portraitMask = mask
+    end
+    if C_Texture and C_Texture.GetAtlasInfo and C_Texture.GetAtlasInfo("honorsystem-bar-rewardborder-circle") then
+        local ring = parent:CreateTexture(nil, "OVERLAY")
+        ring:SetPoint("TOPLEFT", x - size * 0.1, y + size * 0.1)
+        ring:SetSize(size * 1.2, size * 1.2)
+        ring:SetAtlas("honorsystem-bar-rewardborder-circle")
+        ring:Hide()
+        icon.portraitBorder = ring
+    end
     return icon, border
 end
 -- Shrinks a font (never below 8pt) until its text fits `spec.fit` pixels; translated labels vary a lot in length.
