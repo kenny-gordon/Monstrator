@@ -2,6 +2,8 @@
 
 ## 1.0.0
 
+- **Native area trail and nearby landing view**: use the world map's breadcrumb templates for World, continent and zone navigation. The trail reflects pinned-zone ancestry and follows player-zone changes. Normal directory opening resets to the current zone, all entries and nearest-first sorting rather than restoring distant scopes or stale filters; explicit browsing and journal/favorite commands are preserved.
+
 - **Coordinate map preview and screenshot corrections**: View on map in Details, or Shift-click a result, opens its zone on the native world map with a coordinate marker, without changing navigation or confirming encounters. Object icons and engine-generated NPC portraits now use separate textures so recycled rows cannot show delayed creature artwork on static locations. Appearance resolution waits for model completion before caching a display ID. Sidebar fitting measures full text width; empty/short content hides unnecessary paging and scroll controls.
 
 - **Portrait framing fix**: resolved NPC portraits use a circular mask and native round ring rather than overlapping square item-slot artwork. Location and fallback icons retain square framing. Losing a live target restores the cached appearance or fallback instead of retaining stale artwork.

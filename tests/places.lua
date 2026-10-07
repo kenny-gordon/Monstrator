@@ -66,6 +66,13 @@ assert(#catalog[2].zones == 2 and catalog[2].zones[1].name == "Durotar" and cata
 
 M.scope, M.view = "zone", "directory"
 M.window:Show()
+M:Refresh()
+local trail = M.window.areaTrail
+assert(trail.template == "NavBarTemplate" and trail.buttons.zone.template == "NavButtonTemplate",
+    "area selection uses the native map's breadcrumb artwork")
+assert(trail.buttons.global:GetText() == "World" and trail.buttons.region:GetText() == "Kalimdor"
+    and trail.buttons.zone:GetText() == "Mulgore", "trail reflects the browsed zone's actual hierarchy")
+assert(trail.buttons.zone.selected:IsShown() and not trail.buttons.region.selected:IsShown())
 local picker = M.window.picker
 assert(not picker:IsShown())
 M.window.placeButton:Click()
@@ -77,6 +84,7 @@ picker.filter:GetScript("OnEnterPressed")()
 assert(not picker:IsShown() and M.scope == "zone" and M.zoneMap == 2)
 assert(M.window.placeButton:GetText():find("Durotar", 1, true) and M.window.filters:GetText():find("Durotar", 1, true))
 assert(#M.results == 1 and M.results[1].record.name == "Razor Keeper")
+assert(trail.buttons.zone:GetText() == "Durotar", "pinned-zone changes update the native area segment")
 M.window.scopeButtons.region:Click()
 assert(M.scope == "region" and #M.results == 3 and M.window.placeButton:GetText():find("Kalimdor", 1, true))
 M.window.placeButton:Click()
@@ -84,6 +92,8 @@ for _, row in ipairs(picker.rows) do
     if row.data and row.data.scope == "region" and row.data.id == 20 then row:Click() end
 end
 assert(M.regionMap == 20 and #M.results == 1)
+assert(trail.buttons.region:GetText() == "Eastern Kingdoms" and not trail.buttons.zone:IsShown(),
+    "region browsing must not pretend the player's zone is selected")
 M.window.placeButton:Click()
 picker.filter:SetText("kalim")
 picker.filter:GetScript("OnEnterPressed")()
@@ -127,6 +137,32 @@ assert(M.scope == "zone" and M.zoneMap == M.results[1].record.mapID, "Browse thi
 M.window.rows[1]:GetScript("OnEnter")(M.window.rows[1])
 SlashCmdList.MONSTRATOR("reset")
 assert(M.scope == "zone" and M.zoneMap == nil and M.settings.windowX == 0 and M.settings.zoneMap == 0)
+M:SelectPlace("zone", 3)
+trail.buttons.region:Click()
+assert(M.scope == "region" and M.regionMap == 20,
+    "continent breadcrumb widens the pinned zone's continent, not the player's continent")
+trail.buttons.global:Click()
+assert(M.scope == "global" and not trail.buttons.region:IsShown() and not trail.buttons.zone:IsShown())
+M.window:Hide()
+M.settings.sortOrder, M.settings.evidenceFilter = "level", "pending"
+M.window.search:SetText("old search")
+M:Toggle()
+assert(M.scope == "zone" and not M.zoneMap and not M.regionMap and M.kind == "all" and M.category == "All")
+assert(M.view == "directory" and M.settings.sortOrder == "distance" and M.settings.evidenceFilter == "all"
+    and M.window.search:GetText() == "", "normal reopening shows all nearby entries rather than old distant filters")
+assert(#M.results == 2 and M.window.areaTrail.buttons.zone:GetText() == "Mulgore")
+playerMap = 2
+M:Refresh()
+assert(#M.results == 1 and M.results[1].record.name == "Razor Keeper"
+    and trail.buttons.zone:GetText() == "Durotar", "local opening follows the player when changing zones")
+M.window:Hide()
+SlashCmdList.MONSTRATOR("zone elwynn")
+assert(M.scope == "zone" and M.zoneMap == 3 and trail.buttons.zone:GetText() == "Elwynn Forest",
+    "an explicit zone command must override the ordinary nearby landing view")
+M.window:Hide()
+M:Toggle("favorites")
+assert(M.view == "favorites", "explicit favorites opening retains its requested view")
+playerMap = 1
 M:ShowSettings()
 local hidden = M.settings.minimapHidden
 M.options.minimap:Click()

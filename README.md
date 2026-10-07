@@ -50,6 +50,11 @@ Two release builds exist:
 
 The directory inherits the Forever client's native portrait-window frame:
 centered title, circular map portrait, close control and native bottom tabs.
+Its area trail uses the native map's breadcrumb controls: **World → continent
+→ zone**. Click World or the continent to broaden the scope; click the current
+zone (or the active continent) to open the area picker. A pinned zone shows its
+own continent, not the player's. The active segment is highlighted, and the
+trail updates as you move between zones in follow mode.
 Textured browsing panels sit beside a quest-parchment Details page with dark
 ink and section headings. If the parchment atlas is unavailable, Monstrator
 reports it and retains the dark readable layout. No third-party artwork is bundled.
@@ -118,7 +123,12 @@ The **Keyboard** button leaves the search field so arrow keys operate on the
 result list; it does not set your character's combat focus target. Hover it for
 the keyboard shortcuts.
 
-The scope, zone, sort, evidence filter and window position are remembered.
+Normal opening from `/monstrator` or left-clicking the minimap button starts in
+your **current zone**, with **all entries**, no search/evidence filter and
+**nearest first**. It follows you when you change zones. World/Region and
+pinned-zone browsing remain available while the window is open; explicit zone,
+region, subgroup, Favorites and Journal commands retain their requested view.
+Window position, scale and collection/display preferences remain saved.
 `/monstrator reset` (or **Reset window & filters** in Settings) restores the defaults.
 
 ### Navigation

@@ -140,6 +140,11 @@ function CreateFrame(kind, name, parent, template)
         frame.CloseButton = object()
         frame.CloseButton.template = "UIPanelCloseButtonDefaultAnchors"
     end
+    if template == "NavButtonTemplate" then
+        frame.text, frame.selected, frame.MenuArrowButton = object(), object(), object()
+        frame.SetText = function(self, text) self.text:SetText(text) end
+        frame.GetText = function(self) return self.text:GetText() end
+    end
     if template == "PanelTabButtonTemplate" then
         frame.Text = object()
         frame.Left, frame.Middle, frame.Right = object(), object(), object()

@@ -385,12 +385,12 @@ function M:ShowHelp(index)
     self:ShowHelpTopic(index or self.helpFrame.topic or 1)
 end
 
-label = function(parent, text, x, y, size)
+label = function(parent, text, x, y, size, fit)
     local font = parent:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     font:SetPoint("TOPLEFT", x, y)
     font:SetText(L[text])
     font:SetFont(STANDARD_TEXT_FONT, size or 14)
-    trackFont(font)
+    trackFont(font, fit)
     return font
 end
 
@@ -941,6 +941,7 @@ function M:Render()
     local place = self.view == "directory" and (self:PlaceName() .. (self.npcFilter and self.npcFilter.label or "")) or ""
     local placeText = (L["place:" .. self.scope]):format(self:PlaceName())
     if f.placeButton.renderText ~= placeText then f.placeButton:SetText(placeText); f.placeButton.renderText = placeText end
+    self:RenderAreaTrail()
     if f.renderScope ~= self.scope or f.renderKind ~= self.kind or f.renderCategory ~= self.category
         or f.renderSubgroup ~= self.subgroup
         or f.renderFilterView ~= self.view or f.renderPlace ~= place then
@@ -1168,9 +1169,8 @@ end
 
 function M:CreateWindow()
     local s = self.settings
-    self.scope, self.kind, self.category, self.view = s.scope, "all", "All", "directory"
-    local function knownMap(id) return id > 0 and C_Map and C_Map.GetMapInfo and C_Map.GetMapInfo(id) and id or nil end
-    self.zoneMap, self.regionMap = knownMap(s.zoneMap), knownMap(s.regionMap)
+    self.scope, self.kind, self.category, self.view = "zone", "all", "All", "directory"
+    self.zoneMap, self.regionMap = nil, nil
     self.selected, self.offset = 1, 0
     local f = CreateFrame("Frame", "MonstratorDirectory", UIParent, "PortraitFrameTemplate")
     f:SetSize(1120, 682)
@@ -1194,12 +1194,53 @@ function M:CreateWindow()
     f.PortraitContainer.portrait:SetTexture("Interface\\Icons\\INV_Misc_Map02")
     f.TitleContainer.TitleText:SetText("MONSTRATOR")
     trackFont(f.TitleContainer.TitleText)
-    local subtitle = label(f, "WoW Forever NPC & location directory - by Metalbullz", 70, -38, 11)
-    subtitle:SetWidth(420)
-    subtitle:SetJustifyH("LEFT")
-    subtitle:SetTextColor(0.7, 0.72, 0.78)
-    f.position = label(f, "", 500, -40, 12)
-    f.position:SetWidth(412)
+    f.areaTrail = CreateFrame("Frame", nil, f, "NavBarTemplate")
+    f.areaTrail:SetPoint("TOPLEFT", 70, -30)
+    f.areaTrail:SetSize(630, 30)
+    f.areaTrail.buttons = {}
+    f.areaTrail.navList, f.areaTrail.freeButtons = {}, {}
+    local function areaButton(key, x, width, callback)
+        local b = CreateFrame("Button", nil, f.areaTrail, "NavButtonTemplate")
+        b:SetPoint("TOPLEFT", x, 0)
+        b:SetSize(width, 30)
+        b.MenuArrowButton:Hide()
+        b.listFunc = function() return nil end
+        table.insert(f.areaTrail.navList, b)
+        b.text:SetWidth(width - 34)
+        b.text:SetHeight(24)
+        b.text:SetMaxLines(1)
+        b.text:SetWordWrap(false)
+        b.text:SetNonSpaceWrap(false)
+        local spec = trackFont(b.text, width - 34)
+        local setText = b.SetText
+        b.SetText = function(self, text)
+            setText(self, text)
+            applyFont(spec, M.settings.textScale)
+        end
+        b:SetScript("OnClick", callback)
+        b:SetScript("OnEnter", function(owner)
+            GameTooltip:SetOwner(owner, "ANCHOR_BOTTOM")
+            GameTooltip:SetText(owner.areaName or L["World"])
+            GameTooltip:AddLine(L["Choose zone or region"], 1, 1, 1, true)
+            GameTooltip:AddLine(L["WoW Forever NPC & location directory - by Metalbullz"], 0.7, 0.72, 0.78, true)
+            GameTooltip:Show()
+        end)
+        b:SetScript("OnLeave", function() GameTooltip:Hide() end)
+        f.areaTrail.buttons[key] = b
+        return b
+    end
+    areaButton("global", 0, 110, function() self:SelectPlace("global") end)
+    areaButton("region", 102, 240, function()
+        if self.scope == "region" then self:TogglePlacePicker()
+        else
+            local map = self:ScopeMap()
+            local region = map and self:MapRegion(map)
+            self:SelectPlace("region", region and region > 0 and region or nil)
+        end
+    end)
+    areaButton("zone", 334, 296, function() self:TogglePlacePicker() end)
+    f.position = label(f, "", 710, -40, 12, 202)
+    f.position:SetWidth(202)
     f.position:SetMaxLines(1)
     f.position:SetJustifyH("RIGHT")
     f.position:SetTextColor(0.85, 0.86, 0.9)
@@ -1684,6 +1725,25 @@ function M:BreadcrumbText()
         .. (self:ActiveSubgroup() and ("  /  " .. L[self:ActiveSubgroup().label]) or "")
 end
 
+function M:RenderAreaTrail()
+    local trail = self.window.areaTrail
+    local regionName, zoneName
+    if self.scope == "zone" then
+        local map = self:ScopeMap()
+        if map then regionName = select(2, self:MapRegion(map)) end
+        zoneName = self:PlaceName()
+    elseif self.scope == "region" then
+        regionName = self:PlaceName()
+    end
+    local names = { global = L["World"], region = regionName, zone = zoneName }
+    for key, b in pairs(trail.buttons) do
+        local text = names[key]
+        b:SetShown(text ~= nil)
+        if text and b.areaName ~= text then b:SetText(text); b.areaName = text end
+        b.selected:SetShown(key == self.scope)
+    end
+end
+
 function M:SetNPCFilter(ids, label)
     self.npcFilter = ids and { ids = ids, label = label } or nil
     if not self.window then self:CreateWindow() end
@@ -2109,6 +2169,8 @@ function M:ResetView()
         f:SetPoint("CENTER", UIParent, "CENTER", 0, 0)
         f.picker:Hide()
         f.search:SetText("")
+        self.searchGeneration = (self.searchGeneration or 0) + 1
+        self.searchPending = nil
         self:UpdateCategories()
     end
     self:Notice(L["Window position, scope and filters reset."])
@@ -2141,7 +2203,17 @@ function M:Toggle(view)
     if not self.window then self:CreateWindow() end
     self.window:SetScale(self.settings.frameScale)
     if view then self.window:Show(); self:ChangeView(view)
-    else self.window:SetShown(not self.window:IsShown()) end
+    elseif self.window:IsShown() then self.window:Hide()
+    else
+        self.scope, self.zoneMap, self.regionMap = "zone", nil, nil
+        self.kind, self.category, self.subgroup, self.view = "all", "All", nil, "directory"
+        self.npcFilter, self.offset, self.selected = nil, 0, 1
+        self.settings.sortOrder, self.settings.evidenceFilter = "distance", "all"
+        self.window.search:SetText("")
+        self.searchPending = nil
+        self:UpdateCategories()
+        self.window:Show()
+    end
 end
 
 function M:DataSourceSummary()
