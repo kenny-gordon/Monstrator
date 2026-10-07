@@ -85,11 +85,54 @@ M.SetNavigationWaypoint = navigate
 
 M:Render()
 assert(M.window.rows[1].name:GetText():find("(3 locations)", 1, true))
+assert(M.window.backdrop.edgeFile == "Interface\\DialogFrame\\UI-DialogBox-Border",
+    "windows use the native dialog border")
+assert(M.window.close.template == "UIPanelCloseButton")
+local info = M.window.info
+assert(M.window.rows[1].icon.texture == M:EntryIcon(reference))
+assert(info.icon.texture == M.window.rows[1].icon.texture, "list and details use the same category icon")
+assert(M.window.rows[1].iconBorder.texture == "Interface\\Buttons\\UI-Quickslot2")
+assert(M.window.categoryButtons[1].browseIcon, "browse filters have visual category cues")
+assert(info.location:GetText():find("/way #1 ", 1, true))
+assert(info.identity:GetText():find("NPC ID 123", 1, true))
+assert(info.scroll.scrollChild == info.content and #info.sections == 3)
+assert(info.content.height > info.scroll.height, "long details remain accessible by scrolling")
+assert(M:EntryIcon({ kind = "npc", category = "Trainers", title = "Fishing Trainer", tags = {} })
+    == "Interface\\Icons\\Trade_Fishing")
+assert(M:EntryIcon({ kind = "location", category = "Objects", tags = { "ore" } })
+    == "Interface\\Icons\\Trade_Mining")
+assert(M:EntryIcon({ kind = "location", category = "Mailboxes", tags = {} })
+    == "Interface\\Icons\\INV_Letter_15")
 assert(M.window.rows[1].name.fontSize >= 13 and M.window.rows[1].height >= 44,
     "native rows must retain readable type and vertical spacing")
 local textCalls, fontCalls, colorCalls = uiCalls.text, uiCalls.font, uiCalls.color
 M:Render()
 assert(uiCalls.text == textCalls and uiCalls.font == fontCalls and uiCalls.color == colorCalls)
+local oldCategory = reference.category
+reference.category = "Vendors"
+M:Render()
+assert(info.identity:GetText():find("Vendors", 1, true), "details update when a record changes in place")
+assert(info.icon.texture == M:EntryIcon(reference))
+reference.category = oldCategory
+info.scroll:SetVerticalScroll(50)
+M.results = { { record = confirmed } }
+M:Render()
+assert(info.scroll:GetVerticalScroll() == 0, "a new selection starts at the top of its details")
+M.results = {}
+M:Render()
+assert(not info.sections[1]:IsShown() and not info.sections[2]:IsShown() and info.sections[3]:IsShown())
+assert(not info.navigate:IsShown() and info.body:GetText():find("Select a result", 1, true))
+M.results = { { record = reference, placementCount = 3 } }
+M:Render()
+local originalHeight = rawget(info.body, "GetStringHeight")
+info.body.GetStringHeight = function() return 360 end
+M.settings.textScale = 1.5
+M:Render()
+assert(info.sections[3].height == 402 and info.content.height >= 402,
+    "wrapped evidence expands its card and scroll content instead of clipping")
+info.body.GetStringHeight = originalHeight
+M.settings.textScale = 1
+M:Render()
 M.results[1].placementCount = 4
 M:Render()
 assert(M.window.rows[1].name:GetText():find("(4 locations)", 1, true))

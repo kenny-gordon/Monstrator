@@ -51,6 +51,11 @@ function methods:SetPoint(point, x, y) self.point, self.x, self.y = point, x, y 
 function methods:SetSize(width, height) self.width, self.height = width, height end
 function methods:SetWidth(width) self.width = width end
 function methods:SetHeight(height) self.height = height end
+function methods:SetTexture(texture) self.texture = texture end
+function methods:SetBackdrop(value) self.backdrop = value end
+function methods:SetScrollChild(child) self.scrollChild = child end
+function methods:SetVerticalScroll(value) self.verticalScroll = value end
+function methods:GetVerticalScroll() return self.verticalScroll or 0 end
 function methods:SetScript(key, fn) self.scripts[key] = fn end
 function methods:GetScript(key) return self.scripts[key] end
 function methods:SetText(text)
@@ -96,6 +101,10 @@ end
 function methods:CreateFontString() return object() end
 function methods:GetFontString() return object() end
 function methods:CreateTexture() return object() end
-function CreateFrame() return object() end
+function CreateFrame(kind, name, parent, template)
+    local frame = object()
+    frame.kind, frame.name, frame.parent, frame.template = kind, name, parent, template
+    return frame
+end
 UIParent, Minimap, GameTooltip = object(), object(), object()
 math.atan2 = math.atan

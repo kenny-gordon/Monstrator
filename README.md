@@ -48,6 +48,10 @@ Two release builds exist:
 
 ## Using the directory
 
+The window uses WoW's native dialog borders, item-slot icon frames and list
+highlights. Service and profession icons identify what an entry does; these are
+category cues, not NPC portraits or proof of a confirmed location.
+
 The window has three columns:
 
 - **Browse** (left): scope, list, entry type and category.
@@ -60,7 +64,8 @@ The window has three columns:
     rare/elite ranks, or herbs, ore and chests.
 - **Results** (middle): name and title, colour-coded distance, zone, coordinates
   and an evidence badge. Scroll with the mouse wheel.
-- **Details** (right): everything known about the selection, with **Navigate**,
+- **Details** (right): separate **Location**, **Details** and **Evidence** cards
+  in a scrollable reading area, with **Navigate**,
   **Favorite**, **Browse this zone**, **3D model**, **Items sold/dropped** and
   **Watch for this NPC**.
 

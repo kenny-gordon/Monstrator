@@ -114,8 +114,8 @@ assert(M.settings.zoneMap == 0)
 M.selected = 1
 M:Render()
 local info = M.window.info
-assert(info.body:GetText():find("Mulgore, Kalimdor", 1, true), "details show zone and region")
-assert(info.body:GetText():find("/way #1 ", 1, true), "details show a TomTom command")
+assert(info.location:GetText():find("Mulgore, Kalimdor", 1, true), "location card shows zone and region")
+assert(info.location:GetText():find("/way #1 ", 1, true), "location card shows a TomTom command")
 assert(info.zone:GetText() == "Browse region", "the player's own zone offers its region")
 info.zone:Click()
 assert(M.scope == "region" and M.regionMap == 10)
@@ -150,4 +150,3 @@ M:BuildIndex()
 if not M.launcher then M:CreateLauncher() end
 assert(M.launcher and M.launcher.border and M.launcher.icon, "minimap button must be a round bordered launcher")
 assert(M:DataSourceSummary():find("^Data: "), "data summary must describe the active source")
-

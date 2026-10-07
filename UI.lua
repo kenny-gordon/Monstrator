@@ -2,30 +2,80 @@ local _, M = ...
 local L = M.L
 local backdrop = {
     bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background",
-    edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border", tile = true,
-    tileSize = 16, edgeSize = 16, insets = { left = 4, right = 4, top = 4, bottom = 4 },
+    edgeFile = "Interface\\DialogFrame\\UI-DialogBox-Border", tile = true,
+    tileSize = 16, edgeSize = 32, insets = { left = 8, right = 8, top = 8, bottom = 8 },
+}
+local insetBackdrop = {
+    bgFile = backdrop.bgFile, edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
+    tile = true, tileSize = 16, edgeSize = 16,
+    insets = { left = 4, right = 4, top = 4, bottom = 4 },
 }
 
-local function applyWindowBackdrop(frame, faction)
-    frame:SetBackdrop(backdrop)
-    faction = faction or UnitFactionGroup("player")
+local function applyWindowBackdrop(frame, inset)
+    frame:SetBackdrop(inset and insetBackdrop or backdrop)
     -- The dialog background texture is translucent; a solid layer keeps windows behind from showing through.
     if not frame.solidBackground then
         frame.solidBackground = frame:CreateTexture(nil, "BACKGROUND", nil, -8)
         frame.solidBackground:SetPoint("TOPLEFT", 4, -4)
         frame.solidBackground:SetPoint("BOTTOMRIGHT", -4, 4)
     end
-    if faction == "Horde" then
-        frame.solidBackground:SetColorTexture(0.07, 0.02, 0.02, 1)
-        frame:SetBackdropColor(0.12, 0.035, 0.035, 0.99)
-        frame:SetBackdropBorderColor(0.75, 0.24, 0.22, 1)
-    else
-        frame.solidBackground:SetColorTexture(0.015, 0.03, 0.06, 1)
-        frame:SetBackdropColor(0.025, 0.055, 0.105, 0.99)
-        frame:SetBackdropBorderColor(0.32, 0.55, 0.82, 1)
-    end
+    frame.solidBackground:SetColorTexture(0.035, 0.03, 0.025, 1)
+    frame:SetBackdropColor(0.08, 0.07, 0.055, 1)
+    frame:SetBackdropBorderColor(1, 1, 1, 1)
 end
 
+local categoryIcons = {
+    Services = "INV_Misc_Key_03", Vendors = "INV_Misc_Coin_01",
+    Trainers = "INV_Misc_Book_09", Transit = "Ability_Mount_Wyvern_01",
+    Combat = "INV_Sword_04", Mailboxes = "INV_Letter_15",
+    Instances = "INV_Misc_StoneTablet_05", Landmarks = "INV_Misc_Map02",
+    Objects = "INV_Misc_TreasureChest01",
+}
+local professionIcons = {
+    alchemy = "Trade_Alchemy", blacksmithing = "Trade_BlackSmithing",
+    enchanting = "Trade_Engraving", engineering = "Trade_Engineering",
+    leatherworking = "Trade_LeatherWorking", tailoring = "Trade_Tailoring",
+    herbalism = "Trade_Herbalism", mining = "Trade_Mining", skinning = "INV_Misc_Pelt_Wolf_01",
+    cooking = "INV_Misc_Food_15", first_aid = "Spell_Holy_SealOfSacrifice",
+    fishing = "Trade_Fishing",
+}
+local tagIcons = {
+    { "innkeeper", "INV_Misc_Rune_01" }, { "bank", "INV_Misc_Bag_10" },
+    { "auction", "INV_Misc_Coin_02" }, { "repair", "Trade_BlackSmithing" },
+    { "mailbox", "INV_Letter_15" }, { "herb", "Trade_Herbalism" },
+    { "ore", "Trade_Mining" }, { "fishing", "Trade_Fishing" },
+    { "anvil", "Trade_BlackSmithing" }, { "forge", "Trade_BlackSmithing" },
+    { "food", "INV_Misc_Food_11" }, { "drink", "INV_Drink_07" },
+    { "boat", "INV_Misc_Map02" },
+}
+
+function M:EntryIcon(record)
+    if record.category == "Trainers" then
+        for _, key in ipairs(self:RecordSubgroups(record)) do
+            local profession = key:match("^trainer:(.+)$")
+            if professionIcons[profession] then return "Interface\\Icons\\" .. professionIcons[profession] end
+        end
+    end
+    for _, icon in ipairs(tagIcons) do
+        for _, tag in ipairs(record.tags or {}) do
+            if tag == icon[1] then return "Interface\\Icons\\" .. icon[2] end
+        end
+    end
+    return "Interface\\Icons\\" .. (categoryIcons[record.category]
+        or (record.kind == "npc" and "INV_Misc_Head_Human_01" or "INV_Misc_Map02"))
+end
+
+local function entrySlot(parent, x, y, size)
+    local icon = parent:CreateTexture(nil, "ARTWORK")
+    icon:SetPoint("TOPLEFT", x, y)
+    icon:SetSize(size, size)
+    icon:SetTexCoord(0.07, 0.93, 0.07, 0.93)
+    local border = parent:CreateTexture(nil, "OVERLAY")
+    border:SetPoint("TOPLEFT", x - size * 0.18, y + size * 0.18)
+    border:SetSize(size * 1.36, size * 1.36)
+    border:SetTexture("Interface\\Buttons\\UI-Quickslot2")
+    return icon, border
+end
 -- Shrinks a font (never below 8pt) until its text fits `spec.fit` pixels; translated labels vary a lot in length.
 local function applyFont(spec, scale)
     local size = spec.size * scale
@@ -176,14 +226,27 @@ label = function(parent, text, x, y, size)
     return font
 end
 
-button = function(parent, text, x, y, width, callback)
+button = function(parent, text, x, y, width, callback, listIcon)
     local b = CreateFrame("Button", nil, parent, "UIPanelButtonTemplate")
     b:SetSize(width or 150, 24)
     b:SetPoint("TOPLEFT", x, y)
     b:SetText(L[text])
     local fontString = b:GetFontString()
     fontString:SetMaxLines(1)
-    local spec = trackFont(fontString, (width or 150) - 14)
+    if listIcon then
+        b:SetNormalTexture(nil)
+        b:SetPushedTexture(nil)
+        b:SetHighlightTexture("Interface\\QuestFrame\\UI-QuestTitleHighlight", "ADD")
+        fontString:ClearAllPoints()
+        fontString:SetPoint("LEFT", 34, 0)
+        fontString:SetWidth((width or 150) - 42)
+        fontString:SetJustifyH("LEFT")
+        b.browseIcon = b:CreateTexture(nil, "ARTWORK")
+        b.browseIcon:SetPoint("TOPLEFT", 10, -4)
+        b.browseIcon:SetSize(16, 16)
+        b.browseIcon:SetTexture("Interface\\Icons\\" .. listIcon)
+    end
+    local spec = trackFont(fontString, (width or 150) - (listIcon and 42 or 14))
     local setText = b.SetText
     b.SetText = function(self, value)
         setText(self, value)
@@ -209,15 +272,15 @@ panel = function(parent, title, x, y, width, height)
     frame:SetPoint("TOPLEFT", x, y)
     frame:SetSize(width, height)
     frame:SetFrameLevel(parent:GetFrameLevel())
-    applyWindowBackdrop(frame)
-    if UnitFactionGroup("player") == "Horde" then
-        frame:SetBackdropColor(0.17, 0.055, 0.055, 0.99)
-    else
-        frame:SetBackdropColor(0.045, 0.085, 0.15, 0.99)
-    end
+    applyWindowBackdrop(frame, true)
+    local header = frame:CreateTexture(nil, "BACKGROUND", nil, 1)
+    header:SetPoint("TOPLEFT", 5, -5)
+    header:SetSize(width - 10, 30)
+    header:SetColorTexture(0.28, 0.21, 0.11, 0.65)
     local heading = label(frame, title, 12, -12, 14)
     heading:SetWidth(width - 24)
     heading:SetJustifyH("LEFT")
+    heading:SetTextColor(1, 0.82, 0)
     local divider = frame:CreateTexture(nil, "BACKGROUND")
     divider:SetPoint("TOPLEFT", 10, -36)
     divider:SetSize(width - 20, 1)
@@ -305,9 +368,14 @@ function M:ShowReview(record)
         f.title = label(f, "Review placement", 20, -20)
         f.title:SetWidth(520)
         f.title:SetJustifyH("LEFT")
-        f.evidence = label(f, "", 20, -54, 11)
-        f.evidence:SetWidth(520)
-        f.evidence:SetHeight(116)
+        f.evidenceScroll = CreateFrame("ScrollFrame", nil, f, "UIPanelScrollFrameTemplate")
+        f.evidenceScroll:SetPoint("TOPLEFT", 20, -54)
+        f.evidenceScroll:SetSize(495, 116)
+        f.evidenceContent = CreateFrame("Frame", nil, f.evidenceScroll)
+        f.evidenceContent:SetSize(495, 116)
+        f.evidenceScroll:SetScrollChild(f.evidenceContent)
+        f.evidence = label(f.evidenceContent, "", 0, 0, 11)
+        f.evidence:SetWidth(495)
         f.evidence:SetJustifyH("LEFT")
         f.evidence:SetJustifyV("TOP")
         label(f, "X (%)", 20, -185)
@@ -375,6 +443,11 @@ function M:ShowReview(record)
     table.insert(evidence, (L["Submission seal: %s"]):format(L[sealState]))
     table.insert(evidence, (L["Build: %s | Locale: %s"]):format(record.build, record.locale))
     f.evidence:SetText(table.concat(evidence, "\n"))
+    f.evidence:SetHeight(0)
+    local evidenceHeight = math.max(116, f.evidence:GetStringHeight() or 116)
+    f.evidence:SetHeight(evidenceHeight)
+    f.evidenceContent:SetHeight(evidenceHeight)
+    f.evidenceScroll:SetVerticalScroll(0)
     f.x:SetText(string.format("%.4f", record.x))
     f.y:SetText(string.format("%.4f", record.y))
     f.category:SetText(L[f.value])
@@ -627,6 +700,8 @@ function M:Render()
     for i, b in ipairs(f.categoryButtons) do
         local category = self.categories[self.kind][i]
         if category then
+            local icon = "Interface\\Icons\\" .. (categoryIcons[category] or "INV_Misc_Map02")
+            if b.renderIcon ~= icon then b.browseIcon:SetTexture(icon); b.renderIcon = icon end
             local categories = counts.categories[self.kind] or {}
             local amount = category == "All" and counts[self.kind] or (categories[category] or 0)
             local sub = self.category == category and self:ActiveSubgroup()
@@ -738,6 +813,8 @@ function M:Render()
         if row:IsShown() ~= (entry ~= nil) then row:SetShown(entry ~= nil) end
         if entry then
             local r = entry.record
+            local icon = self:EntryIcon(r)
+            if row.renderIcon ~= icon then row.icon:SetTexture(icon); row.renderIcon = icon end
             local favorite = self.favorites.entries[r.key] ~= nil
             local locations = entry.placementCount and entry.placementCount > 1
                 and (" " .. (L["(%d locations)"]):format(entry.placementCount)) or ""
@@ -878,8 +955,7 @@ function M:CreateWindow()
     f:SetSize(1120, 682)
     f:SetPoint("CENTER", UIParent, "CENTER", s.windowX, s.windowY)
     f:SetFrameStrata("HIGH")
-    local faction = UnitFactionGroup("player")
-    applyWindowBackdrop(f, faction)
+    applyWindowBackdrop(f)
     f:SetMovable(true)
     f:EnableMouse(true)
     f:RegisterForDrag("LeftButton")
@@ -914,7 +990,10 @@ function M:CreateWindow()
     f.position:SetTextColor(0.85, 0.86, 0.9)
     f.itemsButton = button(f, "Items", 930, -16, 68, function() self:ShowItemLookup() end)
     local helpButton = button(f, "Help", 1004, -16, 60, function() self:ShowHelp() end)
-    button(f, "X", 1070, -16, 34, function() f:Hide() end)
+    f.close = CreateFrame("Button", nil, f, "UIPanelCloseButton")
+    f.close:SetPoint("TOPRIGHT", -6, -6)
+    f.close:SetSize(32, 32)
+    f.close:SetScript("OnClick", function() f:Hide() end)
     local headerRule = f:CreateTexture(nil, "BACKGROUND")
     headerRule:SetPoint("TOPLEFT", 16, -56)
     headerRule:SetSize(1088, 1)
@@ -968,8 +1047,8 @@ function M:CreateWindow()
     f.clearFilter = button(f, "Clear item filter", 670, -110, 118, function() self:SetNPCFilter(nil) end)
     f.clearFilter:Hide()
     self.focusOrder = { f.search, clearButton, f.sort, f.evidence }
-    local function control(text, x, y, callback, width)
-        local b = button(f, text, x, y, width or 208, callback)
+    local function control(text, x, y, callback, width, listIcon)
+        local b = button(f, text, x, y, width or 208, callback, listIcon)
         table.insert(self.focusOrder, b)
         b:SetScript("OnEnter", function() self.focusIndex = nil end)
         return b
@@ -990,15 +1069,15 @@ function M:CreateWindow()
     f.placeButton = control("Choose zone or region", 28, -190, function() self:TogglePlacePicker() end)
     section("Lists", -226)
     f.viewButtons = {
-        directory = control("Directory", 28, -242, function() self:ChangeView("directory") end),
-        favorites = control("Favorites", 28, -270, function() self:ChangeView("favorites") end),
-        review = control("Review journal", 28, -298, function() self:ChangeView("review") end),
+        directory = control("Directory", 28, -242, function() self:ChangeView("directory") end, nil, "INV_Misc_Map02"),
+        favorites = control("Favorites", 28, -270, function() self:ChangeView("favorites") end, nil, "INV_Misc_Gem_Variety_02"),
+        review = control("Review journal", 28, -298, function() self:ChangeView("review") end, nil, "INV_Misc_Book_09"),
     }
     section("Entry type", -330)
     f.kindButtons = {
-        all = control("All entries", 28, -346, function() self.kind = "all"; self.category = "All"; self:UpdateCategories() end),
-        npc = control("NPCs", 28, -374, function() self.kind = "npc"; self.category = "All"; self:UpdateCategories() end),
-        location = control("Static locations", 28, -402, function() self.kind = "location"; self.category = "All"; self:UpdateCategories() end),
+        all = control("All entries", 28, -346, function() self.kind = "all"; self.category = "All"; self:UpdateCategories() end, nil, "INV_Misc_Map02"),
+        npc = control("NPCs", 28, -374, function() self.kind = "npc"; self.category = "All"; self:UpdateCategories() end, nil, "INV_Misc_Head_Human_01"),
+        location = control("Static locations", 28, -402, function() self.kind = "location"; self.category = "All"; self:UpdateCategories() end, nil, "INV_Misc_StoneTablet_05"),
     }
     section("Categories", -434)
     f.categoryButtons, f.subgroupButtons = {}, {}
@@ -1007,7 +1086,7 @@ function M:CreateWindow()
             self.category, self.subgroup = self.categories[self.kind][i], nil
             if f.subpicker then f.subpicker:Hide() end
             self:ChangeView("directory")
-        end, 180)
+        end, 180, "INV_Misc_Map02")
         selectionMarker(b)
         f.categoryButtons[i] = b
         local more = control(">", 212, -450 - (i - 1) * 28, function()
@@ -1045,10 +1124,14 @@ function M:CreateWindow()
         row:SetSize(500, 44)
         row:SetPoint("TOPLEFT", 264, -162 - (i - 1) * 46)
         row:RegisterForClicks("LeftButtonUp", "RightButtonUp")
+        local stripe = row:CreateTexture(nil, "BACKGROUND", nil, -1)
+        stripe:SetAllPoints()
+        stripe:SetColorTexture(1, 0.86, 0.6, i % 2 == 0 and 0.035 or 0)
         row.selection = row:CreateTexture(nil, "BACKGROUND")
         row.selection:SetAllPoints()
-        row.selection:SetColorTexture(faction == "Horde" and 0.55 or 0.2,
-            faction == "Horde" and 0.18 or 0.38, faction == "Horde" and 0.18 or 0.65, 0.55)
+        row.selection:SetTexture("Interface\\QuestFrame\\UI-QuestTitleHighlight")
+        row.selection:SetBlendMode("ADD")
+        row.selection:SetAlpha(0.5)
         local separator = row:CreateTexture(nil, "BACKGROUND")
         separator:SetPoint("BOTTOMLEFT", 0, 0)
         separator:SetSize(500, 1)
@@ -1061,16 +1144,17 @@ function M:CreateWindow()
         row.badge:SetPoint("TOPLEFT", 2, -6)
         row.badge:SetSize(3, 32)
         row.badge:SetColorTexture(0.6, 0.6, 0.6, 1)
-        row.name = label(row, "", 12, -4)
+        row.icon, row.iconBorder = entrySlot(row, 12, -7, 30)
+        row.name = label(row, "", 52, -4)
         row.distance = label(row, "", 396, -5, 12)
-        row.detail = label(row, "", 12, -24)
-        row.name:SetWidth(380)
+        row.detail = label(row, "", 52, -24)
+        row.name:SetWidth(338)
         row.name:SetMaxLines(1)
         row.name:SetJustifyH("LEFT")
         row.distance:SetWidth(96)
         row.distance:SetMaxLines(1)
         row.distance:SetJustifyH("RIGHT")
-        row.detail:SetWidth(482)
+        row.detail:SetWidth(440)
         row.detail:SetMaxLines(1)
         row.detail:SetJustifyH("LEFT")
         row.detail:SetTextColor(0.76, 0.78, 0.84)
@@ -1132,21 +1216,44 @@ function M:CreateWindow()
     f.page:SetTextColor(0.7, 0.72, 0.78)
 
     f.info = {}
-    f.info.name = label(f, "", 818, -146, 16)
-    f.info.name:SetWidth(272)
+    f.info.icon, f.info.iconBorder = entrySlot(f, 822, -151, 38)
+    f.info.name = label(f, "", 874, -146, 16)
+    f.info.name:SetWidth(216)
+    f.info.name:SetHeight(48)
     f.info.name:SetMaxLines(2)
     f.info.name:SetJustifyH("LEFT")
-    f.info.title = label(f, "", 818, -190, 12)
-    f.info.title:SetWidth(272)
+    f.info.title = label(f, "", 874, -198, 12)
+    f.info.title:SetWidth(216)
     f.info.title:SetMaxLines(1)
     f.info.title:SetJustifyH("LEFT")
     f.info.title:SetTextColor(0.9, 0.82, 0.5)
-    f.info.body = label(f, "", 818, -212, 12)
-    f.info.body:SetWidth(272)
-    f.info.body:SetHeight(196)
-    f.info.body:SetJustifyH("LEFT")
-    f.info.body:SetJustifyV("TOP")
-    f.info.body:SetTextColor(0.88, 0.89, 0.93)
+    f.info.scroll = CreateFrame("ScrollFrame", nil, f, "UIPanelScrollFrameTemplate")
+    f.info.scroll:SetPoint("TOPLEFT", 818, -224)
+    f.info.scroll:SetSize(250, 180)
+    f.info.content = CreateFrame("Frame", nil, f.info.scroll)
+    f.info.content:SetSize(250, 180)
+    f.info.scroll:SetScrollChild(f.info.content)
+    f.info.sections = {}
+    for i, heading in ipairs({ "Location", "Details", "Evidence" }) do
+        local card = CreateFrame("Frame", nil, f.info.content, "BackdropTemplate")
+        card:SetWidth(250)
+        card:SetBackdrop(insetBackdrop)
+        card:SetBackdropColor(0.06, 0.05, 0.04, 0.9)
+        card:SetBackdropBorderColor(0.5, 0.42, 0.28, 1)
+        card.heading = label(card, heading, 10, -10, 11)
+        card.heading:SetWidth(230)
+        card.heading:SetJustifyH("LEFT")
+        card.heading:SetTextColor(1, 0.82, 0)
+        card.body = label(card, "", 10, -30, 12)
+        card.body:SetWidth(230)
+        card.body:SetJustifyH("LEFT")
+        card.body:SetJustifyV("TOP")
+        card.body:SetTextColor(0.88, 0.86, 0.8)
+        f.info.sections[i] = card
+    end
+    f.info.location = f.info.sections[1].body
+    f.info.identity = f.info.sections[2].body
+    f.info.body = f.info.sections[3].body
     f.info.navigate = control("Navigate", 818, -414, function()
         self:Activate(self.results and self.results[self.selected])
     end, 132)
@@ -1601,55 +1708,86 @@ function M:RenderDetailsPane()
     local favorite = r and self.favorites.entries[r.key] ~= nil
     local info = f.info
     local placeKey = self.scope .. ":" .. tostring(self:ScopeMap())
+    local recordKey = r and table.concat({ r.name, r.title or "", r.category, r.verification,
+        r.precision, tostring(r.mapID), tostring(r.x), tostring(r.y), tostring(r.npcID or ""),
+        tostring(r.objectID or ""), tostring(r.level or ""), r.creatureType or "", r.classification or "",
+        r.faction or "", r.nativeOrigin or "", table.concat(r.tags or {}, ",") }, "\031")
     if info.renderKey == (r and r.key) and info.renderYards == yards and info.renderFavorite == favorite
         and info.renderLabel == (entry and entry.distanceLabel) and info.renderStale == (entry and entry.stale)
-        and info.renderPlacements == (entry and entry.placementCount) and info.renderPlace == placeKey then return end
+        and info.renderPlacements == (entry and entry.placementCount) and info.renderPlace == placeKey
+        and info.renderTextScale == self.settings.textScale and info.renderRecordKey == recordKey then return end
+    local selectionChanged = info.renderKey ~= (r and r.key)
     info.renderKey, info.renderYards, info.renderFavorite = r and r.key, yards, favorite
     info.renderLabel, info.renderStale = entry and entry.distanceLabel, entry and entry.stale
     info.renderPlacements, info.renderPlace = entry and entry.placementCount, placeKey
+    info.renderTextScale = self.settings.textScale
+    info.renderRecordKey = recordKey
+    if selectionChanged then info.scroll:SetVerticalScroll(0) end
     for _, control in ipairs({ info.navigate, info.favorite, info.zone, f.detailsButton }) do control:SetShown(r ~= nil) end
     info.model:SetShown(r ~= nil and r.npcID ~= nil)
     info.items:SetShown(r ~= nil and r.npcID ~= nil and self:ItemProvider() ~= nil)
     self:RenderWatchButton()
     if not r then
+        info.icon:SetTexture("Interface\\Icons\\INV_Misc_Map02")
         info.name:SetText(L["Nothing selected"])
         info.title:SetText("")
+        info.location:SetText("")
+        info.identity:SetText("")
         info.body:SetText(L["Select a result to see its location, identity and evidence. Left-click navigates, right-click saves a favorite."])
-        return
-    end
-    local map = C_Map and C_Map.GetMapInfo and C_Map.GetMapInfo(r.mapID)
-    local _, regionName = self:MapRegion(r.mapID)
-    info.name:SetText(r.name)
-    info.title:SetText(r.title and ("<" .. r.title .. ">") or L[r.category])
-    local lines = {
-        (map and map.name or (L["Map %d"]):format(r.mapID)) .. ", " .. regionName,
-        ("|cffd6a64b%.1f, %.1f|r  -  "):format(r.x, r.y)
-            .. (yards and ("%d yards away"):format(yards) or (entry.distanceLabel or L["Distance unavailable"])),
-        "",
-        L[r.kind] .. " / " .. L[r.category] .. " | " .. L[r.faction or "Both"],
-    }
-    if r.npcID then
-        local extra = {}
-        if r.level then table.insert(extra, L["Level "] .. (r.level < 1 and "??" or r.level)) end
-        if r.classification and r.classification ~= "normal" and r.classification ~= "minus" then
-            table.insert(extra, r.classification)
+    else
+        info.icon:SetTexture(self:EntryIcon(r))
+        local map = C_Map and C_Map.GetMapInfo and C_Map.GetMapInfo(r.mapID)
+        local _, regionName = self:MapRegion(r.mapID)
+        info.name:SetText(r.name)
+        info.title:SetText(r.title and ("<" .. r.title .. ">") or L[r.category])
+        info.location:SetText(table.concat({
+            (map and map.name or (L["Map %d"]):format(r.mapID)) .. ", " .. regionName,
+            ("|cffd6a64b%.1f, %.1f|r"):format(r.x, r.y),
+            yards and (L["Distance: %d yd"]):format(yards) or (entry.distanceLabel or L["Distance unavailable"]),
+            ("|cff8f949e/way #%d %.1f %.1f|r"):format(r.mapID, r.x, r.y),
+        }, "\n"))
+        local identity = {
+            L[r.kind] .. " / " .. L[r.category] .. " | " .. L[r.faction or "Both"],
+        }
+        if r.npcID then
+            local extra = {}
+            if r.level then table.insert(extra, L["Level "] .. (r.level < 1 and "??" or r.level)) end
+            if r.classification and r.classification ~= "normal" and r.classification ~= "minus" then
+                table.insert(extra, r.classification)
+            end
+            if r.creatureType then table.insert(extra, r.creatureType) end
+            table.insert(identity, L["NPC ID"] .. " " .. r.npcID)
+            if #extra > 0 then table.insert(identity, table.concat(extra, ", ")) end
         end
-        if r.creatureType then table.insert(extra, r.creatureType) end
-        table.insert(lines, L["NPC ID"] .. " " .. r.npcID .. (#extra > 0 and (" | " .. table.concat(extra, ", ")) or ""))
+        if r.objectID then table.insert(identity, L["Object ID "] .. r.objectID) end
+        if entry.placementCount and entry.placementCount > 1 then
+            table.insert(identity, (L["(%d locations)"]):format(entry.placementCount) .. " - " .. L["nearest shown"])
+        end
+        if r.tags and #r.tags > 0 then table.insert(identity, L["Tags: "] .. table.concat(r.tags, ", ")) end
+        info.identity:SetText(table.concat(identity, "\n"))
+        local evidence = { entry.stale and L["Stale favorite"] or recordEvidenceName(r) }
+        if r.nativeOrigin then table.insert(evidence, L["nativeOrigin." .. r.nativeOrigin]) end
+        info.body:SetText(table.concat(evidence, "\n"))
+        info.favorite:SetText(L[favorite and "Remove favorite" or "Favorite"])
+        local zoneText = (self.scope == "zone" and self:ScopeMap() == r.mapID) and L["Browse region"] or L["Browse this zone"]
+        if info.zone.renderText ~= zoneText then info.zone:SetText(zoneText); info.zone.renderText = zoneText end
     end
-    if r.objectID then table.insert(lines, L["Object ID "] .. r.objectID) end
-    if entry.placementCount and entry.placementCount > 1 then
-        table.insert(lines, (L["(%d locations)"]):format(entry.placementCount) .. " - " .. L["nearest shown"])
+    local offset = 0
+    for i, card in ipairs(info.sections) do
+        local visible = r ~= nil or i == 3
+        card:SetShown(visible)
+        if visible then
+            card:ClearAllPoints()
+            card:SetPoint("TOPLEFT", 0, -offset)
+            card.body:SetHeight(0)
+            local height = math.max(20, card.body:GetStringHeight() or 60)
+            card.body:SetHeight(height)
+            card:SetHeight(height + 42)
+            offset = offset + height + 48
+        end
     end
-    if r.tags and #r.tags > 0 then table.insert(lines, L["Tags: "] .. table.concat(r.tags, ", ")) end
-    table.insert(lines, "")
-    table.insert(lines, "Evidence: " .. (entry.stale and L["Stale favorite"] or recordEvidenceName(r)))
-    if r.nativeOrigin then table.insert(lines, L["nativeOrigin." .. r.nativeOrigin]) end
-    table.insert(lines, ("|cff8f949e/way #%d %.1f %.1f|r"):format(r.mapID, r.x, r.y))
-    info.body:SetText(table.concat(lines, "\n"))
-    info.favorite:SetText(L[favorite and "Remove favorite" or "Favorite"])
-    local zoneText = (self.scope == "zone" and self:ScopeMap() == r.mapID) and L["Browse region"] or L["Browse this zone"]
-    if info.zone.renderText ~= zoneText then info.zone:SetText(zoneText); info.zone.renderText = zoneText end
+    info.content:SetHeight(math.max(180, offset))
+    info.scroll:SetVerticalScroll(math.min(info.scroll:GetVerticalScroll(), math.max(0, offset - 180)))
 end
 
 function M:ResetView()

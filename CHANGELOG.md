@@ -14,3 +14,4 @@ First release for WoW Forever (interface 16001, client 1.60.1).
 - **Localization**: the full UI and help are available in enUS, deDE, frFR, esES/esMX, ptBR, itIT, ruRU, koKR, zhCN and zhTW.
 - **Interface**: a help window organized by topic, and scan alerts that always draw above other windows. If a new alert arrives during combat, the Target button reads "After combat" until it can safely switch NPCs.
 - **Project**: a user guide (README), a contributor and release guide (CONTRIBUTING), and the MIT license. Translations with damaged characters were repaired, and tests now guard against that damage.
+- **Native-style UI**: WoW dialog borders and close control, icon-led browse lists, service/profession icons with item-slot frames, and native selection highlights. Selection details are split into scrollable location, identity and evidence cards; long journal-review evidence also scrolls instead of clipping.
