@@ -290,6 +290,19 @@ Notes:
   shapes and area-ID conversions belong in the offline importer, not the addon.
   `ReadNativeField` contains and reports getter failures once per getter; missing
   optional values are distinct from failed calls.
+- Quest relationships are read on demand in `ItemLookup.lua`; retain compact
+  ID lists rather than a permanent index of expanded quest records. Reward
+  locations use every listed finisher, with explicitly labeled starter-only
+  fallback when finishers are absent. Keep unresolved links visible, preserve
+  actor roles, and never equate database relationships with live quest availability.
+- Lookup history is a bounded, session-only stack of 20 view snapshots. Restore
+  selections after incremental indexing, invalidate queued search callbacks,
+  and let new user input cancel pending restoration. Never persist history or
+  expanded source rows in SavedVariables.
+- `dbIndex.expansionProfile` counts cache misses and background materialization
+  separately. CPU timings use the optional client `debugprofilestop` clock;
+  they do not attribute memory usage. Preserve warmup behavior until live-client
+  profiling supports a tested alternative.
 - Keep compatibility that protects saved favorites, schema-1 data and pre-seal
   submissions. Do not confuse these active migration paths with obsolete
   third-party runtime adapters.
@@ -339,6 +352,13 @@ Also check portraits after scrolling, Keyboard button help, rare marking with
 and without raid permissions, combat restrictions, and live world-map discovery
 on a client build newer than the extracted catalog. Build/locale gates on
 extracted object coordinates must remain intact.
+Check NPC Details -> Related quests, quest/source paging, reward/start-item
+filters, container lookup links and clearing those filters. Verify long names,
+localized labels and enlarged text in the quest window, and confirm that
+unknown coordinates cannot produce a waypoint.
+Check Back across item -> quest -> reward/start item and container chains,
+including cleared filters and scrolled lists. Broad item searches must display
+both the 500-row limit and the true match total.
 Map previews must keep normalized coordinates correct when the world-map canvas
 resizes, hide on unrelated zones, preserve existing navigation, and label
 pending encounter coordinates without confirming them. Check Shift-click and
@@ -366,6 +386,8 @@ the TOC when required; do not rely on recursively bundling the checkout.
    - Navigation with and without TomTom.
    - Item lookup, 3D viewer and NPC scan alert (`/mon scan test`).
    - Collection, review, `/monstrator submit`, persistence across `/reload`.
+   - NPC inventory opens on collected NPCs without exporting. Check name/ID/zone
+     search, evidence filters, paging, empty results and explicit advanced export.
    - At least one non-English client for layout overflow.
 6. Publish the zip(s). Only publish the full build if the imported source's terms
    allow redistribution; otherwise publish the standalone build.

@@ -90,10 +90,15 @@ end
 function methods:GetText() return rawget(self, "text") or "" end
 function methods:GetStringWidth() return #self:GetText() * (self.fontSize or 12) * 0.5 end
 function methods:GetUnboundedStringWidth() return self:GetStringWidth() end
-function methods:GetFont() return rawget(self, "font") or "font", rawget(self, "fontSize") or 12, "" end
-function methods:SetFont(path, size)
+function methods:GetFont()
+    return rawget(self, "font") or "font", rawget(self, "fontSize") or 12, rawget(self, "fontFlags") or ""
+end
+function methods:SetFont(path, size, flags)
+    if self.kind == "EditBox" then
+        assert(type(flags) == "string", "EditBox:SetFont requires a font-flags string")
+    end
     uiCalls.font = uiCalls.font + 1
-    self.font, self.fontSize = path, size
+    self.font, self.fontSize, self.fontFlags = path, size, flags
 end
 function methods:SetTextColor(r, g, b)
     uiCalls.color = uiCalls.color + 1
@@ -113,6 +118,10 @@ function methods:Hide()
     if old and self.scripts.OnHide then self.scripts.OnHide(self) end
 end
 function methods:SetShown(value) if value then self:Show() else self:Hide() end end
+function methods:SetEnabled(value) self.enabled = value end
+function methods:Enable() self.enabled = true end
+function methods:Disable() self.enabled = false end
+function methods:IsEnabled() return self.enabled ~= false end
 function methods:SetFocus() self.focused = true end
 function methods:ClearFocus() self.focused = false end
 function methods:HasFocus() return rawget(self, "focused") == true end

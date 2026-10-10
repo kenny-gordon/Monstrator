@@ -402,16 +402,76 @@ M.view = savedView
 M:Render()
 
 local inventoryText
+assert(M.window.settingsButton.x == 338 and M.window.scanWindowButton.x == 444
+    and M.window.footer.x == 554 and M.window.status.width == 550,
+    "removing inventory closes the footer gap and expands status space")
+for _, control in ipairs(M.focusOrder) do
+    assert(control:GetText() ~= M.L["NPC inventory"], "inventory is not a player-facing footer action")
+end
 M.NPCInventory = function()
     return { { npcID = 123, name = "Synthetic inventory", confirmed = 0,
         pending = 1, reference = 7, maps = { [1] = true } } }
 end
 M.ShowCopy = function(_, text) inventoryText = text end
 M:ShowNPCInventory()
+assert(inventoryText == nil and M.inventoryFrame:IsShown(), "inventory button must not export automatically")
+assert(#M.inventoryFrame.results == 1)
+M:ExportNPCInventory()
 assert(inventoryText:find("Confirmed placements | Pending encounters | Database records", 1, true))
 assert(inventoryText:find("123 | Synthetic inventory | 0 | 1 | 7 |", 1, true),
     "reference count must have its own inventory column")
+local inventoryFixture = {}
+for id = 1, 6846 do
+    inventoryFixture[id] = { npcID = id, name = "NPC " .. id, confirmed = id == 1 and 1 or 0,
+        pending = id == 2 and 1 or 0, reference = id > 2 and 1 or 0, maps = { [1] = true } }
+end
+M.NPCInventory = function() return inventoryFixture end
+inventoryText = nil
+M:ShowNPCInventory()
+local inventoryFrame = M.inventoryFrame
+assert(inventoryText == nil and #inventoryFrame.results == 2,
+    "opening thousands of known NPCs defaults to collected identities without exporting")
+assert(#inventoryFrame.rows == 9 and inventoryFrame.rows[1].name:GetText() == "NPC 1  #1"
+    and not inventoryFrame.rows[3]:IsShown(), "only a bounded page of rows is drawn")
+inventoryFrame.filters.pending:Click()
+assert(#inventoryFrame.results == 1 and inventoryFrame.results[1].npcID == 2)
+inventoryFrame.filters.confirmed:Click()
+assert(#inventoryFrame.results == 1 and inventoryFrame.results[1].npcID == 1)
+inventoryFrame.filters.reference:Click()
+assert(#inventoryFrame.results == 6844)
+inventoryFrame.filters.all:Click()
+inventoryFrame.next:Click()
+assert(inventoryFrame.page == 2 and inventoryFrame.rows[1].name:GetText() == "NPC 10  #10")
+inventoryFrame:GetScript("OnMouseWheel")(inventoryFrame, 1)
+assert(inventoryFrame.page == 1)
+inventoryFrame.previous:Click()
+assert(inventoryFrame.page == 1, "paging cannot run before the first page")
+inventoryFrame.search:SetText("NPC 6846")
+assert(#inventoryFrame.results == 1 and inventoryFrame.results[1].npcID == 6846
+    and inventoryFrame.page == 1, "search requires all words and resets paging")
+inventoryFrame.search:SetText("synthetic map")
+assert(#inventoryFrame.results == 6846, "localized zone names are searchable")
+inventoryFrame.search:SetText("does-not-exist")
+assert(#inventoryFrame.results == 0 and inventoryFrame.empty:IsShown()
+    and not inventoryFrame.rows[1]:IsShown(), "empty searches hide previous results")
+inventoryFrame.search:SetText("")
+inventoryFrame.page = 9999
+M:RefreshNPCInventory()
+assert(inventoryFrame.page == math.ceil(6846 / 9), "paging is clamped to the final partial page")
+inventoryFrame.export:Click()
+assert(inventoryText:find("6846 distinct NPC IDs", 1, true),
+    "the full report remains available only via explicit advanced export")
+inventoryFrame:GetScript("OnKeyDown")(inventoryFrame, "ESCAPE")
+assert(not inventoryFrame:IsShown())
+M:ShowNPCInventory()
+assert(M.inventoryFrame == inventoryFrame and inventoryFrame.filter == "collected"
+    and inventoryFrame.page == 1 and inventoryFrame.search:GetText() == "",
+    "reopening reuses the frame and returns to a useful collected view")
+inventoryFixture[2].pending = 0
+M:RefreshIfVisible()
+assert(#inventoryFrame.results == 1, "visible inventory reflects changes to collected evidence")
 M.ShowCopy, M.NPCInventory = showCopy, inventory
+M.inventoryFrame:Hide()
 
 local stepWorld, refreshWindow, addObjects = M.StepClientWorldSync, M.Refresh, M.AddExtractedObjects
 local taxi, poi = C_TaxiMap, C_AreaPoiInfo

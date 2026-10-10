@@ -182,7 +182,7 @@ function M:WarmDatabaseCache(state)
         i = i + 1
         local mapID = maps[i]
         if not mapID then return end
-        self:DatabaseMapRecords(mapID)
+        self:DatabaseMapRecords(mapID, true)
         C_Timer.After(0.05, warm)
     end
     C_Timer.After(1, warm)
@@ -255,11 +255,12 @@ function M:DatabaseObjectRecords(state, mapID, records, source, permission)
     return rejected
 end
 
-function M:DatabaseMapRecords(mapID)
+function M:DatabaseMapRecords(mapID, background)
     if self.dbCache[mapID] then return self.dbCache[mapID] end
     local state = self.dbIndex
     if not (state and state.ready) then return {} end
     if not state.byMap[mapID] and not state.objectsByMap[mapID] then return {} end
+    local started = debugprofilestop and debugprofilestop()
     local npc, records, rejected = state.lib.Npc, {}, 0
     local source, permission = self:DatabaseProvenance()
     for _, id in ipairs(state.byMap[mapID] or {}) do
@@ -307,6 +308,18 @@ function M:DatabaseMapRecords(mapID)
     rejected = rejected + self:DatabaseObjectRecords(state, mapID, records, source, permission)
     if rejected > 0 then self:Debug(("Monstrator DB map %d: %d placements rejected by validation."):format(mapID, rejected)) end
     self.dbCache[mapID] = records
+    local profile = state.expansionProfile or { maps = 0, records = 0, milliseconds = 0, timedMaps = 0,
+        backgroundMaps = 0, backgroundRecords = 0, backgroundMilliseconds = 0 }
+    state.expansionProfile = profile
+    local elapsed = started and math.max(0, debugprofilestop() - started) or 0
+    profile.maps, profile.records = profile.maps + 1, profile.records + #records
+    profile.milliseconds = profile.milliseconds + elapsed
+    if started then profile.timedMaps = profile.timedMaps + 1 end
+    if background then
+        profile.backgroundMaps = profile.backgroundMaps + 1
+        profile.backgroundRecords = profile.backgroundRecords + #records
+        profile.backgroundMilliseconds = profile.backgroundMilliseconds + elapsed
+    end
     return records
 end
 

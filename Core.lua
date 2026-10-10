@@ -84,14 +84,23 @@ function M:Diagnostic()
         for _, ids in pairs(loot.drops) do
             for _ in ids:gmatch("%d+") do relationships = relationships + 1 end
         end
-        self:Notice(("%s Classic loot reference: %d imported relationships; commit %s (not Forever-confirmed)."):format(
-            loot.source, relationships, tostring(loot.commit)))
+        self:Notice(("Supplementary Classic loot references: %d relationships (not Forever-confirmed)."):format(
+            relationships))
     end
     local q = self.dbIndex
     if q then
         self:Notice(("Directory index: %s; %d NPCs and %d objects across %d maps; %d maps expanded."):format(
             q.ready and "ready" or ("indexing " .. (q.nextIndex - 1) .. "/" .. #q.ids),
             q.npcCount, q.objectCount, q.mapCount, (function() local n = 0 for _ in pairs(self.dbCache) do n = n + 1 end return n end)()))
+        local profile = q.expansionProfile
+        if profile then
+            self:Notice(("Directory cache: %d expanded placements; background warmup added %d placements across %d maps."):format(
+                profile.records, profile.backgroundRecords, profile.backgroundMaps))
+            if profile.timedMaps == profile.maps then
+                self:Notice(("Cache expansion CPU: %.1f ms total / %.1f ms background (not a memory measurement)."):format(
+                    profile.milliseconds, profile.backgroundMilliseconds))
+            end
+        end
     else
         self:Notice("Directory index: not started" .. (self.settings and not self.settings.referenceEnabled and " (database disabled in Settings)." or "."))
     end

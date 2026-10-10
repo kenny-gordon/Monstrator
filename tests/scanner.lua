@@ -218,6 +218,21 @@ assert(messages[1]:find("/monstrator scan", 1, true))
 M:ToggleScanWindow()
 local w = M.scanWindow
 assert(w:IsShown() and w.enabled:GetText():find("Enabled", 1, true))
+assert(w.template == "PortraitFrameTemplate" and w.PortraitContainer.portrait.texture
+    and w.TitleContainer.TitleText:GetText() == M.L["NPC SCAN"],
+    "scanner uses the same native portrait and title chrome as the other windows")
+assert(w.width == 560 and w.height == 580 and w.subtitle.width == 512
+    and w.subtitle.maxLines == 2, "native header has space for a localized two-line subtitle")
+assert(w.watchPanel.y == -168 and w.logPanel.y == -372
+    and -w.logPanel.y + w.logPanel.height < w.height - 40,
+    "watch list and sighting panels fit above the footer")
+assert(w.watchRows[1].hover.texture == "Interface\\QuestFrame\\UI-QuestTitleHighlight"
+    and w.logRows[1].hover.texture == w.watchRows[1].hover.texture,
+    "scan lists share the directory's native hover artwork")
+w.CloseButton:Click()
+assert(not w:IsShown(), "native close button closes the scanner")
+M:ToggleScanWindow()
+assert(w:IsShown(), "scanner reopens without recreating its native frame")
 local list = M:ScanWatchList()
 assert(#list >= 3 and w.watchRows[1]:IsShown() and not w.watchEmpty:IsShown())
 for i = 2, #list do assert(list[i - 1].name:lower() <= list[i].name:lower(), "watch list is sorted by name") end

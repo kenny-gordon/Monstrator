@@ -59,7 +59,11 @@ assert(first and first.confirmed == 1 and first.pending == 0 and first.maps[1])
 local showCopy, inventoryText = M.ShowCopy
 M.ShowCopy = function(_, text) inventoryText = text end
 SlashCmdList.MONSTRATOR("npcs")
+assert(inventoryText == nil and M.inventoryFrame:IsShown(), "NPC inventory opens a window, not a text dump")
+assert(#M.inventoryFrame.results == 2 and M.inventoryFrame.filter == "collected")
+M:ExportNPCInventory()
 assert(inventoryText:find("2 distinct NPC IDs", 1, true) and inventoryText:find("98765", 1, true))
+M.inventoryFrame:Hide()
 M.ShowCopy = showCopy
 
 M.settings.evidenceFilter = "confirmed"

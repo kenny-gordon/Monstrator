@@ -2,6 +2,22 @@
 
 ## 1.0.0
 
+- **Native waypoint compatibility**: accept plain `x`/`y` vectors as well as `GetXY` vectors when verifying the client's map pin. Missing/invalid/mismatched readback coordinates still reject explicitly and offer manual copying rather than raising a nil-method error.
+
+- **Lookup quality of life**: added session-only Back history across item/quest/container navigation, restoring searches, filters, selections, tabs and paging. Added full-context filter tooltips, explicit 500-result truncation notices, quest-versus-source counts and duplicate relation normalization. Added passive foreground/background directory expansion counters and optional CPU timing to diagnostics; cache warmup behavior is unchanged.
+
+- **Quest and item relationships**: added a searchable, paged native quest window from NPC Details and Item Lookup, with quest/required levels, all starter/finisher NPC and object locations, and linked reward/start items. NPC item lists now include quest-linked items. Reward waypoints resolve all turn-in providers; starter-only fallbacks are labeled accurately. Container items are clickable lookup links. Missing references remain visible, `startQuest=0` is treated as absent, filtered ID searches work, cached search totals are preserved, and item indexes invalidate with their provider. Added regression coverage and all ten translations; no quest tracker or runtime dependency.
+
+- **Player-facing footer**: removed the maintenance-oriented NPC inventory button and closed the layout gap. Inventory remains available through `/monstrator npcs`; journal review and discovery submissions are unchanged.
+
+- **Independent diagnostics**: describe bundled supplementary loot references without an AtlasLoot integration label or commit hash; retain source attribution in package credits/manifests and reference evidence in item lookup.
+
+- **NPC Scan theme**: replaced the old custom scan-window chrome with the shared native portrait/title/close style, adjusted spacing for the header, and matched list highlights and secondary text to the directory. Secure alert targeting/marking behavior is unchanged.
+
+- **NPC inventory window**: replaced the automatic full text dump with a searchable, paged native window, defaulting to collected NPCs. Added evidence filters and a separate advanced export; localized in all ten languages.
+
+- **Copy-window font fix**: supply explicit plain font flags for the copy EditBox, preventing a client error when opening NPC inventory, exports or shared discoveries. Regression checks cover text scaling and reopening the dialog.
+
 - **Production cleanup**: removed obsolete third-party provider adapters from the native runtime, consolidated native getter error handling, retained saved-data compatibility, and added editor defaults plus Windows CI for regression tests, database verification and both release builds.
 - **Release hygiene**: package only declared runtime files, documentation and required data attribution; exclude stray reports, backups and scratch files. Added full/standalone archive regression checks.
 - **Offline Wowhead comparator**: reusable saved-HTML/reviewed-fact inputs, exact effective-database field differences, version-aware results, record coverage and an unchecked-ID queue. Included 32 targeted references; discrepancies remain review-only. No network crawler, automatic pruning or runtime dependency.

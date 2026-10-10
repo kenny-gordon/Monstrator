@@ -175,6 +175,25 @@ assert(M.copyFrame.template == "PortraitFrameTemplate" and M.copyFrame.box.width
 assert(M.copyFrame.box:GetText() == "Synthetic inventory\n123 | Sample NPC",
     "native copy dialog preserves the entire export without changing its contents")
 assert(M.copyFrame.scroll:GetVerticalScroll() == 0)
+assert(M.copyFrame.box.font == STANDARD_TEXT_FONT and M.copyFrame.box.fontFlags == ""
+    and M.copyFrame.box.fontSize == 14 * M.settings.textScale,
+    "copy EditBox uses explicit plain font flags and respects the text scale")
+assert(M.copyFrame.box:HasFocus(), "copy text is focused for keyboard copying")
+local copyScale = M.settings.textScale
+M.settings.textScale = 1.5
+M:Render()
+assert(M.copyFrame.box.fontSize == 21 and M.copyFrame.box.fontFlags == "",
+    "rescaling the copy EditBox preserves valid font flags")
+M.settings.textScale = copyScale
+M:Render()
+local copyFrame = M.copyFrame
+copyFrame:Hide()
+copyFrame.scroll:SetVerticalScroll(100)
+M:ShowCopy("Replacement export")
+assert(M.copyFrame == copyFrame and copyFrame:IsShown()
+    and copyFrame.box:GetText() == "Replacement export" and copyFrame.box:HasFocus()
+    and copyFrame.scroll:GetVerticalScroll() == 0,
+    "reopening the copy dialog reuses the frame, replaces the text and resets scrolling")
 if M.copyFrame then
     M.copyFrame:Show()
     M.copyFrame:GetScript("OnKeyDown")(M.copyFrame, "ESCAPE")

@@ -122,7 +122,13 @@ function M:SetNavigationWaypoint(mapID, x, y, title)
             C_Map.SetUserWaypoint(UiMapPoint.CreateFromCoordinates(mapID, x / 100, y / 100))
             local pin = C_Map.GetUserWaypoint()
             if not pin or pin.uiMapID ~= mapID or not pin.position then return false end
-            local px, py = pin.position:GetXY()
+            local px, py
+            if type(pin.position.GetXY) == "function" then
+                px, py = pin.position:GetXY()
+            else
+                px, py = pin.position.x, pin.position.y
+            end
+            if not self:IsFinite(px) or not self:IsFinite(py) then return false end
             return math.abs(px - x / 100) < 0.0001 and math.abs(py - y / 100) < 0.0001
         end, traceback)
         if ok and result then

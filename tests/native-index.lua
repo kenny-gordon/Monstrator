@@ -44,9 +44,21 @@ assert(M:DatabaseReady() and M.dbIndex.lib == lib, "small databases must index i
 assert(M.dbIndex.npcCount == 6 and M.dbIndex.mapCount == 2, "unknown UiMaps must be excluded; got " .. M.dbIndex.npcCount)
 assert(not M.dbIndex.byMap[777])
 
+local originalProfiler, profileClock = debugprofilestop, 0
+debugprofilestop = function() profileClock = profileClock + 2; return profileClock end
 local records = M:DatabaseMapRecords(1)
+local expansion = M.dbIndex.expansionProfile
+assert(expansion.maps == 1 and expansion.records == #records and expansion.milliseconds == 2
+    and expansion.timedMaps == 1 and expansion.backgroundMaps == 0, "foreground expansion must be counted and timed")
 assert(#records == 6, "duplicates, sentinels and deleted rows must be dropped; got " .. #records)
 assert(M:DatabaseMapRecords(1) == records, "zone records must be cached")
+assert(expansion.maps == 1 and expansion.milliseconds == 2, "cache hits must not inflate expansion metrics")
+M:DatabaseMapRecords(2, true)
+assert(expansion.maps == 2 and expansion.backgroundMaps == 1 and expansion.backgroundRecords == 1
+    and expansion.backgroundMilliseconds == 2, "background expansions must be measured separately")
+debugprofilestop = originalProfiler
+M:DatabaseMapRecords(777)
+assert(expansion.maps == 2, "unsupported maps must not be counted as materialized cache entries")
 local byID = {}
 for _, record in ipairs(records) do
     local ok, reason = M:ValidateRecord(record)

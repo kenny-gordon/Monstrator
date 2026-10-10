@@ -136,7 +136,7 @@ The window has three columns:
   and an evidence badge. Scroll with the mouse wheel.
 - **Details** (right): separate **Location**, **Details** and **Evidence** sections
   in a scrollable reading area, with **Navigate**,
-  **Favorite**, **Browse this zone**, **3D model**, **Items sold/dropped** and
+  **Favorite**, **Browse this zone**, **3D model**, **Related items** and
   **Watch for this NPC**.
 
 **Search** matches partial names (every word must match), NPC titles, IDs,
@@ -198,6 +198,51 @@ Shift-click an item to link it in chat. For the selected item, tabs list who
 are red. Left-click a source to navigate, right-click an NPC to see its model.
 **Show sources in directory** filters the main window to every vendor and dropper.
 
+**Related items** on an NPC also includes items that reward or start its related
+quests, not just sales and drops. Name and ID searches work inside this filtered
+list. **Show all items** clears an NPC or quest filter.
+
+The **Containers** tab lists items that contain the selected item. Click a
+container to look it up and find its own sources.
+
+**Back**, in the top-right of either lookup window, restores the previous item
+or quest lookup, including its search, NPC/quest filter, selection, source tab
+and scroll positions. The last 20 steps are kept for this session only; nothing
+is added to SavedVariables. Database changes invalidate incompatible history.
+Only one of the item/quest lookup windows is shown at a time.
+
+Hover the item list's status for the full filter context and clearing guidance.
+Searches with more than 500 matches show the displayed and total counts with a
+prompt to refine the search. The quest-reward source heading distinguishes
+the number of related quests from the number of source rows; repeated
+relationship IDs do not inflate counts.
+
+### Related quests
+
+Open an NPC's **Details**, then **Related quests**. The native-styled window
+lists quests that NPC starts or finishes, searchable by name or ID. Select a
+quest to see its quest level, required level, and all listed NPC/object
+**Starts quest** and **Ends quest** locations. Click a location to navigate;
+both lists support paging and mouse-wheel scrolling.
+
+**Related quests** in Item Lookup opens quests the item starts or rewards.
+From a selected quest, **Related reward / start items** returns to Item Lookup
+with only the linked items. Reward-source waypoints use all listed turn-in NPCs
+and objects, rather than the first quest giver. If no turn-in is listed,
+starters remain available and are explicitly labeled as starters.
+
+Missing linked records remain visible with an explanation; missing coordinates
+cannot create a waypoint. These relationships are database references, **not
+live quest availability or Forever-confirmed placements**. This is not a quest
+tracker: objectives, walkthroughs, completion state and prerequisites are not
+provided. Quest relationships are read on demand; no expanded world-wide quest
+index is built at login.
+
+`/monstrator diagnostic` also reports expanded directory placements, how many
+were added by background map warmup, and expansion CPU time when the client
+provides a profiling clock. These are not per-record memory measurements.
+Background warmup remains enabled to preserve first-World-search behavior.
+
 The full build includes **884 additional item-to-boss loot relationships** imported
 from AtlasLootClassic's Classic dungeon/raid tables. No AtlasLoot addon is required.
 Supplementary sources show **AtlasLootClassic** and their tooltip explicitly says
@@ -229,6 +274,9 @@ viewer says so. **3D preview** in the item window tries wearable items on your
 character.
 
 ## NPC scan
+
+The scan window uses the same native portrait/title frame and list styling as
+the directory, with separate watch-list and recent-sighting panels.
 
 **NPC scan** (footer, or `/mon scan`) alerts you when a watched NPC appears on a
 nameplate, as your target or mouseover, or as a minimap marker. **Rare alerts**
@@ -271,7 +319,12 @@ that the encounter position is an exact spawn.
 
 - `/monstrator audit` compares your journal with the database: new NPCs, moved
   spawns and new services.
-- **NPC inventory** (`/monstrator npcs`) summarizes every known NPC by ID.
+- **Advanced NPC inventory** (`/monstrator npcs`, command only) opens a searchable, paged window grouped
+  by NPC ID. It starts with collected NPCs (confirmed or pending); filters also
+  show pending, confirmed, database or all records. Search names, IDs or zones.
+  Each row separates confirmed placements, pending encounters and database
+  records. **Export all (advanced)** opens the full maintenance report only when
+  requested; use **Share discoveries**, not this report, for submissions.
 - The journal holds 1,000 entries by default (`/monstrator limit N`, up to
   100,000). When it is full, capture pauses; nothing is deleted automatically.
 
@@ -328,7 +381,7 @@ database still work. This does not delete your journal, favorites or settings.
 | `/monstrator landmark NAME` | Save your position as a named landmark |
 | `/monstrator journal` | Manage pending and confirmed journal entries |
 | `/monstrator audit` | Compare your journal with the database |
-| `/monstrator npcs` | NPC inventory grouped by NPC ID |
+| `/monstrator npcs` | Advanced NPC coverage inspection (not a submission) |
 | `/monstrator submit` | Create a sealed submission of your discoveries |
 | `/monstrator export` | Copy your journal as text |
 | `/monstrator tags` | List the tags accepted in journal review |

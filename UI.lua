@@ -308,7 +308,7 @@ M.helpTopics = {
     { "Getting started", "help.browse" }, { "Sub-groups", "help.subgroups" },
     { "Results and sorting", "help.results" }, { "Database", "help.database" },
     { "Review journal", "help.review" }, { "Item lookup", "help.items" },
-    { "NPC scan", "help.scan" }, { "Share discoveries", "help.share" },
+    { "quest.related", "help.quests" }, { "NPC scan", "help.scan" }, { "Share discoveries", "help.share" },
     { "Keyboard", "help.keyboard" }, { "Commands", "help.commands" },
 }
 
@@ -573,7 +573,7 @@ function M:ShowCopy(text)
         box:SetMultiLine(true)
         box:SetFontObject(ChatFontNormal)
         box:SetWidth(680)
-        box:SetFont(STANDARD_TEXT_FONT, 14)
+        box:SetFont(STANDARD_TEXT_FONT, 14, "")
         trackFont(box)
         box:SetAutoFocus(false)
         scroll:SetScrollChild(box)
@@ -703,7 +703,7 @@ function M:ShowReview(record)
     f:Show()
 end
 
-function M:ShowNPCInventory()
+function M:ExportNPCInventory()
     local inventory = self:NPCInventory()
     local lines = { (L["NPC inventory: %d distinct NPC IDs (all saved/indexed sources)."]):format(#inventory),
         L["Inventory evidence note"],
@@ -720,6 +720,144 @@ function M:ShowNPCInventory()
     end
     if #inventory == 0 then table.insert(lines, L["Enable NPC discovery or capture a target; no NPC identities have been collected yet."]) end
     self:ShowCopy(table.concat(lines, "\n"))
+end
+
+local INVENTORY_ROWS = 9
+local inventoryFilters = {
+    { "collected", "inventory.collected" }, { "pending", "filter:pending" },
+    { "confirmed", "filter:confirmed" }, { "reference", "filter:reference" }, { "all", "filter:all" },
+}
+
+function M:RefreshNPCInventory()
+    local f = self.inventoryFrame
+    if not f then return end
+    local query = f.search:GetText():lower()
+    local words = {}
+    for word in query:gmatch("%S+") do words[#words + 1] = word end
+    local results = {}
+    for _, item in ipairs(f.inventory) do
+        local included = f.filter == "all"
+            or (f.filter == "collected" and item.confirmed + item.pending > 0)
+            or (f.filter == "pending" and item.pending > 0)
+            or (f.filter == "confirmed" and item.confirmed > 0)
+            or (f.filter == "reference" and (item.reference or 0) > 0)
+        if included then
+            local matches = true
+            for _, word in ipairs(words) do
+                if not item.searchText:find(word, 1, true) then matches = false; break end
+            end
+            if matches then results[#results + 1] = item end
+        end
+    end
+    f.results = results
+    local pages = math.max(1, math.ceil(#results / INVENTORY_ROWS))
+    f.page = math.max(1, math.min(f.page, pages))
+    f.summary:SetText((L["inventory.summary"]):format(#results, #f.inventory, f.page, pages))
+    for _, filter in ipairs(inventoryFilters) do
+        f.filters[filter[1]]:SetEnabled(f.filter ~= filter[1])
+    end
+    f.previous:SetEnabled(f.page > 1)
+    f.next:SetEnabled(f.page < pages)
+    f.empty:SetShown(#results == 0)
+    for i, row in ipairs(f.rows) do
+        local item = results[(f.page - 1) * INVENTORY_ROWS + i]
+        row:SetShown(item ~= nil)
+        if item then
+            row.name:SetText(item.name .. "  #" .. item.npcID)
+            row.evidence:SetText(("%s: %d  |  %s: %d  |  %s: %d"):format(
+                L["filter:confirmed"], item.confirmed, L["filter:pending"], item.pending,
+                L["filter:reference"], item.reference or 0))
+            row.zones:SetText(item.zoneText)
+        end
+    end
+end
+
+function M:LoadNPCInventory()
+    local f = self.inventoryFrame
+    f.inventory = self:NPCInventory()
+    for _, item in ipairs(f.inventory) do
+        local zones = {}
+        for mapID in pairs(item.maps) do zones[#zones + 1] = self:MapName(mapID) end
+        table.sort(zones)
+        item.zoneText = table.concat(zones, ", ")
+        item.searchText = (item.name .. " " .. item.npcID .. " " .. item.zoneText):lower()
+    end
+end
+
+function M:ShowNPCInventory()
+    if not self.inventoryFrame then
+        local f = CreateFrame("Frame", "MonstratorNPCInventory", UIParent, "PortraitFrameTemplate")
+        f:SetSize(840, 650)
+        f:SetPoint("CENTER")
+        f:SetFrameStrata("DIALOG")
+        f:SetToplevel(true)
+        f:SetClampedToScreen(true)
+        f:SetMovable(true)
+        f:EnableMouse(true)
+        f:RegisterForDrag("LeftButton")
+        f:SetScript("OnDragStart", f.StartMoving)
+        f:SetScript("OnDragStop", f.StopMovingOrSizing)
+        f.PortraitContainer.portrait:SetTexture("Interface\\Icons\\INV_Misc_Note_01")
+        f.TitleContainer.TitleText:SetText(L["NPC inventory"])
+        trackFont(f.TitleContainer.TitleText)
+        f.CloseButton:SetScript("OnClick", function() f:Hide() end)
+        escapeCloses(f)
+        label(f, "inventory.search", 28, -60, 13)
+        f.search = edit(f, 28, -85, 780)
+        f.filters, f.rows = {}, {}
+        for i, filter in ipairs(inventoryFilters) do
+            local key = filter[1]
+            f.filters[key] = button(f, filter[2], 28 + (i - 1) * 158, -120, 150, function()
+                f.filter, f.page = key, 1
+                self:RefreshNPCInventory()
+            end)
+        end
+        f.summary = label(f, "", 28, -153, 13)
+        f.empty = label(f, "inventory.empty", 28, -195, 14)
+        for i = 1, INVENTORY_ROWS do
+            local row = CreateFrame("Frame", nil, f)
+            row:SetPoint("TOPLEFT", 28, -182 - (i - 1) * 44)
+            row:SetSize(780, 42)
+            row.name = label(row, "", 0, 0, 14, 380)
+            row.zones = label(row, "", 400, 0, 13, 375)
+            row.evidence = label(row, "", 0, -20, 12, 775)
+            for _, field in ipairs({ row.name, row.zones, row.evidence }) do
+                field:SetMaxLines(1)
+                field:SetWordWrap(false)
+                field:SetNonSpaceWrap(false)
+            end
+            row.name:SetWidth(380)
+            row.zones:SetWidth(375)
+            row.evidence:SetWidth(775)
+            f.rows[i] = row
+        end
+        f.previous = button(f, "<", 28, -584, 45, function()
+            f.page = f.page - 1
+            self:RefreshNPCInventory()
+        end)
+        f.next = button(f, ">", 80, -584, 45, function()
+            f.page = f.page + 1
+            self:RefreshNPCInventory()
+        end)
+        f.export = button(f, "inventory.export", 628, -584, 180, function() self:ExportNPCInventory() end)
+        f:EnableMouseWheel(true)
+        f:SetScript("OnMouseWheel", function(_, delta)
+            f.page = f.page + (delta > 0 and -1 or 1)
+            self:RefreshNPCInventory()
+        end)
+        f.search:SetScript("OnTextChanged", function()
+            f.page = 1
+            self:RefreshNPCInventory()
+        end)
+        self.inventoryFrame = f
+    end
+    local f = self.inventoryFrame
+    f:SetScale(self.settings.frameScale)
+    self:LoadNPCInventory()
+    f.filter, f.page = "collected", 1
+    f.search:SetText("")
+    self:RefreshNPCInventory()
+    f:Show()
 end
 
 local function isReferenceRecord(record)
@@ -760,6 +898,7 @@ function M:ShowEntryDetails(entry)
         f.content = CreateFrame("Frame", nil, scroll)
         f.content:SetSize(488, 212)
         scroll:SetScrollChild(f.content)
+        f.scroll = scroll
         f.body = label(f.content, "", 0, 0, 12)
         f.body:SetWidth(488)
         f.body:SetJustifyH("LEFT")
@@ -775,6 +914,11 @@ function M:ShowEntryDetails(entry)
             self:ShowReview(f.entry.record)
             f:Hide()
         end)
+        f.quests = button(f, "quest.related", 20, -80, 180, function()
+            local r = f.entry.record
+            local ids = r.npcID and self:NPCQuestIDs(r.npcID)
+            if ids then self:ShowQuestRelations(ids, r.name) end
+        end)
         button(f, "Close", 410, -310, 120, function() f:Hide() end)
         f:EnableKeyboard(true)
         f:SetPropagateKeyboardInput(true)
@@ -787,6 +931,12 @@ function M:ShowEntryDetails(entry)
     local f, r = self.detailsFrame, entry.record
     local map = C_Map and C_Map.GetMapInfo and C_Map.GetMapInfo(r.mapID)
     f.entry = entry
+    f.quests:SetShown(r.npcID ~= nil)
+    f.scroll:ClearAllPoints()
+    f.scroll:SetPoint("TOPLEFT", 20, r.npcID and -112 or -76)
+    f.scroll:SetHeight(r.npcID and 174 or 210)
+    local provider = self:NativeProvider()
+    f.quests:SetEnabled(provider ~= nil and provider.Quest ~= nil)
     f.title:SetText(r.name .. (r.title and (" <" .. r.title .. ">") or ""))
     f.body:SetText(table.concat({
         (map and map.name or (L["Map %d"]):format(r.mapID)) .. (" | %.2f, %.2f"):format(r.x, r.y),
@@ -922,6 +1072,10 @@ end
 
 function M:RefreshIfVisible()
     if self.window and self.window:IsShown() then self:Refresh() end
+    if self.inventoryFrame and self.inventoryFrame:IsShown() then
+        self:LoadNPCInventory()
+        self:RefreshNPCInventory()
+    end
 end
 
 function M:Refresh()
@@ -1680,7 +1834,7 @@ function M:CreateWindow()
     end, 132)
     f.info.zone = control("Browse this zone", 958, -538, function() self:BrowseRecordPlace() end, 132)
     f.info.model = control("3D model", 818, -568, function() self:ShowSelectedModel() end, 132)
-    f.info.items = control("Items sold/dropped", 958, -568, function() self:ShowNPCItems() end, 132)
+    f.info.items = control("quest.relatedItems", 958, -568, function() self:ShowNPCItems() end, 132)
     f.info.watch = control("Watch for this NPC", 958, -598, function()
         local entry = self.results and self.results[self.selected]
         local r = entry and entry.record
@@ -1724,16 +1878,15 @@ function M:CreateWindow()
     footerRule:SetColorTexture(0.55, 0.62, 0.72, 0.7)
     f.captureButton = control("Capture NPC target", 16, -644, function() self:CaptureNPC("manual-target") end, 160)
     f.scanButton = control("Scan world maps", 182, -644, function() SlashCmdList.MONSTRATOR("sync world") end, 150)
-    control("NPC inventory", 338, -644, function() self:ShowNPCInventory() end, 130)
-    control("Settings", 474, -644, function() self:ShowSettings() end, 100)
-    f.scanWindowButton = control("NPC scan", 580, -644, function() self:ToggleScanWindow() end, 100)
-    f.footer = label(f, "", 690, -650, 12)
-    f.footer:SetWidth(414)
+    f.settingsButton = control("Settings", 338, -644, function() self:ShowSettings() end, 100)
+    f.scanWindowButton = control("NPC scan", 444, -644, function() self:ToggleScanWindow() end, 100)
+    f.footer = label(f, "", 554, -650, 12)
+    f.footer:SetWidth(550)
     f.footer:SetJustifyH("RIGHT")
     f.footer:SetTextColor(0.7, 0.72, 0.75)
     f.status = CreateFrame("Frame", nil, f)
-    f.status:SetPoint("TOPLEFT", 690, -642)
-    f.status:SetSize(414, 28)
+    f.status:SetPoint("TOPLEFT", 554, -642)
+    f.status:SetSize(550, 28)
     f.status:EnableMouse(true)
     f.status:SetScript("OnEnter", function(owner)
         GameTooltip:SetOwner(owner, "ANCHOR_TOP")
@@ -1777,7 +1930,8 @@ function M:CreateWindow()
     f:SetScript("OnKeyDown", function(_, key)
         if (self.options and self.options:IsShown()) or (self.reviewFrame and self.reviewFrame:IsShown())
             or (self.copyFrame and self.copyFrame:IsShown()) or (self.detailsFrame and self.detailsFrame:IsShown())
-            or (self.itemFrame and self.itemFrame:IsShown()) or (self.modelFrame and self.modelFrame:IsShown()) then
+            or (self.itemFrame and self.itemFrame:IsShown()) or (self.modelFrame and self.modelFrame:IsShown())
+            or (self.questFrame and self.questFrame:IsShown()) then
             f:SetPropagateKeyboardInput(true)
             return
         end
@@ -2393,4 +2547,4 @@ function M:CreateLauncher()
 end
 
 M.Widgets = { label = label, button = button, edit = edit, panel = panel, backdrop = applyWindowBackdrop,
-    escapeCloses = escapeCloses, marker = selectionMarker }
+    escapeCloses = escapeCloses, marker = selectionMarker, trackFont = trackFont }

@@ -97,7 +97,8 @@ assert(state.ready and #state.list == 3 and state.byNPC[22] and #state.byNPC[22]
 local details = M:ItemDetails(2672)
 assert(details.itemLevel == 15 and #details.vendor == 1 and #details.drop == 1)
 local quest = M:ResolveItemSources(details, "quest")
-assert(quest[1] and quest[1].id == 11 and quest[1].questName == "Meat Run", "quest rewards must resolve to the native quest giver")
+assert(#quest == 3 and quest[1].questName == "Meat Run" and quest[1].relation == "quest.finish",
+    "quest rewards must resolve all native turn-in NPCs and objects")
 local gathered = M:ResolveItemSources(M:ItemDetails(2589), "object")
 assert(gathered[1].name == "Linen Crate" and gathered[1].mapID == 1 and gathered[1].x == 50)
 local vendor = M:ResolveItemSources(details, "vendor")[1]
@@ -122,8 +123,9 @@ assert(enriched.Item.npcDrops(999) == nil, "loot imports cannot create unknown i
 assert(enriched.Item.npcDropReference(2589, 11) == "AtlasLootClassic"
     and enriched.Item.npcDropReference(2589, 22) == nil, "only supplementary relationships carry AtlasLoot attribution")
 M:StartItemIndex()
-assert(#M:SearchItems("", 11) == 1 and M:SearchItems("", 11)[1] == 2589,
-    "NPC item lists include imported loot without an AtlasLoot addon")
+local relatedItems = M:SearchItems("", 11)
+assert(#relatedItems == 3 and relatedItems[1] == 2672 and relatedItems[2] == 2589 and relatedItems[3] == 3000,
+    "NPC item lists include loot, quest rewards and quest-start items without another addon")
 local lootSources = M:ResolveItemSources(M:ItemDetails(2589), "drop")
 local added
 for _, source in ipairs(lootSources) do if source.id == 11 then added = source end end
@@ -184,13 +186,30 @@ M.ShowCopy = savedCopy
 assert(groups and #groups.new == 1 and copied, "the journal audit must work with a partial database")
 local diag = {}
 M.Notice = function(_, text) table.insert(diag, text) end
+M.dbCache, M.dbIndex.expansionProfile = {}, nil
+M:DatabaseMapRecords(1, true)
 M:Diagnostic()
-local standaloneLine = false
-for _, text in ipairs(diag) do standaloneLine = standaloneLine or text:find("Standalone build", 1, true) ~= nil end
+local standaloneLine, cacheLine = false, false
+for _, text in ipairs(diag) do
+    standaloneLine = standaloneLine or text:find("Standalone build", 1, true) ~= nil
+    cacheLine = cacheLine or text:find("Directory cache: 2 expanded placements; background warmup added 2 placements across 1 maps.", 1, true) ~= nil
+end
 assert(standaloneLine, "the diagnostic must report a standalone database")
+assert(cacheLine, "diagnostics must expose expanded placement counts separately from background warmup")
 M.native = { data = {}, meta = {} }
 diag = {}
+M.native.lootReference = { source = "AtlasLootClassic", commit = "source-commit",
+    drops = { [1] = "10,11", [2] = "12" } }
 M:Diagnostic()
+local lootLine = false
+for _, text in ipairs(diag) do
+    if text:find("Supplementary Classic loot references: 3 relationships (not Forever-confirmed).", 1, true) then
+        lootLine = true
+    end
+    assert(not text:find("AtlasLoot", 1, true) and not text:find("source-commit", 1, true),
+        "diagnostics must not present offline loot provenance as a runtime integration")
+end
+assert(lootLine, "diagnostics keep reference counts and the Forever caveat")
 M.native, M.Notice = saved.native, saved.notice
 M.dbIndex, M.dbCache = saved.index, saved.cache
 M.items, M.itemSearch, M.mapTransforms = saved.items, saved.itemSearch, saved.transforms

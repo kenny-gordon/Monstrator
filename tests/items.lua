@@ -22,6 +22,7 @@ local items = {
     [102] = { name = "" },
 }
 local itemIDs = { 100, 101, 102, 2589, 2672 }
+local questData = { [900] = { name = "Meat Run", starterNpcs = { 23 }, questLevel = 6, requiredLevel = 4 } }
 local function getter(source, field) return function(id) return source[id] and source[id][field] end end
 local provider = {
     native = true, version = "1.0.4",
@@ -37,6 +38,15 @@ local provider = {
     Quest = { name = function(id) if id == 900 then return "Meat Run" end end,
         starterNpcs = function(id) if id == 900 then return { 23 } end end, questLevel = function() return 6 end },
 }
+provider.Item.startQuest, provider.Item.itemDrops = getter(items, "startQuest"), getter(items, "containers")
+provider.Quest = { GetAllIds = function()
+    local ids = {}
+    for id in pairs(questData) do ids[#ids + 1] = id end
+    table.sort(ids)
+    return ids
+end }
+for _, field in ipairs({ "name", "starterNpcs", "starterObjects", "finisherNpcs", "finisherObjects",
+    "questLevel", "requiredLevel" }) do provider.Quest[field] = getter(questData, field) end
 
 M.data.entries, M.observations = {}, { entries = {}, nextID = 1 }
 M.native = { data = {}, meta = {}, provider = provider }
@@ -89,6 +99,7 @@ assert(drops[1].level == 12)
 local quests = M:ResolveItemSources(details, "quest")
 assert(quests[1].kind == "npc" and quests[1].id == 23 and quests[1].questName == "Meat Run" and quests[1].questLevel == 6,
     "quest rewards must resolve to the quest giver")
+assert(quests[1].relation == "quest.start", "starter fallback must not be mislabeled as a turn-in")
 local objects = M:ResolveItemSources(M:ItemDetails(2589), "object")
 assert(objects[1].kind == "object" and objects[1].name == "Linen Crate" and objects[1].x == 50)
 local record = M:SourceRecord(vendors[1])
@@ -150,6 +161,198 @@ assert(f.status:GetText():find("Butcher Near", 1, true))
 f.clearNPC:Click()
 assert(M.itemNPC == nil)
 
+-- Quest/item relations are requested on demand; lists and actor rows stay bounded.
+items[2672].startQuest = 0
+items[103] = { name = "Mysterious Letter", startQuest = 900 }
+items[104] = { name = "Sealed Reward", containers = { 100, 99999 } }
+itemIDs[#itemIDs + 1], itemIDs[#itemIDs + 2] = 103, 104
+questData[900].starterNpcs = { 23, 24, 23 }
+questData[900].finisherNpcs = { 20, 21, 20 }
+questData[900].finisherObjects = { 50, 50 }
+questData[901] = { name = "Crate Delivery", starterObjects = { 50 }, finisherObjects = { 50, 51 } }
+questData[902] = { name = "Unplaced Quest", starterNpcs = { 99999 } }
+questData[903] = { name = "No Actors" }
+for id = 910, 921 do questData[id] = { name = "Extra Quest " .. id, starterNpcs = { 20 } } end
+npcs[21].friendly = "H"
+M.items, M.itemSearch = nil, nil
+M:StartItemIndex()
+assert(M:ItemDetails(2672).startQuest == nil, "startQuest=0 means no quest")
+local cachedResults, cachedTotal = M:SearchItems("haunch")
+local repeatedResults, repeatedTotal = M:SearchItems("haunch")
+assert(cachedResults == repeatedResults and cachedTotal == repeatedTotal and repeatedTotal == 3,
+    "cached searches must return both results and the total")
+assert(M:SearchItems("2672", 20)[1] == 2672 and #M:SearchItems("2589", 20) == 0,
+    "numeric searches must work inside NPC filters without leaking unrelated items")
+assert(#M:SearchItems("", 23) == 2, "NPC item lookup includes quest reward and quest-start items")
+local turnIns = M:ResolveItemSources(M:ItemDetails(2672), "quest")
+assert(#turnIns == 3, "all distinct turn-in NPCs and objects must be included")
+local actorIDs = {}
+for _, actor in ipairs(turnIns) do
+    actorIDs[actor.kind .. ":" .. actor.id] = true
+    assert(actor.relation == "quest.finish", "rewards navigate to turn-in providers when listed")
+end
+assert(actorIDs["npc:20"] and actorIDs["npc:21"] and actorIDs["object:50"])
+local roles = M:QuestSources(900)
+assert(#roles == 5 and roles[1].relation == "quest.start" and roles[5].relation == "quest.finish",
+    "quest details retain all starter and finisher roles, deduplicated within a role")
+local unknownSources = M:ResolveItemSources({ quest = { 99999 } }, "quest")
+assert(#unknownSources == 1 and unknownSources[1].missing and unknownSources[1].questID == 99999,
+    "unresolved reward quests must remain visible instead of disappearing")
+local related = M:NPCQuestIDs(20)
+assert(#related == 13 and related[1] == 900, "NPC lookup includes starter and finisher quests once")
+assert(#M:NPCQuestIDs(99998) == 0)
+M:ShowEntryDetails(M.results[1])
+assert(M.detailsFrame.quests:IsShown() and M.detailsFrame.quests:IsEnabled())
+assert(M.detailsFrame.scroll.y == -112 and M.detailsFrame.scroll.height == 174,
+    "the quest action must not overlap the NPC title or scroll area")
+M.detailsFrame.quests:Click()
+local q = M.questFrame
+assert(q and q:IsShown() and q.template == "PortraitFrameTemplate" and #q.results == 13)
+assert(q.rows[8]:IsShown() and #q.rows == 8 and #q.sourceRows == 8, "quest lists must have bounded visible rows")
+assert(q.selected == q.rows[1].quest and q.rows[1].activeMarker:IsShown())
+assert(q.heading.width == 454 and q.sourceRows[1].name.width == 450,
+    "quest and actor names must be bounded by their panels")
+assert(q.levels.maxLines == 1 and math.abs(q.sourceRows[1].where.y) >= 12 * 1.5
+    and math.abs(q.sourceRows[1].where.y) + 10 * 1.5 <= q.sourceRows[1].height,
+    "quest source lines must not overlap even at maximum text scale")
+q.next:Click()
+assert(q.offset == 5 and q.previous:IsEnabled() and not q.next:IsEnabled())
+q.previous:Click()
+assert(q.offset == 0)
+q.search:SetText("MEAT 900")
+assert(#q.results == 1 and q.selected.id == 900, "quest searches require all case-insensitive tokens")
+assert(q.levels:GetText():find("Required level: 4", 1, true))
+q.items:Click()
+assert(M.itemQuest.id == 900 and M.itemNPC == nil and #M.itemResults == 2)
+assert(f.status:GetText():find("#900", 1, true) and f.clearNPC:IsShown())
+assert(M:SearchItems("103")[1] == 103 and #M:SearchItems("2589") == 0,
+    "quest item filtering includes start items and prevents exact-ID leakage")
+f.clearNPC:Click()
+assert(M.itemQuest == nil and #M:SearchItems("2589") == 1)
+M:ShowItemLookup("103")
+assert(f.questsButton:IsEnabled() and f.detailInfo:GetText():find("Starts quest", 1, true))
+f.questsButton:Click()
+assert(#q.results == 1 and q.selected.id == 900 and M.questFrame == q, "item links reuse the quest window")
+M:ShowItemLookup("104")
+assert(M.itemTab == "containers" and not f.questsButton:IsEnabled())
+assert(#M:CurrentItemSources() == 2 and f.sourceRows[1].source.kind == "item")
+local containerRow
+for _, row in ipairs(f.sourceRows) do if row.source and row.source.id == 100 then containerRow = row end end
+assert(containerRow)
+containerRow:Click()
+assert(M.itemDetails.id == 100 and M.itemQuest == nil, "container links open the parent item's lookup")
+M:ShowQuestRelations({ 901, 901, 99999 }, "Fixture")
+assert(#q.results == 2, "quest IDs must be deduplicated")
+q.search:SetText("99999")
+assert(q.selected.missing and q.levels:GetText() == M.L["quest.missing"])
+q.search:SetText("901")
+assert(#q.sources == 3, "object starters and turn-ins are both shown, preserving roles")
+local missingActor
+for _, row in ipairs(q.sourceRows) do if row.source and row.source.id == 51 then missingActor = row end end
+assert(missingActor and missingActor.where:GetText() == M.L["quest.missing"])
+local relationNotices = {}
+M.Notice = function(_, message) relationNotices[#relationNotices + 1] = message end
+missingActor:Click()
+assert(relationNotices[1]:find("no coordinates", 1, true), "unknown locations must explicitly refuse navigation")
+M.Notice = saved.notice
+local questWaypoints = {}
+TomTom = { AddWaypoint = function(_, mapID, x, y) questWaypoints[#questWaypoints + 1] = { mapID, x, y }; return {} end,
+    IsValidWaypoint = function() return true end, SetCrazyArrow = function() end }
+q.sourceRows[1]:Click()
+assert(questWaypoints[1][1] == 1 and questWaypoints[1][2] == 0.5, "quest actors use existing safe waypoint navigation")
+TomTom = nil
+questData[904] = { name = "Many Actors", starterNpcs = { 20, 21, 22, 23, 24 },
+    finisherNpcs = { 20, 21, 22, 23, 24 }, starterObjects = { 50 }, finisherObjects = { 50 } }
+M:ShowQuestRelations({ 904 }, "Paging")
+assert(#q.sources == 12 and q.sourceRows[8]:IsShown() and q.sourceNext:IsEnabled())
+q.sourceNext:Click()
+assert(q.sourceOffset == 4 and q.sourcePrevious:IsEnabled() and not q.sourceNext:IsEnabled())
+q.sourcePrevious:Click()
+assert(q.sourceOffset == 0)
+q.search:SetText("no such quest")
+assert(#q.results == 0 and q.selected == nil and q.sourceEmpty:IsShown() and not q.items:IsEnabled())
+M:ShowQuestRelations({}, "Empty")
+assert(q.empty:IsShown() and not q.items:IsEnabled() and not q.rows[1]:IsShown())
+q.search:SetFocus()
+q:GetScript("OnKeyDown")(q, "ESCAPE")
+assert(not q:IsShown() and not q.search:HasFocus(), "Escape closes quest lookup and releases search focus")
+M.detailsFrame:Hide()
+local priorIndex = M.items
+local replacement = {}
+for key, value in pairs(provider) do replacement[key] = value end
+M.native.provider = replacement
+M:StartItemIndex()
+assert(M.items ~= priorIndex and M.items.lib == replacement, "item indexes must invalidate when providers change")
+M.native.provider = provider
+M:StartItemIndex()
+
+-- Back restores both sides of the lookup chain, including filters and source tabs.
+M.itemFrame:Hide()
+M.lookupHistory, M.lookupView = {}, nil
+M:ShowItemLookup("haunch")
+M.itemSelectedIndex = 2
+M:RefreshItemWindow()
+M.itemTab = "quest"
+M:RenderItemWindow()
+assert(f.detailPanel.heading:GetText() == "1 quests / 3 sources",
+    "quest counts must distinguish related quests from their source rows")
+f.questsButton:Click()
+assert(q:IsShown() and not f:IsShown() and q.back:IsEnabled())
+q.search:SetText("MEAT 900")
+q.items:Click()
+assert(f:IsShown() and not q:IsShown() and M.itemQuest.id == 900 and f.back:IsEnabled())
+f.back:Click()
+assert(q:IsShown() and not f:IsShown() and q.search:GetText() == "MEAT 900" and q.selected.id == 900)
+q.back:Click()
+assert(f:IsShown() and not q:IsShown() and f.search:GetText() == "haunch"
+    and M.itemDetails.id == 2672 and M.itemSelectedIndex == 2 and M.itemTab == "quest",
+    "Back must restore the selected item and source tab, not just the search")
+for _ = 1, 4 do
+    local timers = pendingTimers; pendingTimers = {}
+    for _, callback in ipairs(timers) do callback() end
+end
+assert(M.itemSelectedIndex == 2 and M.itemDetails.id == 2672,
+    "queued search callbacks must not overwrite the restored selection")
+assert(#M.lookupHistory == 0 and not f.back:IsEnabled())
+M:ShowItemLookup("", 20, "Butcher Near")
+f.clearNPC:Click()
+assert(M.itemNPC == nil and f.back:IsEnabled())
+f.back:Click()
+assert(M.itemNPC.id == 20 and f.clearNPC:IsShown() and #M.itemResults == 2,
+    "Back must restore a cleared NPC filter")
+local filterTooltip, tooltipAddLine = {}, GameTooltip.AddLine
+GameTooltip.AddLine = function(_, text) filterTooltip[#filterTooltip + 1] = text end
+f.statusHelp:GetScript("OnEnter")()
+GameTooltip.AddLine = tooltipAddLine
+assert(filterTooltip[1] == M.L["lookup.filterHint"], "filtered lists must explain how to clear or restore them")
+M:ShowItemLookup("104")
+local nestedContainer
+for _, row in ipairs(f.sourceRows) do if row.source and row.source.id == 100 then nestedContainer = row end end
+assert(nestedContainer)
+nestedContainer:Click()
+assert(M.itemDetails.id == 100)
+f.back:Click()
+assert(M.itemDetails.id == 104 and M.itemTab == "containers", "Back restores container-item lookup")
+M:ShowQuestRelations({ 904 }, "History paging")
+q.sourceNext:Click()
+q.items:Click()
+f.back:Click()
+assert(q.sourceOffset == 4 and q.selected.id == 904, "Back restores quest source paging")
+for _ = 1, 25 do M:ShowItemLookup("103") end
+assert(#M.lookupHistory == 20, "lookup history must be bounded and session-only")
+local changedHistoryNotices, originalNotice = {}, M.Notice
+M.Notice = function(_, text) changedHistoryNotices[#changedHistoryNotices + 1] = text end
+M.native.provider = replacement
+f.back:Click()
+assert(#M.lookupHistory == 0 and changedHistoryNotices[1] == M.L["lookup.historyChanged"]
+    and not f.back:IsEnabled(), "database changes must explicitly invalidate incompatible lookup history")
+M.Notice, M.native.provider = originalNotice, provider
+items[2672].rewards = { 900, 900 }
+assert(#M:ItemDetails(2672).quest == 1, "duplicate relation IDs must not inflate counts")
+items[2672].rewards = { 900 }
+f:Hide()
+M.lookupView, M.lookupHistory = nil, {}
+
 -- 3D viewer
 pendingTimers = {}
 M.window.info.model:Click()
@@ -204,11 +407,30 @@ for _ = 1, 10 do
     pendingTimers = {}
     for _, callback in ipairs(timers) do callback() end
 end
-assert(M.items.ready and #M.items.list == 1504)
+assert(M.items.ready and #M.items.list == 1506)
 assert(M.itemNPC.id == 20 and M.itemResults[1] == 2672 and M.itemDetails.id == 2672,
     "the NPC item list must appear once indexing finishes")
 M:ShowItemLookup("filler 6499")
 assert(M.itemResults[1] == 6499)
+M:ShowItemLookup("filler")
+assert(#M.itemResults == 500 and M.itemTotal == 1500 and f.limit:IsShown(),
+    "broad lookups must retain the exact match total while bounding displayed results")
+assert(f.limit:GetText() == M.L["lookup.limit"]:format(500, 1500))
+M.itemSelectedIndex, M.itemOffset = 21, 12
+M:RefreshItemWindow()
+local selectedFiller = M.itemDetails.id
+M:ShowItemLookup("103")
+M.items = nil
+f.back:Click()
+assert(M.lookupRestoreItem and not M.items.ready, "Back must wait for incremental item indexing when necessary")
+for _ = 1, 10 do
+    local timers = pendingTimers; pendingTimers = {}
+    for _, callback in ipairs(timers) do callback() end
+end
+assert(M.itemDetails.id == selectedFiller and M.itemOffset == 12 and M.itemSelectedIndex == 21,
+    "Back restores paged item results even after incremental reindexing")
+M:ShowItemLookup("filler 6499")
+assert(not f.limit:IsShown(), "refining the search removes the result-limit notice")
 
 local errors = {}
 M.Error = function(_, message) table.insert(errors, message) end
@@ -220,6 +442,8 @@ assert(errors[1] and errors[1]:find("no item data", 1, true), "missing item data
 
 M.native, M.dbIndex, M.dbCache = saved.native, saved.index, saved.cache
 M.items, M.itemSearch, M.mapTransforms = nil, nil, nil
+M.itemQuest = nil
+M.lookupHistory, M.lookupView, M.lookupRestoreItem = {}, nil, nil
 M.data.entries, M.observations, M.clientData = saved.data, saved.observations, saved.clientData
 M.Notice, M.Error = saved.notice, saved.err
 M.settings.referenceEnabled, M.settings.evidenceFilter, M.settings.groupNPCs = saved.enabled, saved.filter, saved.grouping

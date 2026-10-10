@@ -7,9 +7,70 @@ local ITEM_CHUNK = 1000
 local ITEM_ROWS, SOURCE_ROWS = 12, 8
 local MAX_RESULTS = 500
 local QUESTION_ICON = "Interface\\Icons\\INV_Misc_QuestionMark"
-local tabs = { "vendor", "drop", "object", "quest" }
+local tabs = { "vendor", "drop", "object", "quest", "containers" }
 
 local read = M.ReadNativeField
+local HISTORY_LIMIT = 20
+
+function M:RememberLookup()
+    local f = self.lookupView == "item" and self.itemFrame or self.lookupView == "quest" and self.questFrame
+    if not f or not f:IsShown() then return end
+    local provider = self:NativeProvider()
+    if f.lookupProvider ~= provider then
+        if self.lookupHistory and #self.lookupHistory > 0 then self:Notice(L["lookup.historyChanged"]) end
+        self.lookupHistory = {}
+        return
+    end
+    local snapshot = { view = self.lookupView, query = f.search:GetText(), provider = provider }
+    if snapshot.view == "item" then
+        snapshot.npc, snapshot.questID = self.itemNPC, self.itemQuest and self.itemQuest.id
+        snapshot.itemID = self.itemDetails and self.itemDetails.id
+        snapshot.offset, snapshot.tab, snapshot.sourceOffset = self.itemOffset, self.itemTab, self.sourceOffset
+    else
+        snapshot.ids = {}
+        for _, quest in ipairs(f.quests) do snapshot.ids[#snapshot.ids + 1] = quest.id end
+        snapshot.title, snapshot.selectedID = f.contextTitle, f.selected and f.selected.id
+        snapshot.offset, snapshot.sourceOffset = f.offset, f.sourceOffset
+    end
+    self.lookupHistory = self.lookupHistory or {}
+    table.insert(self.lookupHistory, snapshot)
+    if #self.lookupHistory > HISTORY_LIMIT then table.remove(self.lookupHistory, 1) end
+end
+
+function M:LookupBack()
+    local history = self.lookupHistory or {}
+    local snapshot = history[#history]
+    if not snapshot then return end
+    if snapshot.provider ~= self:NativeProvider() then
+        self.lookupHistory = {}
+        self:Notice(L["lookup.historyChanged"])
+        if self.itemFrame then self.itemFrame.back:Disable() end
+        if self.questFrame then self.questFrame.back:Disable() end
+        return
+    end
+    table.remove(history)
+    if snapshot.view == "item" then
+        if snapshot.questID then
+            self:ShowQuestItems(snapshot.questID, true)
+        else
+            self:ShowItemLookup(snapshot.query, snapshot.npc and snapshot.npc.id, snapshot.npc and snapshot.npc.name, true)
+        end
+        local f = self.itemFrame
+        self.itemSearchGeneration = (self.itemSearchGeneration or 0) + 1
+        f.restoringSearch = true
+        f.search:SetText(snapshot.query)
+        f.restoringSearch = nil
+        self.lookupRestoreItem = snapshot
+        self:RefreshItemWindow()
+    else
+        self:ShowQuestRelations(snapshot.ids, snapshot.title, true)
+        local f = self.questFrame
+        f.search:SetText(snapshot.query)
+        for _, quest in ipairs(f.results) do if quest.id == snapshot.selectedID then f.selected = quest; break end end
+        f.offset, f.sourceOffset = snapshot.offset or 0, snapshot.sourceOffset or 0
+        self:RenderQuestRelations()
+    end
+end
 
 local function safeCall(object, method, ...)
     local fn = object and object[method]
@@ -27,13 +88,14 @@ function M:ItemProvider()
 end
 
 function M:StartItemIndex()
-    if self.items then return self.items end
     local lib = self:ItemProvider()
     if not lib then return end
+    if self.items and self.items.lib == lib then return self.items end
     local ok, ids = pcall(lib.Item.GetAllIds)
-    if not ok or type(ids) ~= "table" then return end
+    if not ok or type(ids) ~= "table" then self:Error(L["Item data unavailable."]); return end
     local state = { lib = lib, ids = ids, nextIndex = 1, list = {}, names = {}, lower = {}, byNPC = {}, ready = false }
     self.items = state
+    self.itemDetails, self.itemSearch, self.itemSourceCache = nil, nil, {}
     local item = lib.Item
     local function link(npcs, itemID)
         if type(npcs) ~= "table" then return end
@@ -42,6 +104,18 @@ function M:StartItemIndex()
             if not list then list = {}; state.byNPC[npcID] = list end
             if list[#list] ~= itemID then table.insert(list, itemID) end
         end
+    end
+    local questNPCs = {}
+    local function linkQuest(questID, itemID)
+        if not lib.Quest or not questID or questID <= 0 then return end
+        if not questNPCs[questID] then
+            local actors = {}
+            for _, field in ipairs({ "starterNpcs", "finisherNpcs" }) do
+                for _, npcID in ipairs(read(lib.Quest[field], questID) or {}) do actors[#actors + 1] = npcID end
+            end
+            questNPCs[questID] = actors
+        end
+        link(questNPCs[questID], itemID)
     end
     local function step()
         if self.items ~= state then return end
@@ -54,6 +128,8 @@ function M:StartItemIndex()
                 state.names[id], state.lower[id] = name, name:lower()
                 link(read(item.vendors, id), id)
                 link(read(item.npcDrops, id), id)
+                linkQuest(read(item.startQuest, id), id)
+                for _, questID in ipairs(read(item.questRewards, id) or {}) do linkQuest(questID, id) end
             end
         end
         state.nextIndex = last + 1
@@ -76,15 +152,15 @@ end
 
 function M:SearchItems(query, npcID)
     local state = self.items
-    if not state or not state.ready then return {} end
+    if not state or not state.ready then return {}, 0 end
     query = string.lower(query or ""):gsub("^%s+", ""):gsub("%s+$", "")
-    local key = query .. "|" .. tostring(npcID)
-    if self.itemSearch and self.itemSearch.key == key then return self.itemSearch.results end
+    local key = query .. "|" .. tostring(npcID) .. "|" .. tostring(self.itemQuest and self.itemQuest.id)
+    if self.itemSearch and self.itemSearch.key == key then return self.itemSearch.results, self.itemSearch.total end
     local pool = npcID and (state.byNPC[npcID] or {}) or state.list
     local results = {}
     local exactID = tonumber(query)
-    if exactID and state.names[exactID] and not npcID then table.insert(results, exactID) end
-    if query ~= "" or npcID then
+    if exactID and state.names[exactID] and not npcID and (not self.itemQuest or self.itemQuest.ids[exactID]) then table.insert(results, exactID) end
+    if query ~= "" or npcID or self.itemQuest then
         local tokens = {}
         for token in query:gmatch("%S+") do table.insert(tokens, token) end
         for _, id in ipairs(pool) do
@@ -92,7 +168,8 @@ function M:SearchItems(query, npcID)
             for _, token in ipairs(tokens) do
                 if not name:find(token, 1, true) then ok = false; break end
             end
-            if ok and id ~= exactID then table.insert(results, id) end
+            if ((ok and id ~= exactID) or (npcID and id == exactID))
+                and (not self.itemQuest or self.itemQuest.ids[id]) then table.insert(results, id) end
         end
         table.sort(results, function(a, b)
             if a == exactID or b == exactID then return a == exactID end
@@ -115,15 +192,20 @@ function M:ItemDetails(itemID)
     local lib = self:ItemProvider()
     if not lib then return end
     local item = lib.Item
+    local startQuest = read(item.startQuest, itemID)
     local function list(getter)
         local value = read(getter, itemID)
-        return type(value) == "table" and value or {}
+        local result, seen = {}, {}
+        for _, id in ipairs(type(value) == "table" and value or {}) do
+            if not seen[id] then seen[id] = true; result[#result + 1] = id end
+        end
+        return result
     end
     return {
         id = itemID, name = (self.items and self.items.names[itemID]) or read(item.name, itemID) or (L["Item %d"]):format(itemID),
         itemLevel = read(item.itemLevel, itemID), requiredLevel = read(item.requiredLevel, itemID),
         class = read(item.class, itemID), subClass = read(item.subClass, itemID),
-        startQuest = read(item.startQuest, itemID),
+        startQuest = type(startQuest) == "number" and startQuest > 0 and startQuest or nil,
         vendor = list(item.vendors), drop = list(item.npcDrops), object = list(item.objectDrops),
         quest = list(item.questRewards), containers = list(item.itemDrops),
     }
@@ -186,59 +268,60 @@ local function sourceOrder(a, b)
     return a.id < b.id
 end
 
+local function actorSource(self, lib, kind, id)
+    local provider = kind == "npc" and lib.Npc or lib.Object
+    local name = provider and read(provider.name, id)
+    local spot = provider and self:NearestSpawn(read(provider.spawns, id)) or {}
+    local title = kind == "npc" and provider and read(provider.subName, id)
+    local level = kind == "npc" and provider and read(provider.maxLevel, id)
+    local friendly = kind == "npc" and provider and read(provider.friendlyToFaction, id)
+    local faction = UnitFactionGroup("player")
+    return { kind = kind, id = id, name = name or (kind == "npc" and (L["NPC %d"]):format(id) or "#" .. id),
+        missing = not name, title = type(title) == "string" and title ~= "" and title or nil,
+        level = type(level) == "number" and level > 0 and level or nil,
+        enemy = (friendly == "A" and faction == "Horde") or (friendly == "H" and faction == "Alliance"),
+        mapID = spot.mapID, x = spot.x, y = spot.y, distance = spot.distance, count = spot.count }
+end
+
 function M:ResolveItemSources(details, tab)
     local lib = self:ItemProvider()
     if not lib or not details then return {} end
     local sources = {}
-    local faction = UnitFactionGroup("player")
-    local function npcSource(npcID, extra)
-        local name = read(lib.Npc.name, npcID)
-        if type(name) ~= "string" or name == "" then return end
-        local title = read(lib.Npc.subName, npcID)
-        local friendly = read(lib.Npc.friendlyToFaction, npcID)
-        local enemy = (friendly == "A" and faction == "Horde") or (friendly == "H" and faction == "Alliance")
-        local spot = self:NearestSpawn(read(lib.Npc.spawns, npcID)) or {}
-        local level = read(lib.Npc.maxLevel, npcID)
-        local source = { kind = "npc", id = npcID, name = name, title = type(title) == "string" and title ~= "" and title or nil,
-            level = type(level) == "number" and level > 0 and level or nil, enemy = enemy,
-            mapID = spot.mapID, x = spot.x, y = spot.y, distance = spot.distance, count = spot.count }
-        for k, v in pairs(extra or {}) do source[k] = v end
-        table.insert(sources, source)
-    end
     if tab == "vendor" or tab == "drop" then
         for _, npcID in ipairs(details[tab]) do
-            local reference
+            local source = actorSource(self, lib, "npc", npcID)
             if tab == "drop" and lib.Item.npcDropReference then
-                reference = lib.Item.npcDropReference(details.id, npcID)
+                source.lootReference = lib.Item.npcDropReference(details.id, npcID)
             end
-            npcSource(npcID, { lootReference = reference })
+            sources[#sources + 1] = source
         end
-    elseif tab == "object" and lib.Object then
+    elseif tab == "object" then
         for _, objectID in ipairs(details.object) do
-            local name = read(lib.Object.name, objectID)
-            if type(name) == "string" and name ~= "" then
-                local spot = self:NearestSpawn(read(lib.Object.spawns, objectID)) or {}
-                table.insert(sources, { kind = "object", id = objectID, name = name, mapID = spot.mapID,
-                    x = spot.x, y = spot.y, distance = spot.distance, count = spot.count })
-            end
+            sources[#sources + 1] = actorSource(self, lib, "object", objectID)
+        end
+    elseif tab == "containers" then
+        for _, containerID in ipairs(details.containers) do
+            local name = read(lib.Item.name, containerID)
+            table.insert(sources, { kind = "item", id = containerID,
+                name = name or (L["Item %d"]):format(containerID), missing = not name })
         end
     elseif tab == "quest" and lib.Quest then
         for _, questID in ipairs(details.quest) do
             local name = read(lib.Quest.name, questID)
-            if type(name) == "string" and name ~= "" then
-                local starters = read(lib.Quest.starterNpcs, questID)
-                local npcID = type(starters) == "table" and starters[1]
-                local level = read(lib.Quest.questLevel, questID)
-                local quest = { questID = questID, questName = name, questLevel = type(level) == "number" and level or nil }
-                if npcID then
-                    local before = #sources
-                    npcSource(npcID, quest)
-                    if #sources == before then npcID = nil end
+            local level = read(lib.Quest.questLevel, questID)
+            local actors = self:QuestSources(questID)
+            local hasFinisher = false
+            for _, actor in ipairs(actors) do if actor.relation == "quest.finish" then hasFinisher = true; break end end
+            local before = #sources
+            for _, actor in ipairs(actors) do
+                if not hasFinisher or actor.relation == "quest.finish" then
+                    actor.questID, actor.questName, actor.questLevel = questID, name or "#" .. questID, level
+                    sources[#sources + 1] = actor
                 end
-                if not npcID then
-                    table.insert(sources, { kind = "quest", id = questID, name = name, questID = questID,
-                        questName = name, questLevel = quest.questLevel })
-                end
+            end
+            if #sources == before then
+                sources[#sources + 1] = { kind = "quest", id = questID, name = name or "#" .. questID,
+                    questID = questID, questName = name or "#" .. questID, questLevel = level, missing = not name }
             end
         end
     end
@@ -312,13 +395,285 @@ local function itemClassName(class, subClass)
     return className
 end
 
-function M:ShowItemLookup(query, npcID, npcName)
+function M:NPCQuestIDs(npcID)
+    local lib = self:NativeProvider()
+    local quest = lib and lib.Quest
+    local ids = {}
+    local allIDs = quest and read(quest.GetAllIds)
+    if type(allIDs) ~= "table" then self:Error(L["quest.unavailable"]); return end
+    for _, id in ipairs(allIDs) do
+        local found = false
+        for _, field in ipairs({ "starterNpcs", "finisherNpcs" }) do
+            for _, actor in ipairs(read(quest[field], id) or {}) do
+                if actor == npcID then found = true; break end
+            end
+        end
+        if found then ids[#ids + 1] = id end
+    end
+    return ids
+end
+
+function M:QuestSources(questID)
+    local lib = self:NativeProvider()
+    if not lib or not lib.Quest then return {} end
+    local sources = {}
+    for _, relation in ipairs({
+        { "starterNpcs", "npc", "quest.start" }, { "starterObjects", "object", "quest.start" },
+        { "finisherNpcs", "npc", "quest.finish" }, { "finisherObjects", "object", "quest.finish" },
+    }) do
+        local seen = {}
+        for _, id in ipairs(read(lib.Quest[relation[1]], questID) or {}) do
+            if not seen[id] then
+                seen[id] = true
+                local source = actorSource(self, lib, relation[2], id)
+                source.relation = relation[3]
+                sources[#sources + 1] = source
+            end
+        end
+    end
+    table.sort(sources, function(a, b)
+        if a.relation ~= b.relation then return a.relation == "quest.start" end
+        return sourceOrder(a, b)
+    end)
+    return sources
+end
+
+function M:ShowQuestItems(questID, noHistory)
+    local lib = self:ItemProvider()
+    if not lib then self:Error(L["Item data unavailable."]); return end
+    local allIDs = read(lib.Item.GetAllIds)
+    if type(allIDs) ~= "table" then self:Error(L["Item data unavailable."]); return end
+    local ids = {}
+    for _, id in ipairs(allIDs) do
+        local related = read(lib.Item.startQuest, id) == questID
+        for _, reward in ipairs(read(lib.Item.questRewards, id) or {}) do
+            if reward == questID then related = true; break end
+        end
+        if related then ids[id] = true end
+    end
+    self:ShowItemLookup("", nil, nil, noHistory)
+    self.itemQuest = { id = questID, ids = ids }
+    self.itemSearch = nil
+    self:RefreshItemWindow()
+end
+
+function M:RenderQuestRelations()
+    local f = self.questFrame
+    if not f then return end
+    f.back:SetEnabled(self.lookupHistory ~= nil and #self.lookupHistory > 0)
+    local query = f.search:GetText():lower()
+    local words = {}
+    for word in query:gmatch("%S+") do words[#words + 1] = word end
+    local results = {}
+    for _, quest in ipairs(f.quests) do
+        local matches = true
+        for _, word in ipairs(words) do
+            if not quest.searchText:find(word, 1, true) then matches = false; break end
+        end
+        if matches then results[#results + 1] = quest end
+    end
+    f.results = results
+    f.offset = math.max(0, math.min(f.offset, math.max(0, #results - 8)))
+    for i, row in ipairs(f.rows) do
+        local quest = results[f.offset + i]
+        row.quest = quest
+        row:SetShown(quest ~= nil)
+        if quest then row:SetText(quest.name .. "  #" .. quest.id) end
+    end
+    local selected = f.selected
+    local found = false
+    for _, quest in ipairs(results) do if quest == selected then found = true; break end end
+    if not found then selected = results[1]; f.selected = selected; f.sourceOffset = 0 end
+    f.empty:SetShown(#results == 0)
+    if selected then
+        f.heading:SetText(selected.name .. "  #" .. selected.id)
+        f.levels:SetText(selected.missing and L["quest.missing"] or (L["quest.levels"]):format(
+            tostring(selected.level or L["unknown"]), tostring(selected.required or L["unknown"])))
+    else
+        f.heading:SetText(L["Nothing selected"]); f.levels:SetText("")
+    end
+    f.sources = selected and self:QuestSources(selected.id) or {}
+    f.sourceOffset = math.max(0, math.min(f.sourceOffset, math.max(0, #f.sources - 8)))
+    for i, row in ipairs(f.sourceRows) do
+        local source = f.sources[f.sourceOffset + i]
+        row.source = source
+        row:SetShown(source ~= nil)
+        if source then
+            row.name:SetText(L[source.relation] .. ": " .. source.name)
+            row.name:SetTextColor(source.enemy and 1 or 0.86, source.enemy and 0.4 or 0.84, source.enemy and 0.4 or 0.78)
+            row.where:SetText(source.missing and L["quest.missing"] or source.mapID
+                and (("%s  %.1f, %.1f"):format(self:MapName(source.mapID), source.x, source.y)) or L["Location not listed"])
+        end
+    end
+    f.sourceEmpty:SetShown(#f.sources == 0)
+    f.items:SetEnabled(selected ~= nil and self:ItemProvider() ~= nil)
+    f.previous:SetEnabled(f.offset > 0)
+    f.next:SetEnabled(f.offset + 8 < #results)
+    f.sourcePrevious:SetEnabled(f.sourceOffset > 0)
+    f.sourceNext:SetEnabled(f.sourceOffset + 8 < #f.sources)
+    f.page:SetText(#results > 0 and (L["%d-%d of %d"]):format(f.offset + 1,
+        math.min(#results, f.offset + 8), #results) or "")
+    f.sourcePage:SetText(#f.sources > 0 and (L["%d-%d of %d"]):format(f.sourceOffset + 1,
+        math.min(#f.sources, f.sourceOffset + 8), #f.sources) or "")
+    for _, row in ipairs(f.rows) do row.activeMarker:SetShown(row.quest ~= nil and row.quest == selected) end
+end
+
+function M:ShowQuestRelations(ids, title, noHistory)
+    local lib = self:NativeProvider()
+    if not lib or not lib.Quest then self:Error(L["quest.unavailable"]); return end
+    if not noHistory then self:RememberLookup() end
+    if self.itemFrame then self.itemFrame:Hide() end
+    self.lookupView, self.lookupRestoreItem = "quest", nil
+    if not self.questFrame then
+        local W = self.Widgets
+        local f = CreateFrame("Frame", "MonstratorQuests", UIParent, "PortraitFrameTemplate")
+        f:SetSize(840, 560)
+        f:SetPoint("CENTER")
+        f:SetFrameStrata("DIALOG")
+        f:SetToplevel(true)
+        f:SetClampedToScreen(true)
+        f:SetMovable(true); f:EnableMouse(true); f:RegisterForDrag("LeftButton")
+        f:SetScript("OnDragStart", f.StartMoving); f:SetScript("OnDragStop", f.StopMovingOrSizing)
+        f.PortraitContainer.portrait:SetTexture("Interface\\Icons\\INV_Misc_Book_09")
+        W.trackFont(f.TitleContainer.TitleText)
+        f.TitleContainer.TitleText:SetWidth(650)
+        f.TitleContainer.TitleText:SetMaxLines(1)
+        f.CloseButton:SetScript("OnClick", function() f:Hide() end)
+        W.escapeCloses(f)
+        f.search = W.edit(f, 28, -64, 780)
+        f.search:SetMaxLetters(100)
+        f.searchHint = W.label(f.search, "quest.search", 4, -5, 12)
+        f.searchHint:SetTextColor(0.7, 0.68, 0.6)
+        f.back = W.button(f, "lookup.back", 700, -34, 124, function() self:LookupBack() end)
+        f.rows, f.sourceRows = {}, {}
+        f.listPanel = W.panel(f, "quest.related", 16, -98, 310, 386)
+        f.sourcePanel = W.panel(f, "quest.actors", 334, -98, 490, 386)
+        f.heading = W.label(f, "", 348, -143, 14)
+        f.heading:SetWidth(454)
+        f.heading:SetMaxLines(1)
+        f.heading:SetJustifyH("LEFT")
+        f.levels = W.label(f, "", 348, -168, 12)
+        f.levels:SetWidth(454)
+        f.levels:SetMaxLines(1)
+        f.levels:SetJustifyH("LEFT")
+        f.empty = W.label(f, "quest.empty", 30, -152, 12)
+        f.empty:SetWidth(280)
+        f.sourceEmpty = W.label(f, "Location not listed", 348, -210, 12)
+        f.sourceEmpty:SetWidth(454)
+        local function scrollQuests(_, delta)
+            f.offset = f.offset - delta * 3; self:RenderQuestRelations()
+        end
+        local function scrollSources(_, delta)
+            f.sourceOffset = f.sourceOffset - delta * 2; self:RenderQuestRelations()
+        end
+        f.listPanel:EnableMouseWheel(true); f.listPanel:SetScript("OnMouseWheel", scrollQuests)
+        f.sourcePanel:EnableMouseWheel(true); f.sourcePanel:SetScript("OnMouseWheel", scrollSources)
+        for i = 1, 8 do
+            local row = W.button(f, "", 28, -146 - (i - 1) * 39, 286, function() end)
+            W.marker(row)
+            row:SetScript("OnClick", function() f.selected, f.sourceOffset = row.quest, 0; self:RenderQuestRelations() end)
+            row:EnableMouseWheel(true)
+            row:SetScript("OnMouseWheel", scrollQuests)
+            row:SetScript("OnEnter", function()
+                if not row.quest then return end
+                GameTooltip:SetOwner(row, "ANCHOR_RIGHT")
+                GameTooltip:SetText(row.quest.name .. "  #" .. row.quest.id)
+                GameTooltip:AddLine((L["quest.levels"]):format(tostring(row.quest.level or L["unknown"]),
+                    tostring(row.quest.required or L["unknown"])), 1, 1, 1, true)
+                if row.quest.missing then GameTooltip:AddLine(L["quest.missing"], 1, 0.82, 0, true) end
+                GameTooltip:AddLine(L["Reference data; not verified for this server."], 1, 0.82, 0, true)
+                GameTooltip:Show()
+            end)
+            row:SetScript("OnLeave", function() GameTooltip:Hide() end)
+            f.rows[i] = row
+            local source = CreateFrame("Button", nil, f)
+            source:SetPoint("TOPLEFT", 348, -192 - (i - 1) * 36); source:SetSize(454, 35)
+            source:SetHighlightTexture("Interface\\QuestFrame\\UI-QuestTitleHighlight", "ADD")
+            source.name = W.label(source, "", 0, 0, 12)
+            source.where = W.label(source, "", 0, -19, 10)
+            for _, font in ipairs({ source.name, source.where }) do
+                font:SetWidth(450); font:SetMaxLines(1); font:SetJustifyH("LEFT")
+            end
+            source.where:SetTextColor(0.7, 0.68, 0.6)
+            source:SetScript("OnClick", function() if source.source then self:NavigateSource(source.source) end end)
+            source:EnableMouseWheel(true)
+            source:SetScript("OnMouseWheel", scrollSources)
+            source:SetScript("OnEnter", function()
+                local actor = source.source
+                if not actor then return end
+                GameTooltip:SetOwner(source, "ANCHOR_RIGHT")
+                GameTooltip:SetText(L[actor.relation] .. ": " .. actor.name .. "  #" .. actor.id)
+                GameTooltip:AddLine(source.where:GetText(), 1, 1, 1, true)
+                GameTooltip:AddLine(L["Reference data; not verified for this server."], 1, 0.82, 0, true)
+                if actor.mapID then GameTooltip:AddLine(L["Left-click: set waypoint (nearest spawn)"], 0.6, 0.9, 0.6) end
+                if actor.enemy then GameTooltip:AddLine(L["Hostile to your faction"], 1, 0.4, 0.4) end
+                GameTooltip:Show()
+            end)
+            source:SetScript("OnLeave", function() GameTooltip:Hide() end)
+            f.sourceRows[i] = source
+        end
+        f.previous = W.button(f, "<", 28, -490, 40, function() f.offset = f.offset - 8; self:RenderQuestRelations() end)
+        f.next = W.button(f, ">", 74, -490, 40, function() f.offset = f.offset + 8; self:RenderQuestRelations() end)
+        f.page = W.label(f, "", 124, -495, 11)
+        f.page:SetWidth(188); f.page:SetJustifyH("RIGHT")
+        f.items = W.button(f, "quest.items", 348, -490, 220, function()
+            if f.selected then self:ShowQuestItems(f.selected.id) end
+        end)
+        f.sourcePrevious = W.button(f, "<", 580, -490, 40, function()
+            f.sourceOffset = f.sourceOffset - 8; self:RenderQuestRelations()
+        end)
+        f.sourceNext = W.button(f, ">", 626, -490, 40, function()
+            f.sourceOffset = f.sourceOffset + 8; self:RenderQuestRelations()
+        end)
+        f.sourcePage = W.label(f, "", 674, -495, 11)
+        f.sourcePage:SetWidth(128); f.sourcePage:SetJustifyH("RIGHT")
+        local caveat = W.label(f, "Reference data; not verified for this server.", 28, -530, 12)
+        caveat:SetWidth(784)
+        caveat:SetMaxLines(1)
+        f.search:SetScript("OnTextChanged", function()
+            f.searchHint:SetShown(f.search:GetText() == "" and not f.search:HasFocus())
+            f.offset, f.sourceOffset = 0, 0; self:RenderQuestRelations()
+        end)
+        f.search:SetScript("OnEditFocusGained", function() f.searchHint:Hide() end)
+        f.search:SetScript("OnEditFocusLost", function() f.searchHint:SetShown(f.search:GetText() == "") end)
+        f.search:SetScript("OnEnterPressed", function() f.search:ClearFocus() end)
+        f:SetScript("OnHide", function() GameTooltip:Hide(); f.search:ClearFocus() end)
+        self.questFrame = f
+    end
+    local f, seen = self.questFrame, {}
+    f.lookupProvider = lib
+    f.contextTitle = title
+    f.quests = {}
+    for _, id in ipairs(ids) do
+        if not seen[id] then
+            seen[id] = true
+            local name = read(lib.Quest.name, id)
+            f.quests[#f.quests + 1] = { id = id, name = name or "#" .. id, missing = not name,
+                searchText = ((name or "") .. " " .. id):lower(),
+                level = read(lib.Quest.questLevel, id), required = read(lib.Quest.requiredLevel, id) }
+        end
+    end
+    table.sort(f.quests, function(a, b) if a.name ~= b.name then return a.name < b.name end; return a.id < b.id end)
+    f.offset, f.sourceOffset, f.selected = 0, 0, nil
+    f.TitleContainer.TitleText:SetText(L["quest.related"] .. " - " .. (title or ""))
+    f:SetScale(self.settings.frameScale)
+    f.search:SetText("")
+    self:RenderQuestRelations()
+    f:Show()
+end
+
+function M:ShowItemLookup(query, npcID, npcName, noHistory)
     if not self:ItemProvider() then
         self:Error(L["Item lookup has no item data in this build (standalone). Import a database with tools\\monstrator-db.cjs to enable it."])
         return
     end
+    if not noHistory then self:RememberLookup() end
+    if self.questFrame then self.questFrame:Hide() end
+    self.lookupView, self.lookupRestoreItem = "item", nil
     if not self.itemFrame then self:CreateItemWindow() end
     local f = self.itemFrame
+    f.lookupProvider = self:ItemProvider()
+    self.itemQuest, self.itemSearch = nil, nil
     f:SetScale(self.settings.frameScale)
     self.itemNPC = npcID and { id = npcID, name = npcName or (L["NPC %d"]):format(npcID) } or nil
     self.itemOffset, self.itemSelectedIndex, self.itemResults = 0, 1, {}
@@ -342,7 +697,17 @@ function M:RefreshItemWindow()
     self.itemResults, self.itemTotal = results, total or (self.itemSearch and self.itemSearch.total) or #results
     self.itemSelectedIndex = math.max(1, math.min(self.itemSelectedIndex or 1, #results))
     self.itemOffset = math.max(0, math.min(self.itemOffset or 0, #results - ITEM_ROWS))
+    local restore = self.lookupRestoreItem
+    if restore and self.items and self.items.ready then
+        self.lookupRestoreItem = nil
+        for index, id in ipairs(results) do if id == restore.itemID then self.itemSelectedIndex = index; break end end
+        self.itemOffset, self.itemTab = restore.offset or 0, restore.tab
+    end
     self:SelectItem(results[self.itemSelectedIndex])
+    if restore and self.items and self.items.ready then
+        self.sourceOffset = restore.sourceOffset or 0
+        self:RenderItemWindow()
+    end
 end
 
 function M:SelectItem(itemID)
@@ -376,25 +741,32 @@ function M:RenderItemWindow()
     local f = self.itemFrame
     if not f or not f:IsShown() then return end
     local state = self.items
+    f.back:SetEnabled(self.lookupHistory ~= nil and #self.lookupHistory > 0)
     local status
     if not state then status = L["Item data unavailable."]
     elseif not state.ready then
         status = (L["Indexing items... %d%%"]):format(math.floor((state.nextIndex - 1) * 100 / math.max(1, #state.ids)))
     elseif self.itemNPC then
-        status = (L["Items sold or dropped by %s: %d"]):format(self.itemNPC.name, self.itemTotal or 0)
+        status = (L["quest.npcItems"]):format(self.itemNPC.name, self.itemTotal or 0)
+    elseif self.itemQuest then
+        status = (L["quest.itemCount"]):format(self.itemQuest.id, self.itemTotal or 0)
     else
         status = ("%d of %d items"):format(self.itemTotal or 0, #state.list)
     end
     f.status:SetText(status)
-    f.clearNPC:SetShown(self.itemNPC ~= nil)
+    f.statusText = status
+    f.clearNPC:SetShown(self.itemNPC ~= nil or self.itemQuest ~= nil)
     local results = self.itemResults or {}
+    f.limit:SetShown((self.itemTotal or 0) > #results)
+    f.limit:SetText((L["lookup.limit"]):format(#results, self.itemTotal or 0))
     self.itemOffset = math.max(0, math.min(self.itemOffset or 0, #results - ITEM_ROWS))
     self.itemSelectedIndex = self.itemSelectedIndex or 1
-    f.listPanel.heading:SetText(self.itemNPC and (L["Items from "] .. self.itemNPC.name) or L["Items"])
+    f.listPanel.heading:SetText(self.itemNPC and (L["Items from "] .. self.itemNPC.name)
+        or self.itemQuest and (L["Quest: "] .. self.itemQuest.id) or L["Items"])
     local query = f.search:GetText()
     f.empty:SetShown(#results == 0)
     if #results == 0 then
-        f.empty:SetText(state and state.ready and (query == "" and not self.itemNPC
+        f.empty:SetText(state and state.ready and (query == "" and not self.itemNPC and not self.itemQuest
             and L["Type an item name or ID.\nExamples: linen, haunch, 2589"]
             or L["No matching items."]) or L["Loading items..."])
     end
@@ -424,7 +796,9 @@ function M:RenderItemDetails()
         control:SetShown(d ~= nil)
     end
     for _, tab in ipairs(tabs) do f.tabs[tab]:SetShown(d ~= nil) end
+    f.questsButton:SetEnabled(d ~= nil and (d.startQuest ~= nil or #d.quest > 0))
     if not d then
+        f.detailPanel.heading:SetText(L["Sources"])
         f.detailName:SetText(L["Nothing selected"])
         f.detailInfo:SetText(L["Pick an item to see who sells it, drops it, or rewards it."])
         f.sourceEmpty:SetText("")
@@ -443,11 +817,11 @@ function M:RenderItemDetails()
     if d.startQuest then
         local lib = self:ItemProvider()
         local questName = lib and read(lib.Quest and lib.Quest.name, d.startQuest)
-        table.insert(lines, "|cffffd100Starts a quest:|r " .. tostring(questName or d.startQuest))
+        table.insert(lines, "|cffffd100" .. L["quest.start"] .. ":|r " .. tostring(questName or ("#" .. d.startQuest)))
     end
-    if #d.containers > 0 then table.insert(lines, (L["Found in %d container item(s)"]):format(#d.containers)) end
     f.detailInfo:SetText(table.concat(lines, "\n"))
-    local labels = { vendor = L["Sold by"], drop = L["Dropped by"], object = L["Gathered"], quest = L["Quest reward"] }
+    local labels = { vendor = L["Sold by"], drop = L["Dropped by"], object = L["Gathered"], quest = L["Quest reward"],
+        containers = L["quest.containers"] }
     for _, tab in ipairs(tabs) do
         local b = f.tabs[tab]
         b:SetText((L["%s (%d)"]):format(labels[tab], #d[tab]))
@@ -455,6 +829,8 @@ function M:RenderItemDetails()
         if #d[tab] == 0 then b:Disable() else b:Enable() end
     end
     local sources = self:CurrentItemSources()
+    f.detailPanel.heading:SetText(self.itemTab == "quest"
+        and (L["lookup.questSources"]):format(#d.quest, #sources) or (L["%s (%d)"]):format(L["Sources"], #sources))
     self.sourceOffset = math.max(0, math.min(self.sourceOffset or 0, #sources - SOURCE_ROWS))
     local npcSources = #d.vendor + #d.drop
     if npcSources > 0 then f.directoryButton:Enable() else f.directoryButton:Disable() end
@@ -465,7 +841,7 @@ function M:RenderItemDetails()
         row:SetShown(source ~= nil)
         if source then
             local nameText = source.name
-            if source.questName and source.kind == "npc" then nameText = source.questName .. " |cff9aa3b5- from " .. source.name .. "|r" end
+            if source.questName and source.kind ~= "quest" then nameText = source.questName .. " - " .. source.name end
             if source.enemy then nameText = "|cffff6060" .. nameText .. "|r" end
             row.name:SetText(nameText)
             local where
@@ -476,6 +852,9 @@ function M:RenderItemDetails()
             if source.level then where = L["Lv "] .. source.level .. " | " .. where end
             if source.title then where = "<" .. source.title .. "> " .. where end
             if source.lootReference then where = where .. " | " .. source.lootReference end
+            if source.relation then where = L[source.relation] .. " | " .. where end
+            if source.kind == "item" then where = L["quest.openItem"] end
+            if source.missing then where = L["quest.missing"] end
             row.detail:SetText(where)
             if source.distance then
                 local yards = math.floor(source.distance + 0.5)
@@ -527,6 +906,7 @@ function M:CreateItemWindow()
     subtitle:SetWidth(500)
     subtitle:SetJustifyH("LEFT")
     subtitle:SetTextColor(0.7, 0.72, 0.78)
+    f.back = button(f, "lookup.back", 700, -34, 124, function() self:LookupBack() end)
     f.CloseButton:SetScript("OnClick", function() f:Hide() end)
     local rule = f:CreateTexture(nil, "BACKGROUND")
     rule:SetPoint("TOPLEFT", 16, -60)
@@ -540,6 +920,8 @@ function M:CreateItemWindow()
     button(f, "x", 362, -68, 26, function() f.search:SetText(""); f.search:SetFocus() end)
     f.search:SetScript("OnTextChanged", function()
         f.searchHint:SetShown(f.search:GetText() == "" and not f.search:HasFocus())
+        if f.restoringSearch then return end
+        self.lookupRestoreItem = nil
         self.itemSearchGeneration = (self.itemSearchGeneration or 0) + 1
         local generation = self.itemSearchGeneration
         local function run()
@@ -557,8 +939,20 @@ function M:CreateItemWindow()
     f.status:SetMaxLines(1)
     f.status:SetJustifyH("LEFT")
     f.status:SetTextColor(0.85, 0.82, 0.6)
+    f.statusHelp = CreateFrame("Frame", nil, f)
+    f.statusHelp:SetPoint("TOPLEFT", 400, -68)
+    f.statusHelp:SetSize(290, 24)
+    f.statusHelp:EnableMouse(true)
+    f.statusHelp:SetScript("OnEnter", function()
+        GameTooltip:SetOwner(f.statusHelp, "ANCHOR_RIGHT")
+        GameTooltip:SetText(f.statusText or "")
+        if self.itemNPC or self.itemQuest then GameTooltip:AddLine(L["lookup.filterHint"], 1, 1, 1, true) end
+        GameTooltip:Show()
+    end)
+    f.statusHelp:SetScript("OnLeave", function() GameTooltip:Hide() end)
     f.clearNPC = button(f, "Show all items", 700, -68, 124, function()
-        self.itemNPC = nil
+        self:RememberLookup()
+        self.itemNPC, self.itemQuest, self.itemSearch = nil, nil, nil
         self.itemOffset, self.itemSelectedIndex = 0, 1
         self:RefreshItemWindow()
     end)
@@ -616,6 +1010,11 @@ function M:CreateItemWindow()
     f.itemPage:SetWidth(180)
     f.itemPage:SetJustifyH("RIGHT")
     f.itemPage:SetTextColor(0.65, 0.67, 0.72)
+    f.limit = label(f, "", 28, -479, 9)
+    f.limit:SetWidth(170)
+    f.limit:SetMaxLines(2)
+    f.limit:SetJustifyH("LEFT")
+    f.limit:SetTextColor(1, 0.82, 0)
     local function scrollItems(_, delta)
         local count = #(self.itemResults or {})
         self.itemOffset = math.max(0, math.min(math.max(0, count - ITEM_ROWS), (self.itemOffset or 0) - delta * 3))
@@ -634,6 +1033,9 @@ function M:CreateItemWindow()
         if not self.itemDetails then return end
         GameTooltip:SetOwner(iconButton, "ANCHOR_RIGHT")
         GameTooltip:SetHyperlink("item:" .. self.itemDetails.id)
+        if #self.itemDetails.containers > 0 then
+            GameTooltip:AddLine((L["Found in %d container item(s)"]):format(#self.itemDetails.containers), 1, 0.82, 0, true)
+        end
         GameTooltip:Show()
     end)
     iconButton:SetScript("OnLeave", function() GameTooltip:Hide() end)
@@ -649,7 +1051,7 @@ function M:CreateItemWindow()
     f.detailInfo:SetTextColor(0.8, 0.82, 0.86)
     f.tabs = {}
     for i, tab in ipairs(tabs) do
-        local b = button(f, tab, 414 + (i - 1) * 101, -208, 99, function()
+        local b = button(f, tab, 414 + (i - 1) * 81, -208, 79, function()
             self.itemTab, self.sourceOffset = tab, 0
             self:RenderItemWindow()
         end)
@@ -684,6 +1086,7 @@ function M:CreateItemWindow()
         row:SetScript("OnClick", function(b, mouse)
             local source = b.source
             if not source then return end
+            if source.kind == "item" then self:ShowItemLookup(tostring(source.id)); return end
             if mouse == "RightButton" then
                 if source.kind == "npc" then self:ShowModel("npc", source.id, source.name) end
                 return
@@ -702,12 +1105,16 @@ function M:CreateItemWindow()
             if source.questName then
                 GameTooltip:AddLine(L["Quest: "] .. source.questName .. (source.questLevel and (" [" .. source.questLevel .. "]") or ""), 1, 0.82, 0)
             end
+            if source.relation then GameTooltip:AddLine(L[source.relation], 1, 1, 1) end
+            GameTooltip:AddLine(L["Reference data; not verified for this server."], 1, 0.82, 0, true)
             if source.mapID then
                 GameTooltip:AddLine((L["%s  %.1f, %.1f"]):format(self:MapName(source.mapID), source.x, source.y), 1, 1, 1)
                 GameTooltip:AddLine(L["Left-click: set waypoint (nearest spawn)"], 0.6, 0.9, 0.6)
             end
             if source.enemy then GameTooltip:AddLine(L["Hostile to your faction"], 1, 0.4, 0.4) end
             if source.kind == "npc" then GameTooltip:AddLine(L["Right-click: 3D model"], 0.6, 0.9, 0.6) end
+            if source.kind == "item" then GameTooltip:AddLine(L["quest.openItem"], 0.6, 0.9, 0.6) end
+            if source.missing then GameTooltip:AddLine(L["quest.missing"], 1, 0.82, 0, true) end
             GameTooltip:Show()
         end)
         row:SetScript("OnLeave", function() GameTooltip:Hide() end)
@@ -740,10 +1147,19 @@ function M:CreateItemWindow()
         if link and ChatFrame_OpenChat then ChatFrame_OpenChat(link) return end
         self:Notice(L["Item not cached yet; try again in a moment."])
     end)
-    local hint = label(f, "Left-click a source for a waypoint. Shift-click an item to link it.", 456, -521, 11)
-    hint:SetWidth(368)
-    hint:SetJustifyH("RIGHT")
-    hint:SetTextColor(0.6, 0.62, 0.68)
+    f.questsButton = button(f, "quest.related", 454, -516, 180, function()
+        local d = self.itemDetails
+        if not d then return end
+        local ids = {}
+        for _, id in ipairs(d.quest) do ids[#ids + 1] = id end
+        if d.startQuest then ids[#ids + 1] = d.startQuest end
+        self:ShowQuestRelations(ids, d.name)
+    end)
+    f.hint = label(f, "Left-click a source for a waypoint. Shift-click an item to link it.", 640, -517, 10)
+    f.hint:SetWidth(184)
+    f.hint:SetMaxLines(2)
+    f.hint:SetJustifyH("LEFT")
+    f.hint:SetTextColor(0.7, 0.68, 0.6)
     f:RegisterEvent("GET_ITEM_INFO_RECEIVED")
     f:SetScript("OnEvent", function()
         if f.renderQueued or not f:IsShown() then return end

@@ -81,6 +81,16 @@ local provider = assert(M:NativeProvider())
 local ids = provider.Npc.GetAllIds()
 assert(#ids > 0 and provider.Npc.name(ids[1]), "packaged native rows must decode")
 local counts = M:NativeSummary()
+if not ${standalone} then
+  local questIDs = provider.Quest.GetAllIds()
+  assert(#questIDs > 0, "full package must retain quest data")
+  M:ShowQuestRelations({questIDs[1]}, "Release smoke test")
+  assert(M.questFrame:IsShown() and M.questFrame.selected.id == questIDs[1],
+    "packaged quest window must resolve native quests")
+  assert(M.questFrame.heading:GetText():find(provider.Quest.name(questIDs[1]), 1, true),
+    "packaged quest heading must use native names")
+  M.questFrame:Hide()
+end
 __release = { ready = M.ready, counts = counts, items = M:ItemProvider() ~= nil,
   loot = M.native.lootReference ~= nil }
 `, 'packaged startup', '__release');

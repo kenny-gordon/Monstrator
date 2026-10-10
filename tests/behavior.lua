@@ -101,6 +101,27 @@ C_Map.CanSetUserWaypointOnMap = function() return true end
 C_Map.SetUserWaypoint = function(value) pin = value end
 C_Map.GetUserWaypoint = function() return pin end
 assert(M:SetNavigationWaypoint(1, 10, 20, "Synthetic"))
+TomTom = nil
+local exceptions, previousHandler = {}, geterrorhandler
+geterrorhandler = function() return function(message) exceptions[#exceptions + 1] = message end end
+C_Map.GetUserWaypoint = function() return { uiMapID = pin.uiMapID, position = { x = 0.1, y = 0.2 } } end
+M.copied = false
+assert(M:SetNavigationWaypoint(1, 10, 20, "Plain vector") and not M.copied,
+    "native waypoint readback can return plain x/y fields without a GetXY method")
+assert(#exceptions == 0, "plain native waypoint vectors must not raise Lua errors")
+C_Map.GetUserWaypoint = function() return { uiMapID = 1, position = { x = 0.3, y = 0.2 } } end
+assert(not M:SetNavigationWaypoint(1, 10, 20, "Wrong coordinates") and M.copied,
+    "mismatched native coordinates must fall back to manual copying")
+C_Map.GetUserWaypoint = function() return { uiMapID = 1, position = {} } end
+M.copied = false
+assert(not M:SetNavigationWaypoint(1, 10, 20, "Missing coordinates") and M.copied)
+C_Map.GetUserWaypoint = function() return { uiMapID = 1, position = { x = "bad", y = 0.2 } } end
+assert(not M:SetNavigationWaypoint(1, 10, 20, "Invalid coordinates"))
+C_Map.GetUserWaypoint = function() return { uiMapID = 2, position = { x = 0.1, y = 0.2 } } end
+assert(not M:SetNavigationWaypoint(1, 10, 20, "Wrong map"))
+assert(#exceptions == 0, "unsupported native pin shapes must reject explicitly, not call missing methods")
+geterrorhandler = previousHandler
+C_Map.GetUserWaypoint = function() return pin end
 C_Map.CanSetUserWaypointOnMap = function() return false end
 assert(not M:SetNavigationWaypoint(1, 10, 20, "Synthetic"))
 M.ShowCopy = showCopy
