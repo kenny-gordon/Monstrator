@@ -28,6 +28,7 @@ Runtime indexes and quarantined records are not SavedVariables.
 | `level` | Optional observed integer NPC level; -1 denotes unknown/boss level |
 | `creatureType`, `classification` | Optional client-provided NPC type/rank strings |
 | `reaction` | Optional observed reaction to player (1–8), not a faction eligibility rule |
+| `observer` | Optional `Alliance`/`Horde` of the character whose `reaction` was recorded |
 | `title` | Optional NPC subname/title string (e.g. `Alchemy Supplies`), shown as `<title>` and searchable |
 
 External JSON imports require `curated`/`confirmed` records and a nonempty
@@ -166,7 +167,12 @@ local trainer snapshot. Only rank lines such as `Blacksmithing` or
 for a journal record with no `faction` when its reaction is 5 or more, or 4 with
 an interaction source. In `Discoveries.lua` the entry is then marked
 `factionInferred = true`. A real `Alliance`/`Horde`/`Both` seen later replaces
-the inference. The marker never ships in the overlay. NPCs typed
+the inference. The marker never ships in the overlay. Records captured since
+the `observer` field was added store the capturing character's side
+(`Alliance`/`Horde`) next to `reaction`. A reaction of 3 or less from a known
+side adds that side to `hostileTo` (Discoveries only) and removes it from an
+inferred `friendlyToFaction`: hostile to Alliance makes it `H`, and hostile to
+both clears it. Reported faction groups are never trimmed. NPCs typed
 `Not specified` with reaction 4 or more and no service tag are world props. The
 collector skips them, harvest ignores them, and `clean` removes them from
 discoveries.

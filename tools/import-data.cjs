@@ -14,7 +14,7 @@ const tags = new Set([
 ]);
 const fields = ['key', 'npcID', 'name', 'kind', 'category', 'mapID', 'x', 'y',
   'source', 'permission', 'edition', 'build', 'locale', 'verification', 'precision', 'tags', 'faction',
-  'level', 'reaction', 'creatureType', 'classification'];
+  'level', 'reaction', 'observer', 'creatureType', 'classification'];
 
 function validate(record) {
   if (!record || typeof record !== 'object' || Array.isArray(record)) return 'expected an object';
@@ -32,6 +32,7 @@ function validate(record) {
   if (record.edition !== 'Forever') return 'requires explicit Forever edition';
   if (!Array.isArray(record.tags) || record.tags.some(t => !tags.has(t))) return 'invalid canonical tags';
   if (record.faction !== undefined && !['Alliance', 'Horde', 'Both'].includes(record.faction)) return 'invalid faction';
+  if (record.observer !== undefined && !['Alliance', 'Horde'].includes(record.observer)) return 'invalid observer';
   if (record.level !== undefined && (!Number.isSafeInteger(record.level) || record.level < -1)) return 'invalid level';
   if (record.reaction !== undefined && (!Number.isSafeInteger(record.reaction)
       || record.reaction < 1 || record.reaction > 8)) return 'invalid reaction';

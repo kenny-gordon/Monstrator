@@ -427,6 +427,20 @@ try {
     db.mergeFaction(neutral, { reaction: 4, source: 'local:GOSSIP_SHOW' });
     assert.equal(neutral.friendlyToFaction, 'AH', 'a neutral unit that talks to the player is not hostile');
     assert.equal(db.mergeFaction({}, { reaction: 2 }), false, 'hostile units gain no faction');
+    // Hostility seen by a known side removes that side from an inferred friendliness, in either order.
+    const sided = {};
+    db.mergeFaction(sided, { reaction: 5, source: 'local:GOSSIP_SHOW' });
+    db.mergeFaction(sided, { reaction: 2, observer: 'Alliance' });
+    assert.deepEqual(sided, { friendlyToFaction: 'H', factionInferred: true, hostileTo: 'A' }, 'hostile to Alliance means Horde-only');
+    const sidedFirst = {};
+    db.mergeFaction(sidedFirst, { reaction: 1, observer: 'Horde' });
+    db.mergeFaction(sidedFirst, { reaction: 6, source: 'local:GOSSIP_SHOW' });
+    assert.equal(sidedFirst.friendlyToFaction, 'A', 'earlier hostility still limits a later inference');
+    db.mergeFaction(sidedFirst, { reaction: 2, observer: 'Alliance' });
+    assert.ok(!sidedFirst.friendlyToFaction && !sidedFirst.factionInferred, 'hostile to both sides is just a mob');
+    const reported = { friendlyToFaction: 'H' };
+    db.mergeFaction(reported, { reaction: 2, observer: 'Alliance' });
+    assert.equal(reported.friendlyToFaction, 'H', 'a reported faction group is never trimmed');
     assert.equal(db.isProp({ creatureType: 'Not specified', reaction: 5, tags: {} }), true, 'untyped friendly props');
     assert.equal(db.isProp({ creatureType: 'Not specified', reaction: 2 }), false, 'hostile untyped creatures are real');
     // The overlay turns the harvest into database rows; references to unknown NPCs are dropped.

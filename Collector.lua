@@ -124,7 +124,7 @@ function M:AddObservation(record)
                 and record.category ~= "Unclassified" and record.category ~= "Combat" then
                 existing.category = record.category
             end
-            for _, key in ipairs({ "level", "reaction", "creatureType", "classification", "title", "faction" }) do
+            for _, key in ipairs({ "level", "reaction", "observer", "creatureType", "classification", "title", "faction" }) do
                 if record[key] ~= nil then existing[key] = record[key] end
             end
             for _, tag in ipairs(record.tags) do
@@ -424,6 +424,11 @@ function M:CaptureNPC(event, unit)
             end
         end
         record.faction = self:UnitFriendlyFaction(unit)
+        -- The reaction is relative to this character; its faction says which side the reaction speaks for.
+        local observer = UnitFactionGroup and UnitFactionGroup("player")
+        if record.reaction and readable(observer) and (observer == "Alliance" or observer == "Horde") then
+            record.observer = observer
+        end
         if self:IsPropRecord(record) then
             if manual then self:Notice(L["Not a directory NPC (world prop); nothing recorded: "] .. name) end
             return
@@ -902,7 +907,7 @@ function M:ExportText()
     table.sort(keys)
     local fields = { "key", "npcID", "name", "kind", "category", "mapID", "x", "y",
         "source", "build", "locale", "verification", "precision", "lastSeen", "sightings", "faction",
-        "level", "reaction", "creatureType", "classification", "title" }
+        "level", "reaction", "observer", "creatureType", "classification", "title" }
     for _, key in ipairs(keys) do
         local record = self.observations.entries[key]
         local valid, reason = self:ValidateRecord(record)

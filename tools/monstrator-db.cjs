@@ -362,9 +362,12 @@ const usableNpc = (record) => record && record.kind === 'npc' && Number.isIntege
 // spoken to while neutral, means the NPC is not hostile; it serves both sides until a sighting reports its group,
 // which then replaces the inference (factionInferred stays in Discoveries; the overlay ships only the side).
 const PASSIVE_SOURCES = /UPDATE_MOUSEOVER_UNIT|PLAYER_TARGET_CHANGED|NAME_PLATE_UNIT_ADDED|^scan:/;
+// Newer records name the observing character's side; hostility seen from a side (hostileTo, Discoveries only)
+// removes that side from an inferred friendliness. A reported faction group is never overridden.
 function mergeFaction(entry, record) {
   const before = entry.friendlyToFaction;
   const side = { Alliance: 'A', Horde: 'H', Both: 'AH' }[record.faction];
+  const observer = { Alliance: 'A', Horde: 'H' }[record.observer];
   if (side) {
     const known = entry.factionInferred ? '' : entry.friendlyToFaction || '';
     delete entry.factionInferred;
@@ -373,6 +376,14 @@ function mergeFaction(entry, record) {
     && (record.reaction >= 5 || (record.reaction === 4 && !PASSIVE_SOURCES.test(record.source || '')))) {
     entry.friendlyToFaction = 'AH';
     entry.factionInferred = true;
+  }
+  if (!side && observer && Number.isInteger(record.reaction) && record.reaction <= 3) {
+    entry.hostileTo = [...new Set(`${entry.hostileTo || ''}${observer}`)].sort().join('');
+  }
+  if (entry.factionInferred && entry.hostileTo) {
+    const remaining = [...entry.friendlyToFaction].filter(s => !entry.hostileTo.includes(s)).join('');
+    if (remaining) entry.friendlyToFaction = remaining;
+    else { delete entry.friendlyToFaction; delete entry.factionInferred; }
   }
   return entry.friendlyToFaction !== before;
 }

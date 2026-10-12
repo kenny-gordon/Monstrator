@@ -187,11 +187,16 @@ M:Review(titledCorsan, "reject"); M:Review(confirmedCorsan, "reject")
 -- Every interaction window the database has an npcFlags bit for tags the NPC; faction comes from the unit.
 UnitGUID = function() return "Creature-0-0-0-0-254090-0001" end
 UnitName = function() return "Zephras Banker" end
+local savedBankReaction = UnitReaction
+UnitReaction = function() return 5 end
 M:HandleCaptureEvent("BANKFRAME_OPENED", "npc")
+UnitReaction = savedBankReaction
 local banker
 for _, r in pairs(M.observations.entries) do if r.npcID == 254090 then banker = r end end
 assert(banker and banker.category == "Services" and banker.tags[1] == "bank" and banker.faction == "Alliance",
     "bank windows tag the NPC as a banker with its faction")
+assert(banker.reaction ~= nil and banker.observer == "Alliance", "a reaction names the side it was observed from")
+assert(M:ValidateRecord(banker), "observer faction validates")
 assert(M.ParseSubmission(M:SubmissionText()), "faction joins the sealed submission")
 M:Review(banker, "reject")
 local savedGroup, savedReaction, savedAttack = UnitFactionGroup, UnitReaction, UnitCanAttack

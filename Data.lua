@@ -282,6 +282,9 @@ function M:ValidateRecord(record)
     end
     if record.faction ~= nil and record.faction ~= "Alliance" and record.faction ~= "Horde"
         and record.faction ~= "Both" then return nil, "Invalid faction." end
+    if record.observer ~= nil and record.observer ~= "Alliance" and record.observer ~= "Horde" then
+        return nil, "Invalid observer faction."
+    end
     if type(record.source) ~= "string" or type(record.build) ~= "string"
         or type(record.locale) ~= "string" then return nil, "Missing source/build/locale provenance." end
     if record.verification ~= "pending" and record.verification ~= "user-confirmed" and record.verification ~= "client-map"
