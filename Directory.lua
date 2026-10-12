@@ -19,11 +19,11 @@ local function hasSubgroup(entry, key)
 end
 
 function M:EnsureIndex()
-    if not self.index then self:BuildIndex() end
+    if not self.index or self.indexStale then self:BuildIndex() end
 end
 
 function M:EnsureClientIndex()
-    if not self.index or self.index.clientGeneration ~= self.clientData.generation then self:BuildIndex() end
+    if not self.index or self.indexStale or self.index.clientGeneration ~= self.clientData.generation then self:BuildIndex() end
 end
 
 function M:RecordSearchText(record)
@@ -57,6 +57,9 @@ function M:IndexRecord(record)
 end
 
 function M:BuildIndex()
+    self.indexStale = nil
+    if self:RebuildNPCEvidence() then wipe(self.dbCache) end
+    self:NormalizeJournalIdentities()
     self.index = { all = {}, byKey = {}, byMap = {}, byKind = {}, byCategory = {}, byNPC = {}, byToken = {},
         referenceMaps = {}, clientGeneration = self.clientData.generation }
     self.searchCandidate = nil
@@ -255,7 +258,7 @@ function M:GroupNPCResults(results)
         local r = entry.record
         local identity = r.kind == "npc" and r.npcID or (r.objectID and "o" .. r.objectID)
         if identity then
-            local key = identity .. ":" .. r.mapID .. ":" .. r.verification
+            local key = identity .. ":" .. r.mapID
             local group = byKey[key]
             if not group then
                 group = { record = r, text = entry.text, placements = {}, placementCount = 0 }
@@ -485,7 +488,7 @@ function M:DirectoryCounts(scope, query)
             -- Count rows exactly as GroupNPCResults builds them, so each button matches the list it opens.
             -- Category/sub-group lists are filtered before grouping, so dedupe those per bucket.
             local identity = grouped and (r.kind == "npc" and r.npcID or (r.objectID and "o" .. r.objectID))
-            local groupKey = identity and (identity .. ":" .. r.mapID .. ":" .. r.verification)
+            local groupKey = identity and (identity .. ":" .. r.mapID)
             local categories = counts.categories[r.kind]
             if not categories then categories = {}; counts.categories[r.kind] = categories end
             local categoryKey = groupKey and (groupKey .. "\31c" .. r.category)

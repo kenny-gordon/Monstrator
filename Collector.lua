@@ -133,6 +133,7 @@ function M:AddObservation(record)
                 if not found then table.insert(existing.tags, tag) end
             end
             if intact then self:SealRecord(existing) end
+            self:NoteJournalEvidence(existing)
             self:RefreshIfVisible()
             return existing
         end
@@ -149,10 +150,20 @@ function M:AddObservation(record)
     end
     record.key = "local:" .. self.observations.nextID
     self.observations.nextID = self.observations.nextID + 1
+    self:NormalizeJournalIdentity(record)
     self:SealRecord(record)
     self.observations.entries[record.key] = record
+    self:NoteJournalEvidence(record)
     self:RefreshIfVisible()
     return record
+end
+
+-- New services or a subtitle seen for an NPC change how its database rows are filed; rebuild lazily.
+function M:NoteJournalEvidence(record)
+    if self.npcEvidence and self:NoteNPCEvidence(record) then
+        wipe(self.dbCache)
+        self.indexStale = true
+    end
 end
 
 function M:NewObservation(name, kind, category, tags, evidence)
@@ -511,6 +522,7 @@ function M:CaptureTrainerServices()
         locale = GetLocale(), characterClass = characterClass, characterLevel = characterLevel,
         services = services,
     }
+    self.indexStale = true
     self:Notice(L["Trainer services saved locally for "] .. name .. ".")
     self:RefreshIfVisible()
 end
@@ -785,6 +797,8 @@ function M:Review(record, action, x, y, category, tagText, deferRefresh)
         -- Hand-moved or previously broken records are flagged so the maintainer review holds them.
         if math.abs(record.x - x) > 0.5 or math.abs(record.y - y) > 0.5
             or (record.seal ~= nil and not self:RecordSealValid(record)) then record.edited = true end
+        -- A category the reviewer picked by hand outranks the one derived from flags and subtitle.
+        if category ~= record.category then record.categoryLocked = true end
         record.x, record.y, record.category = x, y, category
         record.tags = tags
         record.verification = "user-confirmed"

@@ -148,6 +148,19 @@ sealed NPC observations or submissions.
 Metadata merges only on matching nearby pending observations; service
 interactions can upgrade a generic Combat category. Confirmed placement evidence
 is not silently replaced by new encounter coordinates.
+**Shared NPC identity.** The directory files NPCs with `ResolveNPCIdentity`.
+Its inputs are the database `npcFlags`, OR'd with the flags implied by every
+journal tag seen for that NPC ID; the subtitle (the record's own, then the
+database `subName`, then one seen in the journal); and friendliness (database
+`friendlyToFaction`, or a journal `faction` or reaction of 5 or more). Friendly
+NPCs without a service are `Unclassified`; others without one are `Combat`.
+At index time, journal NPC records take this category and gain any missing
+tags and subtitle. Intact seals are renewed. Records flagged `edited` or
+`categoryLocked` (a category changed by hand in review) keep their category.
+Grouped directory rows key on NPC ID and map, not on evidence, so one NPC is
+one row. A trainer with no subtitle falls back to the profession named by its
+local trainer snapshot. Only rank lines such as `Blacksmithing` or
+`Herb Gathering` count.
 
 Map/world transforms supply comparable yard positions only within compatible
 world instances. No transit route, patrol history or server spawn GUID is stored.

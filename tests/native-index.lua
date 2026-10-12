@@ -302,6 +302,63 @@ assert(not M:IsNoiseRecord(sighting(11, "Harn the Renamed", 20, 30, { creatureTy
     "humanoid renames are reviewed, not discarded")
 assert(M:IsNoiseRecord(sighting(99999, "Unknown", 1, 1)))
 
+-- One identity per NPC: database rows and journal rows agree on category, sub-group and title, and group together.
+N[19] = "Zephras Citizen\t\t0\t10\t10\tAH\t2:80,80"
+N[20] = "Zerril Softbreeze\t\t0\t20\t20\t\t2:60,60"
+N[21] = "Aedi Thriceforged\t\t16\t20\t20\t\t2:62,62"
+M.observations = { entries = {}, nextID = 1 }
+local function seen2(npcID, name, x, y, category, tags, fields)
+    playerMap, playerX, playerY = 2, x / 100, y / 100
+    local record = M:NewObservation(name, "npc", category, tags, "GOSSIP_SHOW")
+    record.npcID, record.reaction = npcID, 5
+    for key, value in pairs(fields or {}) do record[key] = value end
+    return record
+end
+put(seen2(19, "Zephras Citizen", 81, 80, "Combat", {}))
+put(seen2(20, "Zerril Softbreeze", 61, 60, "Services", {}, { title = "Cook" }))
+put(seen2(20, "Zerril Softbreeze", 62, 61, "Combat", { "trainer" }))
+local locked = seen2(19, "Zephras Citizen", 90, 90, "Services", {})
+locked.categoryLocked = true
+put(locked)
+M.native.provider, M.dbIndex, M.dbCache = nil, nil, {}
+M:StartDatabaseIndex()
+assert(M:NPCIdentity(0, nil, true) == "Unclassified", "friendly NPCs without a service are not combat targets")
+M:BuildIndex()
+local journalCitizen, journalZerril = {}, {}
+for _, record in pairs(M.observations.entries) do
+    assert(M:RecordSealValid(record), "normalized journal records keep a valid seal")
+    if record.npcID == 19 and not record.categoryLocked then table.insert(journalCitizen, record) end
+    if record.npcID == 20 then table.insert(journalZerril, record) end
+end
+assert(locked.category == "Services", "a category picked in review is kept")
+assert(journalCitizen[1].category == "Unclassified")
+for _, record in ipairs(journalZerril) do
+    assert(record.category == "Trainers" and record.title == "Cook", "every record of one NPC shares its identity")
+    assert(table.concat(M:RecordSubgroups(record), ",") == "trainer:cooking")
+end
+local dbByID = {}
+for _, record in ipairs(M:DatabaseMapRecords(2)) do dbByID[record.npcID] = record end
+assert(dbByID[19].category == "Unclassified")
+assert(dbByID[20].category == "Trainers" and dbByID[20].title == "Cook",
+    "journal-seen services and subtitles reach the database row")
+assert(table.concat(M:RecordSubgroups(dbByID[20]), ",") == "trainer:cooking")
+assert(table.concat(M:RecordSubgroups(dbByID[21]), ",") == "trainer:other")
+M.trainerSnapshots = { [21] = { npcID = 21, services = { { name = "Blacksmithing" }, { name = "Rough Copper Vest" } } } }
+assert(table.concat(M:RecordSubgroups(dbByID[21]), ",") == "trainer:blacksmithing",
+    "an untitled trainer is filed by the profession its trainer window teaches")
+M.trainerSnapshots = { [21] = { npcID = 21, services = { { name = "Cooking" }, { name = "Brilliant Smallfish" } } } }
+assert(table.concat(M:RecordSubgroups(dbByID[21]), ",") == "trainer:cooking", "recipe names do not count")
+M.trainerSnapshots = nil
+playerMap, playerX, playerY = 2, 0.6, 0.6
+M.settings.evidenceFilter = "all"
+local zerrilRows = 0
+for _, entry in ipairs(M:Query("zone", "npc", "Trainers", "", "directory")) do
+    if entry.record.npcID == 20 then zerrilRows = zerrilRows + 1 end
+end
+assert(zerrilRows == 1, "journal and database placements of one NPC form a single row; got " .. zerrilRows)
+assert(M:DirectoryCounts("zone", "").subgroups["trainer:cooking"] == 1)
+N[19], N[20], N[21] = nil, nil, nil
+M.native.provider = nil
 M.native, M.dbIndex, M.dbCache = saved.native, saved.index, saved.cache
 M.data.entries, M.observations, M.clientData = saved.data, saved.observations, saved.clientData
 M.settings.referenceEnabled, M.settings.evidenceFilter, M.settings.groupNPCs = saved.enabled, saved.filter, saved.grouping

@@ -2,6 +2,14 @@
 
 ## 1.0.0
 
+- **One identity per NPC**: the directory no longer shows the same NPC twice under different categories.
+  - **Shared identity:** journal rows and database rows of an NPC are filed from the same evidence. That is the database flags plus every service the journal saw, and the subtitle from either source. A journal-seen *Cook* or trainer window now also files the database row under Trainers → Cooking.
+  - **Grouping:** journal and database placements of an NPC on a map form a single row.
+  - **Friendly NPCs:** friendly NPCs without a service (citizens, advisors, peacekeepers) are filed as **Unclassified** instead of Combat, in both the database and the journal. Combat now holds creatures you can fight.
+  - **Kept as reviewed:** a category picked by hand in review is kept.
+  - **Trainer windows:** an untitled trainer is filed by the profession its trainer window teaches (e.g. *Blacksmithing*), once you open it.
+  - **Harvest:** `harvest` now also adds services seen after a record was first harvested. The Zephras Isle profession trainers (Cook, Enchanter, Herbalist, Skinner) now ship with their subtitles and trainer flag.
+
 - **Journal noise gate and cleanup**: the journal now records only what adds to the database.
   - **Capture:** sightings already matching a database spawn (same map, within 5%, same subtitle, level and services) are skipped. So are critters, companion pets, totems, player-controlled units and uncached `Unknown` names. Repeat sightings within 5% collapse into one placement.
   - **Prune:** `/monstrator prune` previews which existing entries add nothing; `/monstrator prune CONFIRM` deletes them.

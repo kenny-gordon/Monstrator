@@ -65,7 +65,35 @@ local function addTag(tags, seen, tag)
     if M.tags[tag] and not seen[tag] then seen[tag] = true; table.insert(tags, tag) end
 end
 
-function M:NPCIdentity(npcFlags, title)
+-- Bitwise OR for npcFlags without relying on the client's bit library.
+local function orFlags(a, b)
+    a, b = a or 0, b or 0
+    local result, bit = a, 1
+    while bit <= b do
+        if hasFlag(b, bit) and not hasFlag(a, bit) then result = result + bit end
+        bit = bit * 2
+    end
+    return result
+end
+M.OrNPCFlags = orFlags
+
+local tagFlags = { vendor = "VENDOR", repair = "REPAIR", flight = "FLIGHT_MASTER", trainer = "TRAINER",
+    innkeeper = "INNKEEPER", bank = "BANKER", auction = "AUCTIONEER", stable = "STABLEMASTER", guild = "PETITIONER",
+    tabard = "TABARD_DESIGNER", quest_giver = "QUEST_GIVER" }
+
+-- The npcFlags a journal record's service tags stand for (a trainer window seen = the trainer flag).
+function M:FlagsFromTags(tags)
+    local value = 0
+    for _, tag in ipairs(type(tags) == "table" and tags or {}) do
+        local name = tagFlags[tag]
+        if name then value = orFlags(value, flags[name]) end
+    end
+    return value
+end
+
+-- `friendly` files service-less NPCs the player cannot fight (guards, citizens, advisors) as Unclassified rather
+-- than Combat, matching what the collector records for them.
+function M:NPCIdentity(npcFlags, title, friendly)
     local tags, seen = {}, {}
     if hasFlag(npcFlags, flags.VENDOR) then addTag(tags, seen, "vendor") end
     if hasFlag(npcFlags, flags.REPAIR) then addTag(tags, seen, "repair") end
@@ -99,8 +127,100 @@ function M:NPCIdentity(npcFlags, title)
     elseif seen.bank or seen.auction or seen.innkeeper or seen.stable or seen.guild or seen.tabard
         or hasFlag(npcFlags, flags.SPIRIT_HEALER) or hasFlag(npcFlags, flags.BATTLEMASTER) then category = "Services"
     elseif seen.vendor or seen.repair then category = "Vendors"
-    elseif seen.quest_giver then category = "Services" end
+    elseif seen.quest_giver then category = "Services"
+    elseif friendly then category = "Unclassified" end
     return category, tags
+end
+
+-- What the journal has seen of each NPC across all its records: service flags implied by tags, the subtitle and
+-- whether it was friendly. Database rows and journal rows both resolve through this, so one NPC never lands in
+-- two categories just because one source saw its trainer window and the other did not.
+-- Friendly to some faction (the collector's faction field) or friendly to the player right now.
+function M:JournalFriendly(record)
+    return record.faction ~= nil or (self:IsFinite(record.reaction) and record.reaction >= 5)
+end
+
+function M:NoteNPCEvidence(record)
+    if type(record) ~= "table" or record.kind ~= "npc" or not self:IsFinite(record.npcID)
+        or record.verification == "rejected" then return end
+    if self.IsNoiseRecord and self:IsNoiseRecord(record) then return end
+    self.npcEvidence = self.npcEvidence or {}
+    local evidence = self.npcEvidence[record.npcID]
+    if not evidence then evidence = { flags = 0 }; self.npcEvidence[record.npcID] = evidence end
+    local before = evidence.flags .. "\31" .. tostring(evidence.title) .. "\31" .. tostring(evidence.friendly)
+    evidence.flags = orFlags(evidence.flags, self:FlagsFromTags(record.tags))
+    if type(record.title) == "string" and record.title ~= "" then evidence.title = record.title end
+    if self:JournalFriendly(record) then evidence.friendly = true end
+    return before ~= evidence.flags .. "\31" .. tostring(evidence.title) .. "\31" .. tostring(evidence.friendly)
+end
+
+-- Returns true when the evidence differs from what cached database rows were built with.
+function M:RebuildNPCEvidence()
+    local old = self.npcEvidence
+    self.npcEvidence = {}
+    for _, record in pairs(self.observations and self.observations.entries or {}) do self:NoteNPCEvidence(record) end
+    local function same(a, b)
+        return a and b and a.flags == b.flags and a.title == b.title and a.friendly == b.friendly
+    end
+    if not old then return next(self.npcEvidence) ~= nil end
+    for id, evidence in pairs(self.npcEvidence) do if not same(evidence, old[id]) then return true end end
+    for id in pairs(old) do if not self.npcEvidence[id] then return true end end
+    return false
+end
+
+-- One identity per NPC: database flags OR journal-observed services, the subtitle (the given title, else the
+-- database's, else one the journal saw) and friendliness from either source.
+function M:ResolveNPCIdentity(npcID, title, extraFlags, friendly)
+    local lib = self.native and self:NativeProvider()
+    local npc = lib and lib.Npc
+    local npcFlags, dbTitle, dbFriendly = 0, nil, nil
+    if npc and npcID and (type(npc.Has) ~= "function" or npc.Has(npcID)) then
+        npcFlags = read(npc.npcFlags, npcID)
+        npcFlags = type(npcFlags) == "number" and npcFlags or 0
+        dbTitle = read(npc.subName, npcID)
+        local side = read(npc.friendlyToFaction, npcID)
+        dbFriendly = type(side) == "string" and side ~= ""
+    end
+    local evidence = self.npcEvidence and npcID and self.npcEvidence[npcID]
+    if type(title) ~= "string" or title == "" then title = nil end
+    if type(dbTitle) ~= "string" or dbTitle == "" then dbTitle = nil end
+    title = title or dbTitle or (evidence and evidence.title)
+    npcFlags = orFlags(orFlags(npcFlags, extraFlags), evidence and evidence.flags)
+    local category, tags = self:NPCIdentity(npcFlags, title, friendly or dbFriendly or (evidence and evidence.friendly))
+    return category, tags, title
+end
+
+-- Re-derives a journal NPC record's category and tags from the shared identity. User-edited records keep their
+-- category; observed tags are never dropped. Intact seals are renewed so the record stays submittable.
+function M:NormalizeJournalIdentity(record)
+    if type(record) ~= "table" or record.kind ~= "npc" or not self:IsFinite(record.npcID)
+        or type(record.tags) ~= "table" then return false end
+    local category, tags, title = self:ResolveNPCIdentity(record.npcID, record.title, self:FlagsFromTags(record.tags),
+        self:JournalFriendly(record))
+    local addTitle = record.title == nil and title
+    local setCategory = not record.edited and not record.categoryLocked and record.category ~= category
+    local missing = {}
+    for _, tag in ipairs(tags) do
+        local found = false
+        for _, saved in ipairs(record.tags) do if saved == tag then found = true end end
+        if not found then table.insert(missing, tag) end
+    end
+    if not addTitle and not setCategory and #missing == 0 then return false end
+    local intact = record.seal ~= nil and self.RecordSealValid and self:RecordSealValid(record)
+    if addTitle then record.title = title end
+    if setCategory then record.category = category end
+    for _, tag in ipairs(missing) do table.insert(record.tags, tag) end
+    if intact then self:SealRecord(record) end
+    return true
+end
+
+function M:NormalizeJournalIdentities()
+    if not (self.native and self:NativeProvider()) then return 0 end
+    local count = 0
+    for _, record in pairs(self.observations and self.observations.entries or {}) do
+        if self:NormalizeJournalIdentity(record) then count = count + 1 end
+    end
+    return count
 end
 
 function M:DatabaseProvenance()
@@ -274,13 +394,12 @@ function M:DatabaseMapRecords(mapID, background)
         local points = type(spawns) == "table" and spawns[mapID]
         if type(points) == "table" then
             local title = read(npc.subName, id)
-            if type(title) ~= "string" or title == "" then title = nil end
-            local npcFlags = read(npc.npcFlags, id)
             local level = read(npc.maxLevel, id)
             local friendly = read(npc.friendlyToFaction, id)
             local faction = friendly == "A" and "Alliance" or friendly == "H" and "Horde"
                 or friendly == "AH" and "Both" or nil
-            local category, tags = self:NPCIdentity(type(npcFlags) == "number" and npcFlags or 0, title)
+            local category, tags
+            category, tags, title = self:ResolveNPCIdentity(id, title)
             local origin = npc.Origin and npc.Origin(id) or nil
             local seen = {}
             for _, point in ipairs(points) do

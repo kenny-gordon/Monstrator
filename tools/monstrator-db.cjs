@@ -452,7 +452,7 @@ function cmdHarvest(args) {
   const ledger = fs.existsSync(harvestLedgerFile) ? JSON.parse(fs.readFileSync(harvestLedgerFile, 'utf8')) : { schemaVersion: 1, records: [] };
   if (ledger.schemaVersion !== 1 || !Array.isArray(ledger.records)) fail(`${rel(harvestLedgerFile)}: unsupported ledger`);
   const harvested = new Set(ledger.records);
-  const report = { used: 0, skipped: 0, scans: 0, tampered: 0, already: 0, titles: 0, relations: 0, newNPCs: new Set(), newMaps: [], drift: [], held: [], points: 0 };
+  const report = { used: 0, skipped: 0, scans: 0, tampered: 0, already: 0, titles: 0, services: 0, relations: 0, newNPCs: new Set(), newMaps: [], drift: [], held: [], points: 0 };
   for (const file of inputs) {
     const source = fs.readFileSync(file, 'utf8');
     const account = path.basename(path.dirname(path.dirname(file)));
@@ -479,9 +479,15 @@ function cmdHarvest(args) {
         record.lastSeen, record.sightings].join('|'));
       if (harvested.has(identity)) {
         report.already++;
-        // A subtitle backfilled after the record was harvested is still welcome; sightings are not recounted.
+        // A subtitle or service seen after the record was harvested is still welcome; sightings are not recounted.
         const entry = discoveries.Npc[Number(record.npcID)];
         if (entry && typeof record.title === 'string' && record.title && !entry.title) { entry.title = record.title; report.titles++; }
+        if (entry) {
+          let flags = entry.npcFlags || 0;
+          for (const tag of Object.values(record.tags || {})) flags |= TAG_FLAGS[tag] || 0;
+          flags |= EVENT_FLAGS[record.source] || 0;
+          if (flags !== (entry.npcFlags || 0)) { entry.npcFlags = flags; report.services++; }
+        }
         continue;
       }
       harvested.add(identity);
@@ -499,7 +505,7 @@ function cmdHarvest(args) {
   fs.writeFileSync(harvestLedgerFile, JSON.stringify({ schemaVersion: 1, records: [...harvested].sort() }, null, 1) + '\n', 'utf8');
   console.log(`Harvested ${report.used} observations from ${inputs.length} file(s), including ${report.scans} exact NPC scan sightings (${report.skipped} skipped: not NPC, `
     + `${includePending ? 'invalid' : 'pending - use --include-pending'}); ${report.already} already harvested`
-    + `${report.titles ? ` (${report.titles} gained a subtitle)` : ''}; ${report.points} new points.`);
+    + `${report.titles ? ` (${report.titles} gained a subtitle)` : ''}${report.services ? ` (${report.services} gained a service flag)` : ''}; ${report.points} new points.`);
   if (report.tampered) console.log(`Rejected ${report.tampered} record(s) whose seal no longer matches (edited outside the game).`);
   console.log(`Discoveries now: ${Object.keys(discoveries.Npc).length} NPCs, ${Object.keys(discoveries.Quest || {}).length} quests and `
     + `${Object.keys(discoveries.Item || {}).length} items in ${rel(discoveryFile)} (${report.relations} new quest/vendor/drop relationships).`);

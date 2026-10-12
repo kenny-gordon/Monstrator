@@ -94,8 +94,10 @@ assert(plateObservation.category == "Unclassified", "a friendly nameplate must n
 M:HandleCaptureEvent("NAME_PLATE_UNIT_ADDED", "nameplate1")
 assert(M:ObservationCount() == countBeforeDiscovery + 1, "a GUID should be throttled during the discovery window")
 M:Review(plateObservation, "reject")
-local savedUnitCanAttack = UnitCanAttack
+local savedUnitCanAttack, savedFactionGroup = UnitCanAttack, UnitFactionGroup
 UnitCanAttack = function(_, unit) return unit == "nameplate2" end
+-- Hostile creatures belong to no faction group.
+UnitFactionGroup = function(unit) if unit ~= "nameplate2" then return savedFactionGroup(unit) end end
 UnitGUID = function(unit)
     if unit == "nameplate2" then return "Creature-0-0-0-0-789-0001" end
     return originalUnitGUID(unit)
@@ -233,7 +235,7 @@ M.observations.relations = nil
 GetQuestID, GetTitleText, GetMerchantNumItems, GetMerchantItemID, GetMerchantItemLink, GetMerchantItemInfo = nil
 GetNumLootItems, GetLootSlotLink, GetLootSlotInfo, GetLootSourceInfo = nil
 M.settings.discovering = false
-UnitGUID, UnitName, UnitCanAttack = originalUnitGUID, originalUnitName, savedUnitCanAttack
+UnitGUID, UnitName, UnitCanAttack, UnitFactionGroup = originalUnitGUID, originalUnitName, savedUnitCanAttack, savedFactionGroup
 
 local originalUnitClass, originalUnitLevel = UnitClass, UnitLevel
 GetNumTrainerServices = function() return 2 end

@@ -39,7 +39,7 @@ M.subgroups = {
         { key = "trainer:engineering", label = "Engineering", title = { "engineer" } },
         { key = "trainer:leatherworking", label = "Leatherworking", title = { "leatherwork", "leathercraft" } },
         { key = "trainer:tailoring", label = "Tailoring", title = { "tailor" } },
-        { key = "trainer:herbalism", label = "Herbalism", title = { "herbalis" } },
+        { key = "trainer:herbalism", label = "Herbalism", title = { "herbalis", "herb gathering" } },
         { key = "trainer:mining", label = "Mining", title = { "mining", "miner" } },
         { key = "trainer:skinning", label = "Skinning", title = { "skinn" } },
         { key = "trainer:cooking", label = "Cooking", title = { "cook", "chef", "butcher" } },
@@ -179,8 +179,34 @@ function M:RecordSubgroups(record)
         if def.other then other = def.key
         elseif def.key and subgroupMatches(def, record, title) then table.insert(keys, def.key) end
     end
+    if other and #keys == 0 and record.category == "Trainers" and record.npcID then
+        -- Untitled trainers: the skills listed in their trainer window name the profession.
+        local hint = self:TrainerSkillHint(record.npcID)
+        if hint then
+            for _, def in ipairs(list) do
+                if def.group == "Profession trainers" and subgroupMatches(def, {}, hint) then table.insert(keys, def.key) end
+            end
+        end
+    end
     if other and #keys == 0 then keys[1] = other end
     return keys
+end
+
+local professionSkills = { alchemy = true, blacksmithing = true, enchanting = true, engineering = true,
+    leatherworking = true, tailoring = true, ["herb gathering"] = true, herbalism = true, mining = true,
+    skinning = true, cooking = true, ["first aid"] = true, fishing = true }
+
+-- Only the profession rank lines ("Blacksmithing", "Herb Gathering") count; recipe names such as
+-- "Brilliant Smallfish" would otherwise point a cooking trainer at fishing.
+function M:TrainerSkillHint(npcID)
+    local snapshot = self.trainerSnapshots and self.trainerSnapshots[npcID]
+    if type(snapshot) ~= "table" or type(snapshot.services) ~= "table" then return end
+    local names = {}
+    for _, service in ipairs(snapshot.services) do
+        local name = type(service) == "table" and type(service.name) == "string" and service.name:lower()
+        if name and professionSkills[name] then table.insert(names, name) end
+    end
+    return #names > 0 and table.concat(names, "\31") or nil
 end
 
 -- The active sub-group definition, but only while its category is the one being browsed.

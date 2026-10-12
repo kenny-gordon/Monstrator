@@ -2,11 +2,26 @@
 -- Safe to edit by hand; harvest/review merge into it and overlay folds it into Data\Native\Overlay.lua.
 return {
   Item = {
+    [117] = {
+      vendors = { 254089 },
+    },
     [159] = {
-      vendors = { 254358 },
+      vendors = { 254089, 254358 },
     },
     [1179] = {
-      vendors = { 254358 },
+      vendors = { 254089, 254358 },
+    },
+    [1205] = {
+      vendors = { 254089 },
+    },
+    [1645] = {
+      vendors = { 254089 },
+    },
+    [1708] = {
+      vendors = { 254089 },
+    },
+    [2287] = {
+      vendors = { 254089 },
     },
     [2320] = {
       vendors = { 254360 },
@@ -16,6 +31,10 @@ return {
     },
     [2324] = {
       vendors = { 254360 },
+    },
+    [2447] = {
+      name = "Peacebloom",
+      objectDrops = { 1618 },
     },
     [2512] = {
       vendors = { 254358 },
@@ -62,6 +81,12 @@ return {
     [3371] = {
       vendors = { 254360 },
     },
+    [3770] = {
+      vendors = { 254089 },
+    },
+    [3771] = {
+      vendors = { 254089 },
+    },
     [4289] = {
       vendors = { 254360 },
     },
@@ -76,6 +101,24 @@ return {
     },
     [4498] = {
       vendors = { 254358 },
+    },
+    [4599] = {
+      vendors = { 254089 },
+    },
+    [4604] = {
+      vendors = { 254089 },
+    },
+    [4605] = {
+      vendors = { 254089 },
+    },
+    [4606] = {
+      vendors = { 254089 },
+    },
+    [4607] = {
+      vendors = { 254089 },
+    },
+    [4608] = {
+      vendors = { 254089 },
     },
     [5042] = {
       vendors = { 254358 },
@@ -100,6 +143,30 @@ return {
     },
     [7005] = {
       vendors = { 254360 },
+    },
+    [8766] = {
+      vendors = { 254089 },
+    },
+    [8948] = {
+      vendors = { 254089 },
+    },
+    [8952] = {
+      vendors = { 254089 },
+    },
+    [252026] = {
+      vendors = { 254089 },
+    },
+    [252027] = {
+      vendors = { 254089 },
+    },
+    [252029] = {
+      vendors = { 254089 },
+    },
+    [252030] = {
+      vendors = { 254089 },
+    },
+    [252032] = {
+      vendors = { 254089 },
     },
   },
   Npc = {
@@ -224,6 +291,7 @@ return {
       maxLevel = 40,
       minLevel = 40,
       name = "Uthok",
+      npcFlags = 4,
       sightings = 2,
       spawns = {
         [1434] = {
@@ -254,6 +322,7 @@ return {
       maxLevel = 35,
       minLevel = 35,
       name = "Brawn",
+      npcFlags = 16,
       sightings = 2,
       spawns = {
         [1434] = {
@@ -269,7 +338,7 @@ return {
       maxLevel = 55,
       minLevel = 55,
       name = "Thysta",
-      npcFlags = 8,
+      npcFlags = 10,
       sightings = 4,
       spawns = {
         [1434] = {
@@ -285,6 +354,7 @@ return {
       maxLevel = 40,
       minLevel = 40,
       name = "Kragg",
+      npcFlags = 16,
       sightings = 2,
       spawns = {
         [1434] = {
@@ -384,6 +454,7 @@ return {
       build = "70338",
       lastSeen = 1791644616,
       name = "Varimathras",
+      npcFlags = 2,
       sightings = 3,
       spawns = {
         [1458] = {
@@ -397,6 +468,7 @@ return {
       maxLevel = 60,
       minLevel = 60,
       name = "Commander Aggro'gosh",
+      npcFlags = 2,
       sightings = 5,
       spawns = {
         [1434] = {
@@ -412,6 +484,7 @@ return {
       maxLevel = 45,
       minLevel = 45,
       name = "Far Seer Mok'thardin",
+      npcFlags = 2,
       sightings = 2,
       spawns = {
         [1434] = {
@@ -441,6 +514,7 @@ return {
       maxLevel = 44,
       minLevel = 44,
       name = "First Mate Crazz",
+      npcFlags = 2,
       sightings = 1,
       spawns = {
         [1434] = {
@@ -455,6 +529,7 @@ return {
       maxLevel = 41,
       minLevel = 41,
       name = "Nimboya",
+      npcFlags = 2,
       sightings = 2,
       spawns = {
         [1434] = {
@@ -469,6 +544,7 @@ return {
       maxLevel = 38,
       minLevel = 38,
       name = "Markel Smythe",
+      npcFlags = 2,
       sightings = 2,
       spawns = {
         [1434] = {
@@ -483,6 +559,7 @@ return {
       maxLevel = 37,
       minLevel = 37,
       name = "Captain Hecklebury Smotts",
+      npcFlags = 2,
       sightings = 1,
       spawns = {
         [1434] = {
@@ -496,6 +573,7 @@ return {
       maxLevel = 44,
       minLevel = 44,
       name = "\"Shaky\" Phillipe",
+      npcFlags = 2,
       sightings = 2,
       spawns = {
         [1434] = {
@@ -524,7 +602,7 @@ return {
       maxLevel = 50,
       minLevel = 50,
       name = "Hanashi",
-      npcFlags = 16,
+      npcFlags = 22,
       sightings = 3,
       spawns = {
         [1454] = {
@@ -539,7 +617,7 @@ return {
       maxLevel = 35,
       minLevel = 35,
       name = "Pand Stonebinder",
-      npcFlags = 16,
+      npcFlags = 18,
       sightings = 9,
       spawns = {
         [1456] = {
@@ -556,7 +634,7 @@ return {
       maxLevel = 43,
       minLevel = 43,
       name = "Myizz Luckycatch",
-      npcFlags = 16,
+      npcFlags = 20,
       sightings = 3,
       spawns = {
         [1434] = {
@@ -571,6 +649,7 @@ return {
       maxLevel = 21,
       minLevel = 21,
       name = "Harken Windtotem",
+      npcFlags = 2,
       sightings = 1,
       spawns = {
         [1412] = {
@@ -584,6 +663,7 @@ return {
       maxLevel = 25,
       minLevel = 25,
       name = "Mull Thunderhorn",
+      npcFlags = 2,
       sightings = 4,
       spawns = {
         [1412] = {
@@ -983,6 +1063,7 @@ return {
       maxLevel = 4,
       minLevel = 4,
       name = "Grull Hawkwind",
+      npcFlags = 2,
       sightings = 7,
       spawns = {
         [1412] = {
@@ -996,6 +1077,7 @@ return {
       maxLevel = 9,
       minLevel = 9,
       name = "Ruul Eagletalon",
+      npcFlags = 2,
       sightings = 1,
       spawns = {
         [1412] = {
@@ -1009,6 +1091,7 @@ return {
       maxLevel = 12,
       minLevel = 12,
       name = "Eyahn Eagletalon",
+      npcFlags = 2,
       sightings = 2,
       spawns = {
         [1456] = {
@@ -1023,6 +1106,7 @@ return {
       maxLevel = 10,
       minLevel = 10,
       name = "Morin Cloudstalker",
+      npcFlags = 2,
       sightings = 4,
       spawns = {
         [1412] = {
@@ -1038,6 +1122,7 @@ return {
       maxLevel = 10,
       minLevel = 10,
       name = "Baine Bloodhoof",
+      npcFlags = 2,
       sightings = 2,
       spawns = {
         [1412] = {
@@ -1052,6 +1137,7 @@ return {
       maxLevel = 9,
       minLevel = 9,
       name = "Ancestral Spirit",
+      npcFlags = 2,
       sightings = 2,
       spawns = {
         [1412] = {
@@ -1065,7 +1151,7 @@ return {
       maxLevel = 55,
       minLevel = 55,
       name = "Tal",
-      npcFlags = 8,
+      npcFlags = 10,
       sightings = 43,
       spawns = {
         [1456] = {
@@ -1100,6 +1186,7 @@ return {
       maxLevel = 35,
       minLevel = 35,
       name = "Karn Stonehoof",
+      npcFlags = 18,
       sightings = 6,
       spawns = {
         [1456] = {
@@ -1118,6 +1205,7 @@ return {
       maxLevel = 30,
       minLevel = 30,
       name = "Taur Stonehoof",
+      npcFlags = 16390,
       sightings = 3,
       spawns = {
         [1456] = {
@@ -1133,7 +1221,7 @@ return {
       maxLevel = 35,
       minLevel = 35,
       name = "Brek Stonehoof",
-      npcFlags = 16,
+      npcFlags = 18,
       sightings = 3,
       spawns = {
         [1456] = {
@@ -1148,7 +1236,7 @@ return {
       maxLevel = 30,
       minLevel = 30,
       name = "Fyr Mistrunner",
-      npcFlags = 4,
+      npcFlags = 6,
       sightings = 25,
       spawns = {
         [1456] = {
@@ -1186,7 +1274,7 @@ return {
       maxLevel = 30,
       minLevel = 30,
       name = "Nida Winterhoof",
-      npcFlags = 4,
+      npcFlags = 6,
       sightings = 2,
       spawns = {
         [1456] = {
@@ -1324,7 +1412,7 @@ return {
       maxLevel = 45,
       minLevel = 45,
       name = "Aska Mistrunner",
-      npcFlags = 16,
+      npcFlags = 18,
       sightings = 15,
       spawns = {
         [1456] = {
@@ -1344,7 +1432,7 @@ return {
       maxLevel = 40,
       minLevel = 40,
       name = "Naal Mistrunner",
-      npcFlags = 4,
+      npcFlags = 6,
       sightings = 13,
       spawns = {
         [1456] = {
@@ -1363,7 +1451,7 @@ return {
       maxLevel = 45,
       minLevel = 45,
       name = "Kah Mistrunner",
-      npcFlags = 16,
+      npcFlags = 18,
       sightings = 3,
       spawns = {
         [1456] = {
@@ -1379,7 +1467,7 @@ return {
       maxLevel = 40,
       minLevel = 40,
       name = "Sewa Mistrunner",
-      npcFlags = 4,
+      npcFlags = 6,
       sightings = 3,
       spawns = {
         [1456] = {
@@ -1396,6 +1484,7 @@ return {
       maxLevel = 50,
       minLevel = 50,
       name = "Siln Skychaser",
+      npcFlags = 18,
       sightings = 1,
       spawns = {
         [1456] = {
@@ -1410,6 +1499,7 @@ return {
       maxLevel = 40,
       minLevel = 40,
       name = "Tigor Skychaser",
+      npcFlags = 18,
       sightings = 1,
       spawns = {
         [1456] = {
@@ -1424,6 +1514,7 @@ return {
       maxLevel = 60,
       minLevel = 60,
       name = "Beram Skychaser",
+      npcFlags = 18,
       sightings = 1,
       spawns = {
         [1456] = {
@@ -1438,6 +1529,7 @@ return {
       maxLevel = 50,
       minLevel = 50,
       name = "Turak Runetotem",
+      npcFlags = 18,
       sightings = 2,
       spawns = {
         [1456] = {
@@ -1453,6 +1545,7 @@ return {
       maxLevel = 60,
       minLevel = 60,
       name = "Sheal Runetotem",
+      npcFlags = 18,
       sightings = 2,
       spawns = {
         [1456] = {
@@ -1495,6 +1588,7 @@ return {
       maxLevel = 40,
       minLevel = 40,
       name = "Kym Wildmane",
+      npcFlags = 18,
       sightings = 5,
       spawns = {
         [1456] = {
@@ -1527,6 +1621,7 @@ return {
       maxLevel = 50,
       minLevel = 50,
       name = "Kary Thunderhorn",
+      npcFlags = 18,
       sightings = 3,
       spawns = {
         [1456] = {
@@ -1543,6 +1638,7 @@ return {
       maxLevel = 60,
       minLevel = 60,
       name = "Holt Thunderhorn",
+      npcFlags = 18,
       sightings = 2,
       spawns = {
         [1456] = {
@@ -1558,6 +1654,7 @@ return {
       maxLevel = 40,
       minLevel = 40,
       name = "Urek Thunderhorn",
+      npcFlags = 18,
       sightings = 7,
       spawns = {
         [1456] = {
@@ -1575,7 +1672,7 @@ return {
       maxLevel = 50,
       minLevel = 50,
       name = "Torm Ragetotem",
-      npcFlags = 16,
+      npcFlags = 18,
       sightings = 13,
       spawns = {
         [1456] = {
@@ -1594,6 +1691,7 @@ return {
       maxLevel = 60,
       minLevel = 60,
       name = "Sark Ragetotem",
+      npcFlags = 18,
       sightings = 6,
       spawns = {
         [1456] = {
@@ -1610,7 +1708,7 @@ return {
       maxLevel = 40,
       minLevel = 40,
       name = "Ker Ragetotem",
-      npcFlags = 16,
+      npcFlags = 18,
       sightings = 35,
       spawns = {
         [1456] = {
@@ -1628,6 +1726,7 @@ return {
       maxLevel = 40,
       minLevel = 40,
       name = "Miles Welsh",
+      npcFlags = 18,
       sightings = 2,
       spawns = {
         [1456] = {
@@ -1643,6 +1742,7 @@ return {
       maxLevel = 50,
       minLevel = 50,
       name = "Malakai Cross",
+      npcFlags = 18,
       sightings = 3,
       spawns = {
         [1456] = {
@@ -1657,6 +1757,7 @@ return {
       maxLevel = 60,
       minLevel = 60,
       name = "Archmage Shymm",
+      npcFlags = 18,
       sightings = 1,
       spawns = {
         [1456] = {
@@ -1671,6 +1772,7 @@ return {
       maxLevel = 50,
       minLevel = 50,
       name = "Thurston Xane",
+      npcFlags = 18,
       sightings = 1,
       spawns = {
         [1456] = {
@@ -1698,6 +1800,7 @@ return {
       maxLevel = 21,
       minLevel = 21,
       name = "Skorn Whitecloud",
+      npcFlags = 2,
       sightings = 2,
       spawns = {
         [1412] = {
@@ -1712,6 +1815,7 @@ return {
       maxLevel = 10,
       minLevel = 10,
       name = "Maur Raincaller",
+      npcFlags = 2,
       sightings = 1,
       spawns = {
         [1412] = {
@@ -1723,6 +1827,7 @@ return {
       build = "70245",
       lastSeen = 1791379556,
       name = "Cairne Bloodhoof",
+      npcFlags = 2,
       sightings = 5,
       spawns = {
         [1456] = {
@@ -1755,7 +1860,7 @@ return {
       maxLevel = 10,
       minLevel = 10,
       name = "Harutt Thunderhorn",
-      npcFlags = 16,
+      npcFlags = 18,
       sightings = 11,
       spawns = {
         [1412] = {
@@ -1768,6 +1873,7 @@ return {
       build = "70205",
       lastSeen = 1791186304,
       name = "Lanka Farshot",
+      npcFlags = 18,
       sightings = 2,
       spawns = {
         [1412] = {
@@ -1782,7 +1888,7 @@ return {
       maxLevel = 14,
       minLevel = 14,
       name = "Krang Stonehoof",
-      npcFlags = 16,
+      npcFlags = 18,
       sightings = 26,
       spawns = {
         [1412] = {
@@ -1799,6 +1905,7 @@ return {
       maxLevel = 12,
       minLevel = 12,
       name = "Gennia Runetotem",
+      npcFlags = 18,
       sightings = 2,
       spawns = {
         [1412] = {
@@ -1813,6 +1920,7 @@ return {
       maxLevel = 11,
       minLevel = 11,
       name = "Yaw Sharpmane",
+      npcFlags = 18,
       sightings = 3,
       spawns = {
         [1412] = {
@@ -1827,6 +1935,7 @@ return {
       maxLevel = 13,
       minLevel = 13,
       name = "Narm Skychaser",
+      npcFlags = 18,
       sightings = 2,
       spawns = {
         [1412] = {
@@ -1841,7 +1950,7 @@ return {
       maxLevel = 12,
       minLevel = 12,
       name = "Pyall Silentstride",
-      npcFlags = 16,
+      npcFlags = 18,
       sightings = 9,
       spawns = {
         [1412] = {
@@ -1856,6 +1965,7 @@ return {
       maxLevel = 23,
       minLevel = 23,
       name = "Chaw Stronghide",
+      npcFlags = 18,
       sightings = 4,
       spawns = {
         [1412] = {
@@ -1870,7 +1980,7 @@ return {
       maxLevel = 8,
       minLevel = 8,
       name = "Kawnie Softbreeze",
-      npcFlags = 4,
+      npcFlags = 6,
       sightings = 2,
       spawns = {
         [1412] = {
@@ -1930,7 +2040,7 @@ return {
       maxLevel = 12,
       minLevel = 12,
       name = "Moorat Longstride",
-      npcFlags = 4,
+      npcFlags = 6,
       sightings = 2,
       spawns = {
         [1412] = {
@@ -2006,7 +2116,7 @@ return {
       maxLevel = 10,
       minLevel = 10,
       name = "Wunna Darkmane",
-      npcFlags = 4,
+      npcFlags = 6,
       sightings = 3,
       spawns = {
         [1412] = {
@@ -2021,6 +2131,7 @@ return {
       maxLevel = 60,
       minLevel = 60,
       name = "Honor Guard",
+      npcFlags = 2,
       sightings = 8,
       spawns = {
         [1456] = {
@@ -2544,6 +2655,7 @@ return {
       maxLevel = 10,
       minLevel = 10,
       name = "Gar'Thok",
+      npcFlags = 2,
       sightings = 3,
       spawns = {
         [1411] = {
@@ -2557,6 +2669,7 @@ return {
       maxLevel = 7,
       minLevel = 7,
       name = "Lar Prowltusk",
+      npcFlags = 2,
       sightings = 4,
       spawns = {
         [1411] = {
@@ -2573,6 +2686,7 @@ return {
       maxLevel = 18,
       minLevel = 18,
       name = "Orgnil Soulscar",
+      npcFlags = 2,
       sightings = 2,
       spawns = {
         [1411] = {
@@ -2586,6 +2700,7 @@ return {
       maxLevel = 12,
       minLevel = 12,
       name = "Zureetha Fargaze",
+      npcFlags = 2,
       sightings = 1,
       spawns = {
         [1411] = {
@@ -2613,7 +2728,7 @@ return {
       maxLevel = 11,
       minLevel = 11,
       name = "Frang",
-      npcFlags = 16,
+      npcFlags = 18,
       sightings = 3,
       spawns = {
         [1411] = {
@@ -2629,6 +2744,7 @@ return {
       maxLevel = 8,
       minLevel = 8,
       name = "Jen'shan",
+      npcFlags = 18,
       sightings = 2,
       spawns = {
         [1411] = {
@@ -2643,6 +2759,7 @@ return {
       maxLevel = 10,
       minLevel = 10,
       name = "Shikrik",
+      npcFlags = 18,
       sightings = 1,
       spawns = {
         [1411] = {
@@ -2657,7 +2774,7 @@ return {
       maxLevel = 10,
       minLevel = 10,
       name = "Duokna",
-      npcFlags = 4,
+      npcFlags = 6,
       sightings = 2,
       spawns = {
         [1411] = {
@@ -2672,7 +2789,7 @@ return {
       maxLevel = 14,
       minLevel = 14,
       name = "Jark",
-      npcFlags = 4,
+      npcFlags = 6,
       sightings = 2,
       spawns = {
         [1411] = {
@@ -2687,7 +2804,7 @@ return {
       maxLevel = 43,
       minLevel = 43,
       name = "Tarshaw Jaggedscar",
-      npcFlags = 16,
+      npcFlags = 18,
       sightings = 7,
       spawns = {
         [1411] = {
@@ -2703,6 +2820,7 @@ return {
       maxLevel = 14,
       minLevel = 14,
       name = "Kaplak",
+      npcFlags = 18,
       sightings = 2,
       spawns = {
         [1411] = {
@@ -2717,6 +2835,7 @@ return {
       maxLevel = 16,
       minLevel = 16,
       name = "Thotar",
+      npcFlags = 18,
       sightings = 2,
       spawns = {
         [1411] = {
@@ -2731,6 +2850,7 @@ return {
       maxLevel = 15,
       minLevel = 15,
       name = "Swart",
+      npcFlags = 18,
       sightings = 2,
       spawns = {
         [1411] = {
@@ -2745,6 +2865,7 @@ return {
       maxLevel = 25,
       minLevel = 25,
       name = "Miao'zan",
+      npcFlags = 18,
       sightings = 2,
       spawns = {
         [1411] = {
@@ -2760,7 +2881,7 @@ return {
       maxLevel = 14,
       minLevel = 14,
       name = "Mishiki",
-      npcFlags = 16,
+      npcFlags = 18,
       sightings = 2,
       spawns = {
         [1411] = {
@@ -2775,7 +2896,7 @@ return {
       maxLevel = 11,
       minLevel = 11,
       name = "K'waii",
-      npcFlags = 4,
+      npcFlags = 6,
       sightings = 5,
       spawns = {
         [1411] = {
@@ -2790,7 +2911,7 @@ return {
       maxLevel = 12,
       minLevel = 12,
       name = "Tai'tasi",
-      npcFlags = 4,
+      npcFlags = 6,
       sightings = 6,
       spawns = {
         [1411] = {
@@ -2805,6 +2926,7 @@ return {
       maxLevel = 12,
       minLevel = 12,
       name = "Master Gadrin",
+      npcFlags = 2,
       sightings = 9,
       spawns = {
         [1411] = {
@@ -2834,6 +2956,7 @@ return {
       maxLevel = 7,
       minLevel = 7,
       name = "Vel'rin Fang",
+      npcFlags = 2,
       sightings = 3,
       spawns = {
         [1411] = {
@@ -2943,6 +3066,7 @@ return {
       maxLevel = 37,
       minLevel = 37,
       name = "Neeru Fireblade",
+      npcFlags = 2,
       sightings = 18,
       spawns = {
         [1454] = {
@@ -3050,6 +3174,7 @@ return {
       maxLevel = 8,
       minLevel = 8,
       name = "Lorekeeper Raintotem",
+      npcFlags = 2,
       sightings = 2,
       spawns = {
         [1412] = {
@@ -4214,6 +4339,7 @@ return {
       maxLevel = 11,
       minLevel = 11,
       name = "Master Vornal",
+      npcFlags = 2,
       sightings = 7,
       spawns = {
         [1411] = {
@@ -4229,7 +4355,7 @@ return {
       maxLevel = 55,
       minLevel = 55,
       name = "Doras",
-      npcFlags = 8,
+      npcFlags = 10,
       sightings = 13,
       spawns = {
         [1454] = {
@@ -4245,6 +4371,7 @@ return {
       maxLevel = 30,
       minLevel = 30,
       name = "Takrin Pathseeker",
+      npcFlags = 2,
       sightings = 2,
       spawns = {
         [1411] = {
@@ -4258,6 +4385,7 @@ return {
       maxLevel = 15,
       minLevel = 15,
       name = "Kargal Battlescar",
+      npcFlags = 2,
       sightings = 4,
       spawns = {
         [1413] = {
@@ -4273,6 +4401,7 @@ return {
       maxLevel = 60,
       minLevel = 60,
       name = "Sergra Darkthorn",
+      npcFlags = 2,
       sightings = 12,
       spawns = {
         [1413] = {
@@ -4288,6 +4417,7 @@ return {
       maxLevel = 25,
       minLevel = 25,
       name = "Captain Thalo'thas Brightsun",
+      npcFlags = 2,
       sightings = 4,
       spawns = {
         [1413] = {
@@ -4301,6 +4431,7 @@ return {
       maxLevel = 30,
       minLevel = 30,
       name = "Shoma",
+      npcFlags = 16388,
       sightings = 1,
       spawns = {
         [1454] = {
@@ -4470,6 +4601,7 @@ return {
       maxLevel = 32,
       minLevel = 32,
       name = "Jorn Skyseer",
+      npcFlags = 2,
       sightings = 18,
       spawns = {
         [1413] = {
@@ -4484,6 +4616,7 @@ return {
       maxLevel = 32,
       minLevel = 32,
       name = "Mahren Skyseer",
+      npcFlags = 2,
       sightings = 4,
       spawns = {
         [1413] = {
@@ -4497,6 +4630,7 @@ return {
       maxLevel = 22,
       minLevel = 22,
       name = "Apothecary Helbrim",
+      npcFlags = 2,
       sightings = 14,
       spawns = {
         [1413] = {
@@ -4541,7 +4675,7 @@ return {
       maxLevel = 25,
       minLevel = 25,
       name = "Denni'ka",
-      npcFlags = 4,
+      npcFlags = 6,
       sightings = 2,
       spawns = {
         [1442] = {
@@ -4588,6 +4722,7 @@ return {
       maxLevel = 22,
       minLevel = 22,
       name = "Kirge Sternhorn",
+      npcFlags = 2,
       sightings = 6,
       spawns = {
         [1413] = {
@@ -4603,6 +4738,7 @@ return {
       maxLevel = 22,
       minLevel = 22,
       name = "Apothecary Zamah",
+      npcFlags = 2,
       sightings = 6,
       spawns = {
         [1456] = {
@@ -4679,6 +4815,7 @@ return {
       maxLevel = 12,
       minLevel = 12,
       name = "Korran",
+      npcFlags = 2,
       sightings = 10,
       spawns = {
         [1413] = {
@@ -4693,6 +4830,7 @@ return {
       maxLevel = 42,
       minLevel = 42,
       name = "Thork",
+      npcFlags = 2,
       sightings = 22,
       spawns = {
         [1413] = {
@@ -4706,6 +4844,7 @@ return {
       maxLevel = 17,
       minLevel = 17,
       name = "Mangletooth",
+      npcFlags = 2,
       sightings = 16,
       spawns = {
         [1413] = {
@@ -4720,6 +4859,7 @@ return {
       maxLevel = 10,
       minLevel = 10,
       name = "Grenthar",
+      npcFlags = 2,
       sightings = 9,
       spawns = {
         [1413] = {
@@ -4735,6 +4875,7 @@ return {
       maxLevel = 15,
       minLevel = 15,
       name = "Mankrik",
+      npcFlags = 2,
       sightings = 21,
       spawns = {
         [1413] = {
@@ -4749,6 +4890,7 @@ return {
       maxLevel = 14,
       minLevel = 14,
       name = "Tatternack Steelforge",
+      npcFlags = 2,
       sightings = 3,
       spawns = {
         [1413] = {
@@ -4777,6 +4919,7 @@ return {
       maxLevel = 62,
       minLevel = 62,
       name = "Melor Stonehoof",
+      npcFlags = 2,
       sightings = 9,
       spawns = {
         [1456] = {
@@ -4797,6 +4940,7 @@ return {
       maxLevel = 15,
       minLevel = 15,
       name = "Sputtervalve",
+      npcFlags = 2,
       sightings = 10,
       spawns = {
         [1413] = {
@@ -4811,6 +4955,7 @@ return {
       maxLevel = 13,
       minLevel = 13,
       name = "Grub",
+      npcFlags = 6,
       sightings = 3,
       spawns = {
         [1413] = {
@@ -4824,6 +4969,7 @@ return {
       maxLevel = 17,
       minLevel = 17,
       name = "Mebok Mizzyrix",
+      npcFlags = 2,
       sightings = 13,
       spawns = {
         [1413] = {
@@ -4837,6 +4983,7 @@ return {
       maxLevel = 24,
       minLevel = 24,
       name = "Pawe Mistrunner",
+      npcFlags = 2,
       sightings = 1,
       spawns = {
         [1456] = {
@@ -4850,6 +4997,7 @@ return {
       maxLevel = 22,
       minLevel = 22,
       name = "Tonga Runetotem",
+      npcFlags = 2,
       sightings = 20,
       spawns = {
         [1413] = {
@@ -4863,6 +5011,7 @@ return {
       maxLevel = 14,
       minLevel = 14,
       name = "Darsok Swiftdagger",
+      npcFlags = 2,
       sightings = 6,
       spawns = {
         [1413] = {
@@ -4892,6 +5041,7 @@ return {
       maxLevel = 15,
       minLevel = 15,
       name = "Wharfmaster Dizzywig",
+      npcFlags = 2,
       sightings = 7,
       spawns = {
         [1413] = {
@@ -4972,6 +5122,7 @@ return {
       maxLevel = 25,
       minLevel = 25,
       name = "Gazrog",
+      npcFlags = 2,
       sightings = 29,
       spawns = {
         [1413] = {
@@ -4986,6 +5137,7 @@ return {
       maxLevel = 17,
       minLevel = 17,
       name = "Gilthares Firebough",
+      npcFlags = 2,
       sightings = 12,
       spawns = {
         [1413] = {
@@ -5087,7 +5239,7 @@ return {
       maxLevel = 18,
       minLevel = 18,
       name = "Hraq",
-      npcFlags = 16388,
+      npcFlags = 16390,
       sightings = 15,
       spawns = {
         [1413] = {
@@ -5103,6 +5255,7 @@ return {
       maxLevel = 31,
       minLevel = 31,
       name = "Traugh",
+      npcFlags = 18,
       sightings = 8,
       spawns = {
         [1413] = {
@@ -5135,7 +5288,7 @@ return {
       maxLevel = 18,
       minLevel = 18,
       name = "Moorane Hearthgrain",
-      npcFlags = 4,
+      npcFlags = 6,
       sightings = 8,
       spawns = {
         [1413] = {
@@ -5152,7 +5305,7 @@ return {
       maxLevel = 14,
       minLevel = 14,
       name = "Barg",
-      npcFlags = 4,
+      npcFlags = 6,
       sightings = 15,
       spawns = {
         [1413] = {
@@ -5169,7 +5322,7 @@ return {
       maxLevel = 14,
       minLevel = 14,
       name = "Tari'qa",
-      npcFlags = 4,
+      npcFlags = 6,
       sightings = 13,
       spawns = {
         [1413] = {
@@ -5186,7 +5339,7 @@ return {
       maxLevel = 21,
       minLevel = 21,
       name = "Jahan Hawkwing",
-      npcFlags = 16388,
+      npcFlags = 16390,
       sightings = 39,
       spawns = {
         [1413] = {
@@ -5202,6 +5355,7 @@ return {
       maxLevel = 25,
       minLevel = 25,
       name = "Kil'hala",
+      npcFlags = 18,
       sightings = 1,
       spawns = {
         [1413] = {
@@ -5231,7 +5385,7 @@ return {
       maxLevel = 23,
       minLevel = 23,
       name = "Kalyimah Stormcloud",
-      npcFlags = 4,
+      npcFlags = 6,
       sightings = 15,
       spawns = {
         [1413] = {
@@ -5262,6 +5416,7 @@ return {
       maxLevel = 16,
       minLevel = 16,
       name = "Zargh",
+      npcFlags = 6,
       sightings = 2,
       spawns = {
         [1413] = {
@@ -5276,6 +5431,7 @@ return {
       maxLevel = 30,
       minLevel = 30,
       name = "Hula'mahi",
+      npcFlags = 4,
       sightings = 14,
       spawns = {
         [1413] = {
@@ -5306,6 +5462,7 @@ return {
       maxLevel = 45,
       minLevel = 45,
       name = "Fuzruckle",
+      npcFlags = 256,
       sightings = 5,
       spawns = {
         [1413] = {
@@ -5320,6 +5477,7 @@ return {
       maxLevel = 24,
       minLevel = 24,
       name = "Kilxx",
+      npcFlags = 4,
       sightings = 1,
       spawns = {
         [1413] = {
@@ -5334,7 +5492,7 @@ return {
       maxLevel = 22,
       minLevel = 22,
       name = "Jazzik",
-      npcFlags = 4,
+      npcFlags = 6,
       sightings = 6,
       spawns = {
         [1413] = {
@@ -5349,6 +5507,7 @@ return {
       maxLevel = 22,
       minLevel = 22,
       name = "Ranik",
+      npcFlags = 6,
       sightings = 3,
       spawns = {
         [1413] = {
@@ -5431,6 +5590,7 @@ return {
       maxLevel = 22,
       minLevel = 22,
       name = "Ak'Zeloth",
+      npcFlags = 2,
       sightings = 1,
       spawns = {
         [1413] = {
@@ -5499,7 +5659,7 @@ return {
       maxLevel = 55,
       minLevel = 55,
       name = "Devrak",
-      npcFlags = 8,
+      npcFlags = 10,
       sightings = 59,
       spawns = {
         [1413] = {
@@ -5517,6 +5677,7 @@ return {
       maxLevel = 40,
       minLevel = 40,
       name = "Harruk",
+      npcFlags = 18,
       sightings = 2,
       spawns = {
         [1411] = {
@@ -5692,6 +5853,7 @@ return {
       maxLevel = 18,
       minLevel = 18,
       name = "Crane Operator Bigglefuzz",
+      npcFlags = 2,
       sightings = 4,
       spawns = {
         [1413] = {
@@ -5720,6 +5882,7 @@ return {
       maxLevel = 40,
       minLevel = 40,
       name = "Reban Freerunner",
+      npcFlags = 18,
       sightings = 2,
       spawns = {
         [1412] = {
@@ -5734,6 +5897,7 @@ return {
       maxLevel = 42,
       minLevel = 42,
       name = "Krulmoo Fullmoon",
+      npcFlags = 18,
       sightings = 1,
       spawns = {
         [1413] = {
@@ -5748,6 +5912,7 @@ return {
       maxLevel = 31,
       minLevel = 31,
       name = "Mahani",
+      npcFlags = 18,
       sightings = 1,
       spawns = {
         [1413] = {
@@ -5762,6 +5927,7 @@ return {
       maxLevel = 25,
       minLevel = 25,
       name = "Gahroot",
+      npcFlags = 6,
       sightings = 3,
       spawns = {
         [1413] = {
@@ -5776,6 +5942,7 @@ return {
       maxLevel = 18,
       minLevel = 18,
       name = "Tai'jin",
+      npcFlags = 18,
       sightings = 2,
       spawns = {
         [1411] = {
@@ -5790,6 +5957,7 @@ return {
       maxLevel = 10,
       minLevel = 10,
       name = "Ken'jai",
+      npcFlags = 18,
       sightings = 2,
       spawns = {
         [1411] = {
@@ -5804,7 +5972,7 @@ return {
       maxLevel = 9,
       minLevel = 9,
       name = "Zlagk",
-      npcFlags = 4,
+      npcFlags = 6,
       sightings = 2,
       spawns = {
         [1411] = {
@@ -5818,7 +5986,7 @@ return {
       build = "70205",
       lastSeen = 1791188119,
       name = "Moodan Sungrain",
-      npcFlags = 4,
+      npcFlags = 6,
       sightings = 1,
       spawns = {
         [1412] = {
@@ -5833,7 +6001,7 @@ return {
       maxLevel = 30,
       minLevel = 30,
       name = "Innkeeper Boorand Plainswind",
-      npcFlags = 4,
+      npcFlags = 134,
       sightings = 25,
       spawns = {
         [1413] = {
@@ -5872,6 +6040,7 @@ return {
       maxLevel = 35,
       minLevel = 35,
       name = "Caravaneer Ruzzgot",
+      npcFlags = 2,
       sightings = 1,
       spawns = {
         [1434] = {
@@ -6002,6 +6171,7 @@ return {
       maxLevel = 25,
       minLevel = 25,
       name = "Witch Doctor Jin'Zil",
+      npcFlags = 2,
       sightings = 1,
       spawns = {
         [1442] = {
@@ -6132,6 +6302,7 @@ return {
       maxLevel = 8,
       minLevel = 8,
       name = "Galthuk",
+      npcFlags = 16388,
       sightings = 1,
       spawns = {
         [1454] = {
@@ -6146,6 +6317,7 @@ return {
       maxLevel = 62,
       minLevel = 62,
       name = "Magatha Grimtotem",
+      npcFlags = 2,
       sightings = 4,
       spawns = {
         [1456] = {
@@ -6162,6 +6334,7 @@ return {
       maxLevel = 26,
       minLevel = 26,
       name = "Seereth Stonebreak",
+      npcFlags = 2,
       sightings = 1,
       spawns = {
         [1413] = {
@@ -6205,6 +6378,7 @@ return {
       maxLevel = 30,
       minLevel = 30,
       name = "Gaxim Rustfizzle",
+      npcFlags = 2,
       sightings = 1,
       spawns = {
         [1442] = {
@@ -6218,6 +6392,7 @@ return {
       maxLevel = 23,
       minLevel = 23,
       name = "Kaela Shadowspear",
+      npcFlags = 2,
       sightings = 1,
       spawns = {
         [1442] = {
@@ -6231,6 +6406,7 @@ return {
       maxLevel = 32,
       minLevel = 32,
       name = "Grawnal",
+      npcFlags = 6,
       sightings = 1,
       spawns = {
         [1442] = {
@@ -6358,6 +6534,7 @@ return {
       maxLevel = 20,
       minLevel = 20,
       name = "Ken'zigla",
+      npcFlags = 2,
       sightings = 2,
       spawns = {
         [1442] = {
@@ -6371,6 +6548,7 @@ return {
       maxLevel = 30,
       minLevel = 30,
       name = "Braelyn Firehand",
+      npcFlags = 2,
       sightings = 5,
       spawns = {
         [1442] = {
@@ -6386,6 +6564,7 @@ return {
       maxLevel = 20,
       minLevel = 20,
       name = "Ziz Fizziks",
+      npcFlags = 2,
       sightings = 3,
       spawns = {
         [1442] = {
@@ -6436,6 +6615,7 @@ return {
       maxLevel = 62,
       minLevel = 62,
       name = "Gorm Grimtotem",
+      npcFlags = 2,
       sightings = 3,
       spawns = {
         [1456] = {
@@ -6451,6 +6631,7 @@ return {
       maxLevel = 62,
       minLevel = 62,
       name = "Cor Grimtotem",
+      npcFlags = 2,
       sightings = 5,
       spawns = {
         [1456] = {
@@ -6480,7 +6661,7 @@ return {
       maxLevel = 55,
       minLevel = 55,
       name = "Tharm",
-      npcFlags = 8,
+      npcFlags = 10,
       sightings = 14,
       spawns = {
         [1442] = {
@@ -6680,6 +6861,7 @@ return {
       maxLevel = 45,
       minLevel = 45,
       name = "Overlord Mok'Morokk",
+      npcFlags = 2,
       sightings = 1,
       spawns = {
         [1445] = {
@@ -6693,6 +6875,7 @@ return {
       maxLevel = 40,
       minLevel = 40,
       name = "Draz'Zilb",
+      npcFlags = 2,
       sightings = 2,
       spawns = {
         [1445] = {
@@ -6707,6 +6890,7 @@ return {
       maxLevel = 44,
       minLevel = 44,
       name = "Tharg",
+      npcFlags = 2,
       sightings = 2,
       spawns = {
         [1445] = {
@@ -6720,6 +6904,7 @@ return {
       maxLevel = 35,
       minLevel = 35,
       name = "Brom Killian",
+      npcFlags = 18,
       sightings = 1,
       spawns = {
         [1458] = {
@@ -6734,6 +6919,7 @@ return {
       maxLevel = 30,
       minLevel = 30,
       name = "Sarah Killian",
+      npcFlags = 6,
       sightings = 1,
       spawns = {
         [1458] = {
@@ -6811,6 +6997,7 @@ return {
       maxLevel = 60,
       minLevel = 60,
       name = "Aelthalyste",
+      npcFlags = 18,
       sightings = 2,
       spawns = {
         [1458] = {
@@ -6825,6 +7012,7 @@ return {
       maxLevel = 35,
       minLevel = 35,
       name = "Martha Alliestar",
+      npcFlags = 16,
       sightings = 1,
       spawns = {
         [1458] = {
@@ -6839,7 +7027,7 @@ return {
       maxLevel = 30,
       minLevel = 30,
       name = "Katrina Alliestar",
-      npcFlags = 4,
+      npcFlags = 6,
       sightings = 2,
       spawns = {
         [1458] = {
@@ -6876,6 +7064,7 @@ return {
       maxLevel = 35,
       minLevel = 35,
       name = "Wharfmaster Lozgil",
+      npcFlags = 2,
       sightings = 1,
       spawns = {
         [1434] = {
@@ -6889,6 +7078,7 @@ return {
       maxLevel = 25,
       minLevel = 25,
       name = "Zangen Stonehoof",
+      npcFlags = 2,
       sightings = 5,
       spawns = {
         [1456] = {
@@ -6918,6 +7108,7 @@ return {
       maxLevel = 48,
       minLevel = 48,
       name = "Nazeer Bloodpike",
+      npcFlags = 2,
       sightings = 3,
       spawns = {
         [1445] = {
@@ -6933,7 +7124,7 @@ return {
       maxLevel = 40,
       minLevel = 40,
       name = "Ogg'marr",
-      npcFlags = 4,
+      npcFlags = 6,
       sightings = 3,
       spawns = {
         [1445] = {
@@ -6982,6 +7173,7 @@ return {
       maxLevel = 40,
       minLevel = 40,
       name = "Krog",
+      npcFlags = 2,
       sightings = 6,
       spawns = {
         [1445] = {
@@ -6996,6 +7188,7 @@ return {
       maxLevel = 30,
       minLevel = 30,
       name = "Mosarn",
+      npcFlags = 2,
       sightings = 4,
       spawns = {
         [1456] = {
@@ -7009,6 +7202,7 @@ return {
       build = "70245",
       lastSeen = 1791361479,
       name = "Thrall",
+      npcFlags = 2,
       sightings = 2,
       spawns = {
         [1454] = {
@@ -7024,6 +7218,7 @@ return {
       maxLevel = 50,
       minLevel = 50,
       name = "Krumn",
+      npcFlags = 1536,
       sightings = 1,
       spawns = {
         [1456] = {
@@ -7038,6 +7233,7 @@ return {
       maxLevel = 30,
       minLevel = 30,
       name = "Do'gol",
+      npcFlags = 2,
       sightings = 2,
       spawns = {
         [1445] = {
@@ -7052,6 +7248,7 @@ return {
       maxLevel = 25,
       minLevel = 25,
       name = "Thrumn",
+      npcFlags = 1028,
       sightings = 1,
       spawns = {
         [1456] = {
@@ -7066,6 +7263,7 @@ return {
       maxLevel = 17,
       minLevel = 17,
       name = "Clarice Foster",
+      npcFlags = 2,
       sightings = 3,
       spawns = {
         [1456] = {
@@ -7081,6 +7279,7 @@ return {
       maxLevel = 25,
       minLevel = 25,
       name = "Kon Yelloweyes",
+      npcFlags = 2,
       sightings = 5,
       spawns = {
         [1456] = {
@@ -7300,6 +7499,7 @@ return {
       maxLevel = 10,
       minLevel = 10,
       name = "Ruzan",
+      npcFlags = 2,
       sightings = 1,
       spawns = {
         [1411] = {
@@ -7326,6 +7526,7 @@ return {
       maxLevel = 14,
       minLevel = 14,
       name = "Nalpak",
+      npcFlags = 2,
       sightings = 6,
       spawns = {
         [1414] = {
@@ -7340,6 +7541,7 @@ return {
       maxLevel = 14,
       minLevel = 14,
       name = "Ebru",
+      npcFlags = 2,
       sightings = 5,
       spawns = {
         [1414] = {
@@ -7354,6 +7556,7 @@ return {
       maxLevel = 62,
       minLevel = 62,
       name = "Arch Druid Hamuul Runetotem",
+      npcFlags = 2,
       sightings = 9,
       spawns = {
         [1456] = {
@@ -7369,6 +7572,7 @@ return {
       maxLevel = 55,
       minLevel = 55,
       name = "Nara Wildmane",
+      npcFlags = 2,
       sightings = 5,
       spawns = {
         [1456] = {
@@ -7430,7 +7634,7 @@ return {
       maxLevel = 27,
       minLevel = 27,
       name = "Kalldan Felmoon",
-      npcFlags = 4,
+      npcFlags = 6,
       sightings = 11,
       spawns = {
         [1414] = {
@@ -7445,6 +7649,7 @@ return {
       maxLevel = 28,
       minLevel = 28,
       name = "Waldor",
+      npcFlags = 18,
       sightings = 7,
       spawns = {
         [1414] = {
@@ -7459,6 +7664,7 @@ return {
       maxLevel = 25,
       minLevel = 25,
       name = "Aean Swiftriver",
+      npcFlags = 2,
       sightings = 4,
       spawns = {
         [1413] = {
@@ -7476,6 +7682,7 @@ return {
       maxLevel = 25,
       minLevel = 25,
       name = "Thora Feathermoon",
+      npcFlags = 2,
       sightings = 3,
       spawns = {
         [1413] = {
@@ -7492,6 +7699,7 @@ return {
       maxLevel = 24,
       minLevel = 24,
       name = "Hannah Bladeleaf",
+      npcFlags = 2,
       sightings = 4,
       spawns = {
         [1413] = {
@@ -7508,6 +7716,7 @@ return {
       maxLevel = 24,
       minLevel = 24,
       name = "Marcus Bel",
+      npcFlags = 2,
       sightings = 2,
       spawns = {
         [1413] = {
@@ -7538,6 +7747,7 @@ return {
       maxLevel = 20,
       minLevel = 20,
       name = "Uzzek",
+      npcFlags = 2,
       sightings = 5,
       spawns = {
         [1413] = {
@@ -7552,6 +7762,7 @@ return {
       maxLevel = 30,
       minLevel = 30,
       name = "Innkeeper Thulbek",
+      npcFlags = 134,
       sightings = 1,
       spawns = {
         [1434] = {
@@ -7622,7 +7833,7 @@ return {
       maxLevel = 27,
       minLevel = 27,
       name = "Krond",
-      npcFlags = 4,
+      npcFlags = 6,
       sightings = 2,
       spawns = {
         [1442] = {
@@ -7637,7 +7848,7 @@ return {
       maxLevel = 18,
       minLevel = 18,
       name = "Larhka",
-      npcFlags = 4,
+      npcFlags = 6,
       sightings = 4,
       spawns = {
         [1413] = {
@@ -7652,6 +7863,7 @@ return {
       maxLevel = 29,
       minLevel = 29,
       name = "Thun'grim Firegaze",
+      npcFlags = 2,
       sightings = 4,
       spawns = {
         [1413] = {
@@ -7665,6 +7877,7 @@ return {
       maxLevel = 14,
       minLevel = 14,
       name = "Un'Thuwa",
+      npcFlags = 18,
       sightings = 3,
       spawns = {
         [1411] = {
@@ -7679,6 +7892,7 @@ return {
       maxLevel = 10,
       minLevel = 10,
       name = "Mai'ah",
+      npcFlags = 18,
       sightings = 1,
       spawns = {
         [1411] = {
@@ -7693,6 +7907,7 @@ return {
       maxLevel = 37,
       minLevel = 37,
       name = "Islen Waterseer",
+      npcFlags = 2,
       sightings = 3,
       spawns = {
         [1413] = {
@@ -7706,6 +7921,7 @@ return {
       maxLevel = 15,
       minLevel = 15,
       name = "Xanis Flameweaver",
+      npcFlags = 2,
       sightings = 1,
       spawns = {
         [1456] = {
@@ -7719,6 +7935,7 @@ return {
       maxLevel = 15,
       minLevel = 15,
       name = "Kranal Fiss",
+      npcFlags = 2,
       sightings = 1,
       spawns = {
         [1413] = {
@@ -7732,6 +7949,7 @@ return {
       maxLevel = 20,
       minLevel = 20,
       name = "Grunt Logmar",
+      npcFlags = 2,
       sightings = 6,
       spawns = {
         [1413] = {
@@ -7760,7 +7978,7 @@ return {
       maxLevel = 14,
       minLevel = 14,
       name = "Uthan Stillwater",
-      npcFlags = 16,
+      npcFlags = 18,
       sightings = 8,
       spawns = {
         [1412] = {
@@ -7775,7 +7993,7 @@ return {
       maxLevel = 13,
       minLevel = 13,
       name = "Vira Younghoof",
-      npcFlags = 16,
+      npcFlags = 18,
       sightings = 8,
       spawns = {
         [1412] = {
@@ -7790,7 +8008,7 @@ return {
       maxLevel = 9,
       minLevel = 9,
       name = "Harn Longcast",
-      npcFlags = 4,
+      npcFlags = 6,
       sightings = 1,
       spawns = {
         [1412] = {
@@ -7805,7 +8023,7 @@ return {
       maxLevel = 14,
       minLevel = 14,
       name = "Lau'Tiki",
-      npcFlags = 16,
+      npcFlags = 18,
       sightings = 3,
       spawns = {
         [1411] = {
@@ -7821,6 +8039,7 @@ return {
       maxLevel = 14,
       minLevel = 14,
       name = "Zansoa",
+      npcFlags = 6,
       sightings = 1,
       spawns = {
         [1411] = {
@@ -7835,6 +8054,7 @@ return {
       maxLevel = 25,
       minLevel = 25,
       name = "Yonada",
+      npcFlags = 6,
       sightings = 1,
       spawns = {
         [1413] = {
@@ -7886,6 +8106,7 @@ return {
       maxLevel = 45,
       minLevel = 45,
       name = "Birgitte Cranston",
+      npcFlags = 18,
       sightings = 2,
       spawns = {
         [1456] = {
@@ -7932,7 +8153,7 @@ return {
       maxLevel = 8,
       minLevel = 8,
       name = "Yonn Deepcut",
-      npcFlags = 16,
+      npcFlags = 18,
       sightings = 3,
       spawns = {
         [1412] = {
@@ -7947,7 +8168,7 @@ return {
       maxLevel = 15,
       minLevel = 15,
       name = "Dranh",
-      npcFlags = 16,
+      npcFlags = 18,
       sightings = 4,
       spawns = {
         [1413] = {
@@ -7962,6 +8183,7 @@ return {
       maxLevel = 62,
       minLevel = 62,
       name = "Henen Ragetotem",
+      npcFlags = 2,
       sightings = 9,
       spawns = {
         [1456] = {
@@ -7980,6 +8202,7 @@ return {
       maxLevel = 30,
       minLevel = 30,
       name = "Ruga Ragetotem",
+      npcFlags = 2,
       sightings = 3,
       spawns = {
         [1413] = {
@@ -7993,6 +8216,7 @@ return {
       maxLevel = 35,
       minLevel = 35,
       name = "Ula'elek",
+      npcFlags = 2,
       sightings = 1,
       spawns = {
         [1411] = {
@@ -8006,6 +8230,7 @@ return {
       maxLevel = 45,
       minLevel = 45,
       name = "Orm Stonehoof",
+      npcFlags = 2,
       sightings = 1,
       spawns = {
         [1456] = {
@@ -8085,7 +8310,7 @@ return {
       maxLevel = 43,
       minLevel = 43,
       name = "Ghok'kah",
-      npcFlags = 4,
+      npcFlags = 6,
       sightings = 4,
       spawns = {
         [1445] = {
@@ -8101,7 +8326,7 @@ return {
       maxLevel = 30,
       minLevel = 30,
       name = "Innkeeper Pala",
-      npcFlags = 4,
+      npcFlags = 134,
       sightings = 3,
       spawns = {
         [1456] = {
@@ -8116,7 +8341,7 @@ return {
       maxLevel = 30,
       minLevel = 30,
       name = "Innkeeper Kauth",
-      npcFlags = 4,
+      npcFlags = 134,
       sightings = 17,
       spawns = {
         [1412] = {
@@ -8131,6 +8356,7 @@ return {
       maxLevel = 6,
       minLevel = 6,
       name = "Magrin Rivermane",
+      npcFlags = 2,
       sightings = 1,
       spawns = {
         [1412] = {
@@ -8144,6 +8370,7 @@ return {
       maxLevel = 4,
       minLevel = 4,
       name = "Ukor",
+      npcFlags = 2,
       sightings = 2,
       spawns = {
         [1411] = {
@@ -8158,7 +8385,7 @@ return {
       maxLevel = 35,
       minLevel = 35,
       name = "Innkeeper Wiley",
-      npcFlags = 4,
+      npcFlags = 134,
       sightings = 4,
       spawns = {
         [1413] = {
@@ -8173,7 +8400,7 @@ return {
       maxLevel = 30,
       minLevel = 30,
       name = "Innkeeper Grosk",
-      npcFlags = 4,
+      npcFlags = 134,
       sightings = 5,
       spawns = {
         [1411] = {
@@ -8188,6 +8415,7 @@ return {
       maxLevel = 35,
       minLevel = 35,
       name = "Mooranta",
+      npcFlags = 18,
       sightings = 1,
       spawns = {
         [1456] = {
@@ -8237,6 +8465,7 @@ return {
       maxLevel = 30,
       minLevel = 30,
       name = "Innkeeper Byula",
+      npcFlags = 134,
       sightings = 1,
       spawns = {
         [1413] = {
@@ -8251,6 +8480,7 @@ return {
       maxLevel = 40,
       minLevel = 40,
       name = "Stonetalon Grunt",
+      npcFlags = 2,
       sightings = 21,
       spawns = {
         [1442] = {
@@ -8272,7 +8502,7 @@ return {
       maxLevel = 30,
       minLevel = 30,
       name = "Innkeeper Jayka",
-      npcFlags = 4,
+      npcFlags = 134,
       sightings = 6,
       spawns = {
         [1442] = {
@@ -8287,6 +8517,7 @@ return {
       maxLevel = 45,
       minLevel = 45,
       name = "Orokk Omosh",
+      npcFlags = 2,
       sightings = 1,
       spawns = {
         [1454] = {
@@ -8314,6 +8545,7 @@ return {
       maxLevel = 50,
       minLevel = 50,
       name = "Xar'Ti",
+      npcFlags = 16,
       sightings = 5,
       spawns = {
         [1411] = {
@@ -8342,6 +8574,7 @@ return {
       maxLevel = 45,
       minLevel = 45,
       name = "Zikkel",
+      npcFlags = 256,
       sightings = 3,
       spawns = {
         [1413] = {
@@ -8356,7 +8589,7 @@ return {
       maxLevel = 18,
       minLevel = 18,
       name = "Duhng",
-      npcFlags = 16,
+      npcFlags = 18,
       sightings = 4,
       spawns = {
         [1413] = {
@@ -8371,7 +8604,7 @@ return {
       maxLevel = 22,
       minLevel = 22,
       name = "Tarban Hearthgrain",
-      npcFlags = 4,
+      npcFlags = 6,
       sightings = 4,
       spawns = {
         [1413] = {
@@ -8386,6 +8619,7 @@ return {
       maxLevel = 45,
       minLevel = 45,
       name = "Chesmu",
+      npcFlags = 256,
       sightings = 1,
       spawns = {
         [1456] = {
@@ -8416,6 +8650,7 @@ return {
       maxLevel = 30,
       minLevel = 30,
       name = "Ahanu",
+      npcFlags = 16390,
       sightings = 6,
       spawns = {
         [1456] = {
@@ -8465,7 +8700,7 @@ return {
       maxLevel = 30,
       minLevel = 30,
       name = "Kuruk",
-      npcFlags = 4,
+      npcFlags = 6,
       sightings = 3,
       spawns = {
         [1456] = {
@@ -8482,7 +8717,7 @@ return {
       maxLevel = 30,
       minLevel = 30,
       name = "Shadi Mistrunner",
-      npcFlags = 4,
+      npcFlags = 6,
       sightings = 3,
       spawns = {
         [1456] = {
@@ -8499,7 +8734,7 @@ return {
       maxLevel = 30,
       minLevel = 30,
       name = "Pakwa",
-      npcFlags = 4,
+      npcFlags = 6,
       sightings = 2,
       spawns = {
         [1456] = {
@@ -8531,7 +8766,7 @@ return {
       maxLevel = 30,
       minLevel = 30,
       name = "Halpa",
-      npcFlags = 4,
+      npcFlags = 6,
       sightings = 3,
       spawns = {
         [1456] = {
@@ -8546,6 +8781,7 @@ return {
       maxLevel = 25,
       minLevel = 25,
       name = "Falla Sagewind",
+      npcFlags = 2,
       sightings = 3,
       spawns = {
         [1413] = {
@@ -8559,6 +8795,7 @@ return {
       maxLevel = 17,
       minLevel = 17,
       name = "Liv Rizzlefix",
+      npcFlags = 2,
       sightings = 1,
       spawns = {
         [1413] = {
@@ -8573,6 +8810,7 @@ return {
       maxLevel = 50,
       minLevel = 50,
       name = "Saern Priderunner",
+      npcFlags = 2,
       sightings = 4,
       spawns = {
         [1456] = {
@@ -8588,6 +8826,7 @@ return {
       maxLevel = 50,
       minLevel = 50,
       name = "Auctioneer Thathung",
+      npcFlags = 4096,
       sightings = 1,
       spawns = {
         [1454] = {
@@ -8601,6 +8840,7 @@ return {
       maxLevel = 50,
       minLevel = 50,
       name = "Auctioneer Stampi",
+      npcFlags = 4096,
       sightings = 22,
       spawns = {
         [1456] = {
@@ -8620,6 +8860,7 @@ return {
       maxLevel = 50,
       minLevel = 50,
       name = "Auctioneer Gullem",
+      npcFlags = 4096,
       sightings = 2,
       spawns = {
         [1456] = {
@@ -8708,6 +8949,7 @@ return {
       maxLevel = 8,
       minLevel = 8,
       name = "Galgar",
+      npcFlags = 2,
       sightings = 1,
       spawns = {
         [1411] = {
@@ -8721,6 +8963,7 @@ return {
       maxLevel = 50,
       minLevel = 50,
       name = "Auctioneer Grimful",
+      npcFlags = 4096,
       sightings = 1,
       spawns = {
         [1454] = {
@@ -8734,6 +8977,7 @@ return {
       maxLevel = 30,
       minLevel = 30,
       name = "Sikwa",
+      npcFlags = 8192,
       sightings = 6,
       spawns = {
         [1413] = {
@@ -8749,6 +8993,7 @@ return {
       maxLevel = 30,
       minLevel = 30,
       name = "Kelsuwa",
+      npcFlags = 8192,
       sightings = 3,
       spawns = {
         [1413] = {
@@ -8781,6 +9026,7 @@ return {
       maxLevel = 30,
       minLevel = 30,
       name = "Gereck",
+      npcFlags = 8192,
       sightings = 3,
       spawns = {
         [1442] = {
@@ -8796,6 +9042,7 @@ return {
       maxLevel = 30,
       minLevel = 30,
       name = "Seikwa",
+      npcFlags = 8192,
       sightings = 1,
       spawns = {
         [1412] = {
@@ -8810,6 +9057,7 @@ return {
       maxLevel = 30,
       minLevel = 30,
       name = "Bulrug",
+      npcFlags = 8192,
       sightings = 9,
       spawns = {
         [1456] = {
@@ -8830,6 +9078,7 @@ return {
       maxLevel = 46,
       minLevel = 46,
       name = "Grimestack",
+      npcFlags = 8192,
       sightings = 1,
       spawns = {
         [1434] = {
@@ -8844,6 +9093,7 @@ return {
       maxLevel = 35,
       minLevel = 35,
       name = "Reggifuz",
+      npcFlags = 8192,
       sightings = 2,
       spawns = {
         [1413] = {
@@ -8858,6 +9108,7 @@ return {
       maxLevel = 40,
       minLevel = 40,
       name = "Hesuwa Thunderhorn",
+      npcFlags = 18,
       sightings = 3,
       spawns = {
         [1456] = {
@@ -8874,6 +9125,7 @@ return {
       maxLevel = 20,
       minLevel = 20,
       name = "Kaltunk",
+      npcFlags = 2,
       sightings = 1,
       spawns = {
         [1411] = {
@@ -8887,7 +9139,7 @@ return {
       maxLevel = 24,
       minLevel = 24,
       name = "Thrag Stonehoof",
-      npcFlags = 16,
+      npcFlags = 18,
       sightings = 5,
       spawns = {
         [1456] = {
@@ -8935,7 +9187,7 @@ return {
       maxLevel = 55,
       minLevel = 55,
       name = "Omusa Thunderhorn",
-      npcFlags = 8,
+      npcFlags = 10,
       sightings = 14,
       spawns = {
         [1413] = {
@@ -9062,6 +9314,7 @@ return {
       maxLevel = 3,
       minLevel = 3,
       name = "Harbinger Balthazad",
+      npcFlags = 2,
       sightings = 1,
       spawns = {
         [1458] = {
@@ -9075,6 +9328,7 @@ return {
       maxLevel = 3,
       minLevel = 3,
       name = "Warcaller Gorlach",
+      npcFlags = 2,
       sightings = 1,
       spawns = {
         [1454] = {
@@ -9088,6 +9342,7 @@ return {
       maxLevel = 3,
       minLevel = 3,
       name = "Bluff Runner Windstrider",
+      npcFlags = 2,
       sightings = 13,
       spawns = {
         [1456] = {
@@ -9113,6 +9368,7 @@ return {
       maxLevel = 25,
       minLevel = 25,
       name = "Twizwick Sprocketgrind",
+      npcFlags = 18,
       sightings = 2,
       spawns = {
         [1412] = {
@@ -9127,6 +9383,7 @@ return {
       maxLevel = 40,
       minLevel = 40,
       name = "Samantha Swifthoof",
+      npcFlags = 2,
       sightings = 2,
       spawns = {
         [1434] = {
@@ -9140,6 +9397,7 @@ return {
       maxLevel = 12,
       minLevel = 12,
       name = "Kali Remik",
+      npcFlags = 2,
       sightings = 1,
       spawns = {
         [1411] = {
@@ -9153,6 +9411,7 @@ return {
       maxLevel = 30,
       minLevel = 30,
       name = "Darn Talongrip",
+      npcFlags = 2,
       sightings = 2,
       spawns = {
         [1442] = {
@@ -9167,6 +9426,7 @@ return {
       maxLevel = 20,
       minLevel = 20,
       name = "Rahauro",
+      npcFlags = 2,
       sightings = 10,
       spawns = {
         [1456] = {
@@ -9186,6 +9446,7 @@ return {
       maxLevel = 15,
       minLevel = 15,
       name = "Kaya Flathoof",
+      npcFlags = 2,
       sightings = 7,
       spawns = {
         [1442] = {
@@ -9204,6 +9465,7 @@ return {
       maxLevel = 25,
       minLevel = 25,
       name = "Makaba Flathoof",
+      npcFlags = 2,
       sightings = 2,
       spawns = {
         [1413] = {
@@ -9232,6 +9494,7 @@ return {
       maxLevel = 30,
       minLevel = 30,
       name = "Maggran Earthbinder",
+      npcFlags = 2,
       sightings = 8,
       spawns = {
         [1442] = {
@@ -9248,6 +9511,7 @@ return {
       maxLevel = 25,
       minLevel = 25,
       name = "Mor'rogal",
+      npcFlags = 2,
       sightings = 6,
       spawns = {
         [1442] = {
@@ -9261,6 +9525,7 @@ return {
       maxLevel = 25,
       minLevel = 25,
       name = "Tsunaman",
+      npcFlags = 2,
       sightings = 1,
       spawns = {
         [1442] = {
@@ -9274,6 +9539,7 @@ return {
       maxLevel = 25,
       minLevel = 25,
       name = "Tammra Windfield",
+      npcFlags = 2,
       sightings = 3,
       spawns = {
         [1442] = {
@@ -9289,7 +9555,7 @@ return {
       maxLevel = 50,
       minLevel = 50,
       name = "Sayoc",
-      npcFlags = 16,
+      npcFlags = 22,
       sightings = 3,
       spawns = {
         [1454] = {
@@ -9304,7 +9570,7 @@ return {
       maxLevel = 50,
       minLevel = 50,
       name = "Ansekhwa",
-      npcFlags = 16,
+      npcFlags = 22,
       sightings = 14,
       spawns = {
         [1456] = {
@@ -9324,7 +9590,7 @@ return {
       maxLevel = 50,
       minLevel = 50,
       name = "Archibald",
-      npcFlags = 16,
+      npcFlags = 22,
       sightings = 7,
       spawns = {
         [1458] = {
@@ -9341,6 +9607,7 @@ return {
       maxLevel = 48,
       minLevel = 48,
       name = "Grinning Dog",
+      npcFlags = 2,
       sightings = 1,
       spawns = {
         [1454] = {
@@ -9354,7 +9621,7 @@ return {
       maxLevel = 55,
       minLevel = 55,
       name = "Shardi",
-      npcFlags = 8,
+      npcFlags = 10,
       sightings = 4,
       spawns = {
         [1445] = {
@@ -9576,6 +9843,7 @@ return {
       maxLevel = 5,
       minLevel = 5,
       name = "Magga",
+      npcFlags = 2,
       sightings = 1,
       spawns = {
         [1411] = {
@@ -9603,7 +9871,7 @@ return {
       maxLevel = 32,
       minLevel = 32,
       name = "Kulwia",
-      npcFlags = 4,
+      npcFlags = 6,
       sightings = 9,
       spawns = {
         [1442] = {
@@ -9677,6 +9945,7 @@ return {
       maxLevel = 25,
       minLevel = 25,
       name = "Xen'Zilla",
+      npcFlags = 2,
       sightings = 1,
       spawns = {
         [1442] = {
@@ -9690,6 +9959,7 @@ return {
       maxLevel = 45,
       minLevel = 45,
       name = "Nat Pagle",
+      npcFlags = 6,
       sightings = 2,
       spawns = {
         [1445] = {
@@ -9703,6 +9973,7 @@ return {
       maxLevel = 43,
       minLevel = 43,
       name = "Balai Lok'Wein",
+      npcFlags = 4,
       sightings = 1,
       spawns = {
         [1445] = {
@@ -9717,6 +9988,7 @@ return {
       maxLevel = 60,
       minLevel = 60,
       name = "Royal Dreadguard",
+      npcFlags = 2,
       sightings = 4,
       spawns = {
         [1458] = {
@@ -9733,6 +10005,7 @@ return {
       maxLevel = 60,
       minLevel = 60,
       name = "Frostwolf Ambassador Rokhstrom",
+      npcFlags = 2,
       sightings = 3,
       spawns = {
         [1454] = {
@@ -9792,6 +10065,7 @@ return {
       maxLevel = 60,
       minLevel = 60,
       name = "Overlord Runthak",
+      npcFlags = 2,
       sightings = 2,
       spawns = {
         [1454] = {
@@ -9806,6 +10080,7 @@ return {
       maxLevel = 60,
       minLevel = 60,
       name = "Hunter Sagewind",
+      npcFlags = 2,
       sightings = 7,
       spawns = {
         [1456] = {
@@ -9825,6 +10100,7 @@ return {
       maxLevel = 60,
       minLevel = 60,
       name = "Hunter Ragetotem",
+      npcFlags = 2,
       sightings = 5,
       spawns = {
         [1456] = {
@@ -9841,6 +10117,7 @@ return {
       maxLevel = 55,
       minLevel = 55,
       name = "Horde Elite",
+      npcFlags = 2,
       sightings = 6,
       spawns = {
         [1413] = {
@@ -9867,6 +10144,7 @@ return {
       maxLevel = 55,
       minLevel = 55,
       name = "Captain Shatterskull",
+      npcFlags = 2,
       sightings = 2,
       spawns = {
         [1413] = {
@@ -9962,6 +10240,7 @@ return {
       maxLevel = 55,
       minLevel = 55,
       name = "Cenarion Emissary Blackhoof",
+      npcFlags = 2,
       sightings = 1,
       spawns = {
         [1454] = {
@@ -9975,6 +10254,7 @@ return {
       maxLevel = 60,
       minLevel = 60,
       name = "Horde Warbringer",
+      npcFlags = 6,
       sightings = 5,
       spawns = {
         [1413] = {
@@ -9992,6 +10272,7 @@ return {
       maxLevel = 50,
       minLevel = 50,
       name = "Auctioneer Graves",
+      npcFlags = 4096,
       sightings = 2,
       spawns = {
         [1434] = {
@@ -10005,6 +10286,7 @@ return {
       maxLevel = 50,
       minLevel = 50,
       name = "Auctioneer Naxxremis",
+      npcFlags = 4096,
       sightings = 4,
       spawns = {
         [1458] = {
@@ -10019,6 +10301,7 @@ return {
       maxLevel = 50,
       minLevel = 50,
       name = "Auctioneer Tricket",
+      npcFlags = 4096,
       sightings = 3,
       spawns = {
         [1458] = {
@@ -10034,6 +10317,7 @@ return {
       maxLevel = 30,
       minLevel = 30,
       name = "Durik",
+      npcFlags = 8192,
       sightings = 1,
       spawns = {
         [1434] = {
@@ -10064,7 +10348,7 @@ return {
       maxLevel = 55,
       minLevel = 55,
       name = "Bragok",
-      npcFlags = 8,
+      npcFlags = 10,
       sightings = 14,
       spawns = {
         [1413] = {
@@ -10520,12 +10804,13 @@ return {
     },
     [251905] = {
       build = "70338",
-      lastSeen = 1791812632,
+      friendlyToFaction = "AH",
+      lastSeen = 1791816448,
       maxLevel = 20,
       minLevel = 20,
       name = "Zerril Softbreeze",
       npcFlags = 16,
-      sightings = 8,
+      sightings = 9,
       spawns = {
         [2521] = {
           { 43.44, 43.68 },
@@ -10533,6 +10818,7 @@ return {
           { 43.68, 44.38 },
         },
       },
+      title = "Cook",
     },
     [251906] = {
       build = "70338",
@@ -10827,11 +11113,13 @@ return {
     },
     [254082] = {
       build = "70338",
-      lastSeen = 1791812629,
+      friendlyToFaction = "H",
+      lastSeen = 1791816456,
       maxLevel = 10,
       minLevel = 10,
       name = "Aarnor Galestrike",
-      sightings = 9,
+      npcFlags = 16,
+      sightings = 12,
       spawns = {
         [2521] = {
           { 43.46, 44.24 },
@@ -10841,6 +11129,7 @@ return {
           { 43.29, 43.72 },
         },
       },
+      title = "Shaman Trainer",
     },
     [254084] = {
       build = "70338",
@@ -10877,27 +11166,30 @@ return {
     },
     [254087] = {
       build = "70338",
-      lastSeen = 1791812616,
+      friendlyToFaction = "AH",
+      lastSeen = 1791816434,
       maxLevel = 10,
       minLevel = 10,
       name = "Miriaan Mistblade",
-      sightings = 9,
+      npcFlags = 16,
+      sightings = 11,
       spawns = {
         [2521] = {
           { 43.29, 43.89 },
           { 43.11, 43.31 },
         },
       },
+      title = "Rogue Trainer",
     },
     [254088] = {
       build = "70338",
       friendlyToFaction = "AH",
-      lastSeen = 1791816269,
+      lastSeen = 1791816382,
       maxLevel = 10,
       minLevel = 10,
       name = "Corsan Earthrazer",
       npcFlags = 16,
-      sightings = 49,
+      sightings = 50,
       spawns = {
         [2521] = {
           { 45.27, 45.41 },
@@ -10908,18 +11200,20 @@ return {
     },
     [254089] = {
       build = "70338",
-      lastSeen = 1791812615,
+      friendlyToFaction = "AH",
+      lastSeen = 1791816444,
       maxLevel = 10,
       minLevel = 10,
       name = "Coriella Calmbreeze",
-      npcFlags = 4,
-      sightings = 8,
+      npcFlags = 132,
+      sightings = 11,
       spawns = {
         [2521] = {
           { 43.12, 43.43 },
           { 43.43, 44.05 },
         },
       },
+      title = "Innkeeper",
     },
     [254100] = {
       build = "70338",
@@ -11266,29 +11560,36 @@ return {
     },
     [257020] = {
       build = "70338",
-      lastSeen = 1791804946,
+      friendlyToFaction = "AH",
+      lastSeen = 1791816432,
       maxLevel = 10,
       minLevel = 10,
       name = "Nasalanna Windsinger",
-      sightings = 5,
+      npcFlags = 16,
+      sightings = 8,
       spawns = {
         [2521] = {
           { 43.22, 43.25 },
         },
       },
+      title = "Enchanter",
     },
     [257021] = {
       build = "70338",
-      lastSeen = 1791812613,
+      friendlyToFaction = "AH",
+      lastSeen = 1791816439,
       maxLevel = 10,
       minLevel = 10,
       name = "Halassa Fernbreeze",
-      sightings = 1,
+      npcFlags = 16,
+      sightings = 4,
       spawns = {
         [2521] = {
           { 43.36, 44.28 },
+          { 43.03, 43.52 },
         },
       },
+      title = "Herbalist",
     },
     [257022] = {
       build = "70338",
@@ -11307,17 +11608,20 @@ return {
     },
     [257024] = {
       build = "70338",
-      lastSeen = 1791807777,
+      friendlyToFaction = "AH",
+      lastSeen = 1791816428,
       maxLevel = 10,
       minLevel = 10,
       name = "Mendalass Tattermend",
-      sightings = 7,
+      npcFlags = 16,
+      sightings = 10,
       spawns = {
         [2521] = {
           { 43.09, 43.28 },
           { 43.38, 44.11 },
         },
       },
+      title = "Skinner",
     },
     [257036] = {
       build = "70338",

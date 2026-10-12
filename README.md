@@ -313,6 +313,14 @@ generic gossip window is not proof of a service role. A sighting is categorized
 as combat only when the client says the NPC is attackable; otherwise it appears
 under **Unclassified** until review or a later, more informative interaction.
 
+Each NPC has one identity in the directory. Journal and database entries for it
+share a category, sub-group and subtitle, built from the database's services
+plus every service and subtitle the journal has seen. They are also listed as
+one row per map. Friendly NPCs without a service (citizens, guards, advisors)
+are filed under **Unclassified**, not Combat. A category you pick by hand in
+review is kept. Trainers without a subtitle are filed by the profession their
+trainer window teaches, once you have opened it.
+
 Recorded positions are **your** position at the time, not the NPC's exact spawn.
 Every entry starts as *Pending review*: open **Review journal**, check the
 location, category and tags, then confirm or delete it. Only confirmed entries
