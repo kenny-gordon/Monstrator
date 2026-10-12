@@ -66,7 +66,8 @@ import source; it is not part of source-independent CI.
 | Command | Purpose |
 |---|---|
 | `import [--from <importer>] [dir] [flavor]` | Convert an installed source with `tools\importers\<importer>.cjs` into `Data\Native`, checking every field through the real `NativeDB.lua`. Without a folder the importer looks for the source addon next to Monstrator |
-| `harvest [SavedVariables] [--include-pending]` | Fold confirmed journal entries, exact NPC scan sightings and recorded quest/vendor/drop relationships into `Data\Source\Discoveries.lua`; tampered records are rejected |
+| `harvest [SavedVariables] [--include-pending]` | Fold confirmed journal entries, exact NPC scan sightings and recorded quest/vendor/drop relationships into `Data\Source\Discoveries.lua`; tampered records are rejected, noise types (critters, pets, totems) are skipped and known IDs under another name are held |
+| `clean [SavedVariables] [--apply]` | List (or remove) discovery NPCs whose journal sightings were all noise types, or that were harvested under a pet's name; run `overlay` afterwards |
 | `review <file\|folder>... [--apply] [--min-reporters N] [--accept-held]` | Check pasted player submissions; `--apply` merges accepted records into Discoveries |
 | `overlay` | Build `Data\Native\Overlay.lua` from Discoveries and Corrections |
 | `verify [--determinism [importer args]]` | Schema, references, coordinates and manifest hashes; `--determinism` re-imports and compares bytes |

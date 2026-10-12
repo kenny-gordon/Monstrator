@@ -276,6 +276,30 @@ NPCs and objects present in the shipped data, and creates a named row for a
 quest or item the base data lacks. Relations are local maintainer data: they
 are not part of sealed submissions.
 
+**Noise gate.** A sighting becomes a journal record only when it adds
+something to the database:
+- an NPC ID the database lacks;
+- a map with no database spawn for that NPC;
+- a position more than 5% from every database spawn;
+- a different subtitle;
+- a level outside the database range;
+- a service flag the database row lacks.
+
+Critters, companion and wild pets, totems, player-controlled units and uncached
+`Unknown` names are never recorded. Manual `/monstrator capture` skips only the
+"already in the database" case.
+
+Sightings of the same NPC within 5% on the same map are one placement:
+- A pending record absorbs the repeat.
+- A confirmed record absorbs it unchanged, unless the sighting adds a tag or
+  subtitle.
+
+`/monstrator prune` previews which existing records fail these rules, and
+`/monstrator prune CONFIRM` deletes them. Submissions apply the same filter, and
+so does `harvest`, which also holds known NPC IDs reported under another name
+(player-named pets). `tools\monstrator-db.cjs clean [--apply]` removes discovery
+rows whose journal sightings were all noise types, or that took a pet's name.
+
 **Seals.** Every record is sealed when the addon captures it, using the
 submitter ID. Merging a repeat sighting reseals it only if the seal was still
 intact. When a player moves a pending record by more than 0.5 during review,

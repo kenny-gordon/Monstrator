@@ -294,6 +294,20 @@ local revenge = classicSnapshot.services[2]
 assert(revenge.serviceType == "available" and revenge.subText == "Rank 2" and revenge.requiredLevel == 24
     and revenge.cost == 80 and not revenge.skill and revenge.abilities[1] == "Revenge (Rank 1)",
     "classic services use the subText/type order and the separate level API")
+-- Unreadable or erroring requirement fields must not discard the trainer's other services.
+local lenientSaved = { GetTrainerServiceInfo, GetTrainerServiceCost, GetTrainerServiceAbilityReq }
+GetTrainerServiceInfo = function(index)
+    if index == 1 then return nil, nil, "available" end
+    return "Battle Shout", "Rank 3", "available"
+end
+GetTrainerServiceCost = function() error("cost unavailable") end
+GetTrainerServiceAbilityReq = nil
+M:CaptureTrainerServices()
+local lenient = M.trainerSnapshots[123]
+assert(lenient ~= classicSnapshot and #lenient.services == 1 and lenient.services[1].name == "Battle Shout"
+    and lenient.services[1].cost == nil and #lenient.services[1].abilities == 0,
+    "trainer capture saves readable services and omits unreadable fields")
+GetTrainerServiceInfo, GetTrainerServiceCost, GetTrainerServiceAbilityReq = lenientSaved[1], lenientSaved[2], lenientSaved[3]
 GetTrainerServiceLevelReq = nil
 M.trainerSnapshots[123] = savedSnapshot
 GetNumTrainerServices = function() return 201 end

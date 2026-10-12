@@ -341,6 +341,9 @@ that the encounter position is an exact spawn.
 
 - `/monstrator audit` compares your journal with the database: new NPCs, moved
   spawns and new services.
+- Sightings that only repeat what the database already has are not recorded, and
+  neither are critters, pets or totems. `/monstrator prune` shows which older
+  entries add nothing; `/monstrator prune CONFIRM` removes them.
 - **Advanced NPC inventory** (`/monstrator npcs`, command only) opens a searchable, paged window grouped
   by NPC ID. It starts with collected NPCs (confirmed or pending); filters also
   show pending, confirmed, database or all records. Search names, IDs or zones.
@@ -403,6 +406,7 @@ database still work. This does not delete your journal, favorites or settings.
 | `/monstrator landmark NAME` | Save your position as a named landmark |
 | `/monstrator journal` | Manage pending and confirmed journal entries |
 | `/monstrator audit` | Compare your journal with the database |
+| `/monstrator prune [CONFIRM]` | Preview, then remove, journal entries the database already has |
 | `/monstrator npcs` | Advanced NPC coverage inspection (not a submission) |
 | `/monstrator submit` | Create a sealed submission of your discoveries |
 | `/monstrator export` | Copy your journal as text |

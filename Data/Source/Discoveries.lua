@@ -1,34 +1,108 @@
 -- Forever discoveries from in-game Monstrator journals, merged by tools\monstrator-db.cjs harvest.
 -- Safe to edit by hand; harvest/review merge into it and overlay folds it into Data\Native\Overlay.lua.
 return {
+  Item = {
+    [159] = {
+      vendors = { 254358 },
+    },
+    [1179] = {
+      vendors = { 254358 },
+    },
+    [2320] = {
+      vendors = { 254360 },
+    },
+    [2321] = {
+      vendors = { 254360 },
+    },
+    [2324] = {
+      vendors = { 254360 },
+    },
+    [2512] = {
+      vendors = { 254358 },
+    },
+    [2515] = {
+      vendors = { 254358 },
+    },
+    [2516] = {
+      vendors = { 254358 },
+    },
+    [2519] = {
+      vendors = { 254358 },
+    },
+    [2604] = {
+      vendors = { 254360 },
+    },
+    [2605] = {
+      vendors = { 254360 },
+    },
+    [2678] = {
+      vendors = { 254360 },
+    },
+    [2692] = {
+      vendors = { 254360 },
+    },
+    [2880] = {
+      vendors = { 254360 },
+    },
+    [2901] = {
+      vendors = { 254360 },
+    },
+    [2946] = {
+      vendors = { 254358 },
+    },
+    [2947] = {
+      vendors = { 254358 },
+    },
+    [3111] = {
+      vendors = { 254358 },
+    },
+    [3131] = {
+      vendors = { 254358 },
+    },
+    [3371] = {
+      vendors = { 254360 },
+    },
+    [4289] = {
+      vendors = { 254360 },
+    },
+    [4470] = {
+      vendors = { 254358 },
+    },
+    [4471] = {
+      vendors = { 254358 },
+    },
+    [4496] = {
+      vendors = { 254358 },
+    },
+    [4498] = {
+      vendors = { 254358 },
+    },
+    [5042] = {
+      vendors = { 254358 },
+    },
+    [5956] = {
+      vendors = { 254360 },
+    },
+    [6217] = {
+      vendors = { 254360 },
+    },
+    [6256] = {
+      vendors = { 254360 },
+    },
+    [6260] = {
+      vendors = { 254360 },
+    },
+    [6529] = {
+      vendors = { 254360 },
+    },
+    [6530] = {
+      vendors = { 254360 },
+    },
+    [7005] = {
+      vendors = { 254360 },
+    },
+  },
   Npc = {
-    [416] = {
-      build = "70245",
-      lastSeen = 1791386545,
-      maxLevel = 6,
-      minLevel = 4,
-      name = "Abaloz",
-      sightings = 2,
-      spawns = {
-        [1411] = {
-          { 42.93, 69.17 },
-          { 51.67, 41.86 },
-        },
-      },
-    },
-    [620] = {
-      build = "70338",
-      lastSeen = 1791790460,
-      maxLevel = 1,
-      minLevel = 1,
-      name = "Chicken",
-      sightings = 1,
-      spawns = {
-        [1413] = {
-          { 61.27, 53.69 },
-        },
-      },
-    },
     [686] = {
       build = "70245",
       lastSeen = 1791374786,
@@ -53,20 +127,6 @@ return {
       spawns = {
         [1434] = {
           { 38.78, 40.43 },
-        },
-      },
-    },
-    [721] = {
-      build = "70245",
-      lastSeen = 1791433172,
-      maxLevel = 1,
-      minLevel = 1,
-      name = "Rabbit",
-      sightings = 2,
-      spawns = {
-        [1442] = {
-          { 59.76, 77.78 },
-          { 64.6, 84.83 },
         },
       },
     },
@@ -156,6 +216,7 @@ return {
           { 31.21, 28.98 },
         },
       },
+      title = "Cloth & Leather Armor Merchant",
     },
     [1149] = {
       build = "70245",
@@ -169,6 +230,7 @@ return {
           { 31.68, 28.64 },
         },
       },
+      title = "General Supplies",
     },
     [1382] = {
       build = "70245",
@@ -184,6 +246,7 @@ return {
           { 31.37, 28.03 },
         },
       },
+      title = "Superior Cook",
     },
     [1385] = {
       build = "70245",
@@ -198,6 +261,7 @@ return {
           { 31.77, 28.57 },
         },
       },
+      title = "Expert Leatherworker",
     },
     [1387] = {
       build = "70245",
@@ -213,6 +277,7 @@ return {
           { 32.53, 29.28 },
         },
       },
+      title = "Wind Rider Master",
     },
     [1404] = {
       build = "70245",
@@ -226,20 +291,7 @@ return {
           { 31.35, 28.18 },
         },
       },
-    },
-    [1412] = {
-      build = "70338",
-      lastSeen = 1791773464,
-      maxLevel = 1,
-      minLevel = 1,
-      name = "Squirrel",
-      sightings = 2,
-      spawns = {
-        [1442] = {
-          { 62.4, 83.93 },
-          { 52.77, 61.7 },
-        },
-      },
+      title = "Hunter Trainer",
     },
     [1548] = {
       build = "70338",
@@ -381,6 +433,7 @@ return {
           { 28.4, 75.43 },
         },
       },
+      title = "Superior Weaponsmith",
     },
     [2490] = {
       build = "70245",
@@ -394,6 +447,7 @@ return {
           { 28.05, 76.35 },
         },
       },
+      title = "Blackwater Raiders",
     },
     [2497] = {
       build = "70245",
@@ -449,43 +503,6 @@ return {
         },
       },
     },
-    [2523] = {
-      build = "70245",
-      lastSeen = 1791713291,
-      maxLevel = 20,
-      minLevel = 13,
-      name = "Searing Totem",
-      sightings = 10,
-      spawns = {
-        [1413] = {
-          { 41.34, 18.61 },
-          { 54.93, 25.43 },
-          { 39.31, 11.56 },
-          { 58.21, 24.89 },
-          { 57.63, 26 },
-          { 58.36, 26.36 },
-          { 59.33, 25.9 },
-        },
-        [1414] = {
-          { 52.11, 55.08 },
-          { 52.75, 54.57 },
-        },
-      },
-    },
-    [2620] = {
-      build = "70245",
-      lastSeen = 1791430029,
-      maxLevel = 1,
-      minLevel = 1,
-      name = "Prairie Dog",
-      sightings = 3,
-      spawns = {
-        [1413] = {
-          { 41.04, 18.82 },
-          { 38.5, 16.27 },
-        },
-      },
-    },
     [2626] = {
       build = "70245",
       lastSeen = 1791373371,
@@ -499,25 +516,7 @@ return {
           { 27.68, 76.92 },
         },
       },
-    },
-    [2630] = {
-      build = "70245",
-      lastSeen = 1791807580,
-      maxLevel = 14,
-      minLevel = 7,
-      name = "Earthbind Totem",
-      sightings = 3,
-      spawns = {
-        [1412] = {
-          { 58.19, 47.29 },
-        },
-        [1456] = {
-          { 44.4, 59.05 },
-        },
-        [2521] = {
-          { 49.53, 35.99 },
-        },
-      },
+      title = "Fisherman",
     },
     [2704] = {
       build = "70245",
@@ -532,6 +531,7 @@ return {
           { 81.52, 19.28 },
         },
       },
+      title = "Weapon Master",
     },
     [2798] = {
       build = "70338",
@@ -548,6 +548,7 @@ return {
           { 29.45, 21.83 },
         },
       },
+      title = "First Aid Trainer",
     },
     [2834] = {
       build = "70245",
@@ -562,6 +563,7 @@ return {
           { 27.51, 77.06 },
         },
       },
+      title = "Superior Fisherman",
     },
     [2947] = {
       build = "70245",
@@ -1072,6 +1074,7 @@ return {
           { 47.28, 43.6 },
         },
       },
+      title = "Wind Rider Master",
     },
     [2997] = {
       build = "70205",
@@ -1089,6 +1092,7 @@ return {
           { 40.84, 53.55 },
         },
       },
+      title = "Weapons Merchant",
     },
     [2998] = {
       build = "70205",
@@ -1106,6 +1110,7 @@ return {
           { 39.61, 54.68 },
         },
       },
+      title = "Expert Blacksmith",
     },
     [2999] = {
       build = "70205",
@@ -1120,6 +1125,7 @@ return {
           { 39.61, 54.68 },
         },
       },
+      title = "Blacksmithing Supplies",
     },
     [3001] = {
       build = "70205",
@@ -1134,6 +1140,7 @@ return {
           { 34.62, 57.65 },
         },
       },
+      title = "Mining Trainer",
     },
     [3003] = {
       build = "70338",
@@ -1155,6 +1162,7 @@ return {
           { 40.74, 53.92 },
         },
       },
+      title = "Bread Vendor",
     },
     [3013] = {
       build = "70338",
@@ -1170,6 +1178,7 @@ return {
           { 49.53, 39.17 },
         },
       },
+      title = "Herbalism Trainer",
     },
     [3014] = {
       build = "70338",
@@ -1185,6 +1194,7 @@ return {
           { 49.53, 39.17 },
         },
       },
+      title = "Herbalism Supplier",
     },
     [3015] = {
       build = "70245",
@@ -1201,6 +1211,7 @@ return {
           { 46.27, 44.59 },
         },
       },
+      title = "Bowyer & Fletching Goods",
     },
     [3018] = {
       build = "70338",
@@ -1218,6 +1229,7 @@ return {
           { 55.73, 53.4 },
         },
       },
+      title = "Guns Merchant",
     },
     [3019] = {
       build = "70205",
@@ -1233,6 +1245,7 @@ return {
           { 53.86, 57.51 },
         },
       },
+      title = "Axe Merchant",
     },
     [3020] = {
       build = "70245",
@@ -1249,6 +1262,7 @@ return {
           { 54.3, 53.56 },
         },
       },
+      title = "Mace & Staff Merchant",
     },
     [3021] = {
       build = "70245",
@@ -1264,6 +1278,7 @@ return {
           { 53.7, 57.39 },
         },
       },
+      title = "Sword and Dagger Merchant",
     },
     [3022] = {
       build = "70205",
@@ -1281,6 +1296,7 @@ return {
           { 49.51, 49.3 },
         },
       },
+      title = "Staff Merchant",
     },
     [3023] = {
       build = "70245",
@@ -1300,6 +1316,7 @@ return {
           { 52.04, 54.57 },
         },
       },
+      title = "War Harness Vendor",
     },
     [3026] = {
       build = "70205",
@@ -1319,6 +1336,7 @@ return {
           { 50.89, 52.16 },
         },
       },
+      title = "Cooking Trainer",
     },
     [3027] = {
       build = "70245",
@@ -1337,6 +1355,7 @@ return {
           { 50.47, 50.98 },
         },
       },
+      title = "Cooking Supplier",
     },
     [3028] = {
       build = "70338",
@@ -1352,6 +1371,7 @@ return {
           { 51.4, 49.74 },
         },
       },
+      title = "Fishing Trainer",
     },
     [3029] = {
       build = "70338",
@@ -1368,6 +1388,7 @@ return {
           { 52.21, 48.98 },
         },
       },
+      title = "Fishing Supplier",
     },
     [3030] = {
       build = "70338",
@@ -1381,6 +1402,7 @@ return {
           { 22.54, 19.9 },
         },
       },
+      title = "Shaman Trainer",
     },
     [3031] = {
       build = "70338",
@@ -1394,6 +1416,7 @@ return {
           { 22.57, 19.25 },
         },
       },
+      title = "Shaman Trainer",
     },
     [3032] = {
       build = "70338",
@@ -1407,6 +1430,7 @@ return {
           { 22.82, 19.6 },
         },
       },
+      title = "Shaman Trainer",
     },
     [3033] = {
       build = "70338",
@@ -1421,6 +1445,7 @@ return {
           { 77.43, 27.82 },
         },
       },
+      title = "Druid Trainer",
     },
     [3034] = {
       build = "70338",
@@ -1435,6 +1460,7 @@ return {
           { 77.96, 28.44 },
         },
       },
+      title = "Druid Trainer",
     },
     [3035] = {
       build = "70245",
@@ -1479,6 +1505,7 @@ return {
           { 76.34, 29.73 },
         },
       },
+      title = "Druid Trainer",
     },
     [3037] = {
       build = "70338",
@@ -1508,6 +1535,7 @@ return {
           { 58.73, 86.81 },
         },
       },
+      title = "Hunter Trainer",
     },
     [3039] = {
       build = "70338",
@@ -1522,6 +1550,7 @@ return {
           { 57.63, 88.76 },
         },
       },
+      title = "Hunter Trainer",
     },
     [3040] = {
       build = "70338",
@@ -1538,6 +1567,7 @@ return {
           { 58.8, 85.3 },
         },
       },
+      title = "Hunter Trainer",
     },
     [3041] = {
       build = "70245",
@@ -1556,6 +1586,7 @@ return {
           { 57.44, 89.31 },
         },
       },
+      title = "Warrior Trainer",
     },
     [3042] = {
       build = "70338",
@@ -1571,6 +1602,7 @@ return {
           { 57.67, 88.64 },
         },
       },
+      title = "Warrior Trainer",
     },
     [3043] = {
       build = "70338",
@@ -1588,6 +1620,7 @@ return {
           { 58.02, 86.34 },
         },
       },
+      title = "Warrior Trainer",
     },
     [3044] = {
       build = "70338",
@@ -1602,6 +1635,7 @@ return {
           { 25.73, 15.24 },
         },
       },
+      title = "Priest Trainer",
     },
     [3045] = {
       build = "70338",
@@ -1615,6 +1649,7 @@ return {
           { 24, 21.67 },
         },
       },
+      title = "Priest Trainer",
     },
     [3047] = {
       build = "70338",
@@ -1628,6 +1663,7 @@ return {
           { 22.49, 16.27 },
         },
       },
+      title = "Mage Trainer",
     },
     [3049] = {
       build = "70338",
@@ -1641,6 +1677,7 @@ return {
           { 25.78, 23.15 },
         },
       },
+      title = "Mage Trainer",
     },
     [3051] = {
       build = "70245",
@@ -1693,6 +1730,7 @@ return {
           { 59.36, 52.15 },
         },
       },
+      title = "High Chieftain",
     },
     [3058] = {
       build = "70245",
@@ -1724,6 +1762,7 @@ return {
           { 43.79, 76.65 },
         },
       },
+      title = "Warrior Trainer",
     },
     [3061] = {
       build = "70205",
@@ -1735,6 +1774,7 @@ return {
           { 43.96, 76.5 },
         },
       },
+      title = "Hunter Trainer",
     },
     [3063] = {
       build = "70245",
@@ -1751,6 +1791,7 @@ return {
           { 47.95, 63.52 },
         },
       },
+      title = "Warrior Trainer",
     },
     [3064] = {
       build = "70205",
@@ -1764,6 +1805,7 @@ return {
           { 47.83, 63.09 },
         },
       },
+      title = "Druid Trainer",
     },
     [3065] = {
       build = "70205",
@@ -1777,6 +1819,7 @@ return {
           { 46.89, 59.66 },
         },
       },
+      title = "Hunter Trainer",
     },
     [3066] = {
       build = "70205",
@@ -1790,6 +1833,7 @@ return {
           { 47.59, 62.86 },
         },
       },
+      title = "Shaman Trainer",
     },
     [3067] = {
       build = "70205",
@@ -1804,6 +1848,7 @@ return {
           { 44.97, 61.66 },
         },
       },
+      title = "Cook",
     },
     [3069] = {
       build = "70205",
@@ -1817,6 +1862,7 @@ return {
           { 44.99, 61.49 },
         },
       },
+      title = "Journeyman Leatherworker",
     },
     [3072] = {
       build = "70205",
@@ -1831,6 +1877,7 @@ return {
           { 44.74, 77.04 },
         },
       },
+      title = "General Goods",
     },
     [3073] = {
       build = "70205",
@@ -1845,6 +1892,7 @@ return {
           { 43.88, 77.76 },
         },
       },
+      title = "Weaponsmith",
     },
     [3074] = {
       build = "70205",
@@ -1859,6 +1907,7 @@ return {
           { 43.84, 77.69 },
         },
       },
+      title = "Leather Armor Merchant",
     },
     [3075] = {
       build = "70205",
@@ -1873,6 +1922,7 @@ return {
           { 43.94, 77.83 },
         },
       },
+      title = "Armorer and Shieldcrafter",
     },
     [3076] = {
       build = "70205",
@@ -1887,6 +1937,7 @@ return {
           { 45.22, 61.33 },
         },
       },
+      title = "General Goods",
     },
     [3077] = {
       build = "70205",
@@ -1902,6 +1953,7 @@ return {
           { 45.11, 62 },
         },
       },
+      title = "Weaponsmith",
     },
     [3078] = {
       build = "70205",
@@ -1916,6 +1968,7 @@ return {
           { 45.05, 61.91 },
         },
       },
+      title = "Gunsmith",
     },
     [3079] = {
       build = "70205",
@@ -1930,6 +1983,7 @@ return {
           { 45.3, 62.08 },
         },
       },
+      title = "Leather Armor Merchant",
     },
     [3080] = {
       build = "70205",
@@ -1944,6 +1998,7 @@ return {
           { 45.34, 62.14 },
         },
       },
+      title = "Armorer and Shieldcrafter",
     },
     [3081] = {
       build = "70205",
@@ -1958,6 +2013,7 @@ return {
           { 45.5, 61.7 },
         },
       },
+      title = "Trade Goods",
     },
     [3083] = {
       build = "70338",
@@ -2549,6 +2605,7 @@ return {
           { 31.39, 29.7 },
         },
       },
+      title = "Zeppelin Master",
     },
     [3153] = {
       build = "70245",
@@ -2564,6 +2621,7 @@ return {
           { 42.95, 69.36 },
         },
       },
+      title = "Warrior Trainer",
     },
     [3154] = {
       build = "70245",
@@ -2577,6 +2635,7 @@ return {
           { 42.93, 69.4 },
         },
       },
+      title = "Hunter Trainer",
     },
     [3157] = {
       build = "70245",
@@ -2590,6 +2649,7 @@ return {
           { 42.65, 68.87 },
         },
       },
+      title = "Shaman Trainer",
     },
     [3158] = {
       build = "70245",
@@ -2604,6 +2664,7 @@ return {
           { 42.71, 67.42 },
         },
       },
+      title = "General Goods",
     },
     [3164] = {
       build = "70245",
@@ -2618,6 +2679,7 @@ return {
           { 54.37, 42.27 },
         },
       },
+      title = "General Goods",
     },
     [3169] = {
       build = "70245",
@@ -2633,6 +2695,7 @@ return {
           { 54.37, 42.27 },
         },
       },
+      title = "Warrior Trainer",
     },
     [3170] = {
       build = "70245",
@@ -2646,6 +2709,7 @@ return {
           { 51.91, 43.85 },
         },
       },
+      title = "Rogue Trainer",
     },
     [3171] = {
       build = "70245",
@@ -2659,6 +2723,7 @@ return {
           { 51.89, 43.6 },
         },
       },
+      title = "Hunter Trainer",
     },
     [3173] = {
       build = "70245",
@@ -2672,6 +2737,7 @@ return {
           { 54.06, 42.96 },
         },
       },
+      title = "Shaman Trainer",
     },
     [3184] = {
       build = "70245",
@@ -2686,6 +2752,7 @@ return {
           { 55.75, 74.2 },
         },
       },
+      title = "Journeyman Alchemist",
     },
     [3185] = {
       build = "70245",
@@ -2700,6 +2767,7 @@ return {
           { 55.49, 75 },
         },
       },
+      title = "Herbalist",
     },
     [3186] = {
       build = "70245",
@@ -2714,6 +2782,7 @@ return {
           { 56.3, 73.49 },
         },
       },
+      title = "General Goods",
     },
     [3187] = {
       build = "70245",
@@ -2728,6 +2797,7 @@ return {
           { 56.28, 73.9 },
         },
       },
+      title = "Trade Supplies",
     },
     [3188] = {
       build = "70245",
@@ -4138,30 +4208,6 @@ return {
         },
       },
     },
-    [3300] = {
-      build = "70245",
-      lastSeen = 1791634330,
-      maxLevel = 1,
-      minLevel = 1,
-      name = "Adder",
-      sightings = 10,
-      spawns = {
-        [1411] = {
-          { 44.21, 42.08 },
-          { 53.17, 71.07 },
-          { 53.3, 80.28 },
-          { 53.22, 56.04 },
-          { 53, 78.59 },
-        },
-        [1413] = {
-          { 51.21, 42.64 },
-          { 47.57, 52.83 },
-          { 53.33, 38.11 },
-          { 59.56, 17.8 },
-          { 48.56, 53.13 },
-        },
-      },
-    },
     [3304] = {
       build = "70245",
       lastSeen = 1791385099,
@@ -4191,6 +4237,7 @@ return {
           { 45.28, 63.75 },
         },
       },
+      title = "Wind Rider Master",
     },
     [3336] = {
       build = "70245",
@@ -4260,6 +4307,7 @@ return {
           { 81.08, 19.67 },
         },
       },
+      title = "Weapon Vendor",
     },
     [3379] = {
       build = "70245",
@@ -4501,6 +4549,7 @@ return {
           { 73.88, 96.38 },
         },
       },
+      title = "Butcher",
     },
     [3415] = {
       build = "70245",
@@ -4563,6 +4612,7 @@ return {
           { 23.9, 21.76 },
         },
       },
+      title = "Royal Apothecary Society",
     },
     [3424] = {
       build = "70338",
@@ -4753,6 +4803,7 @@ return {
           { 62.97, 37.15 },
         },
       },
+      title = "Tinkers' Union",
     },
     [3443] = {
       build = "70245",
@@ -4982,6 +5033,7 @@ return {
           { 64.22, 46.99 },
         },
       },
+      title = "Southsea Freebooters",
     },
     [3474] = {
       build = "70338",
@@ -5043,6 +5095,7 @@ return {
           { 51.11, 29.01 },
         },
       },
+      title = "Blacksmithing Supplier",
     },
     [3478] = {
       build = "70338",
@@ -5057,6 +5110,7 @@ return {
           { 51.49, 30.05 },
         },
       },
+      title = "Expert Blacksmith",
     },
     [3479] = {
       build = "70245",
@@ -5073,6 +5127,7 @@ return {
           { 51.68, 30.09 },
         },
       },
+      title = "Weaponsmith",
     },
     [3480] = {
       build = "70245",
@@ -5089,6 +5144,7 @@ return {
           { 52.33, 30.59 },
         },
       },
+      title = "Baker",
     },
     [3481] = {
       build = "70245",
@@ -5105,6 +5161,7 @@ return {
           { 51.96, 30.41 },
         },
       },
+      title = "General Supplies",
     },
     [3482] = {
       build = "70245",
@@ -5121,6 +5178,7 @@ return {
           { 51.16, 29.16 },
         },
       },
+      title = "Trade Supplies",
     },
     [3483] = {
       build = "70338",
@@ -5136,6 +5194,7 @@ return {
           { 51.43, 29.91 },
         },
       },
+      title = "Leather & Mail Armor Merchant",
     },
     [3484] = {
       build = "70245",
@@ -5149,6 +5208,7 @@ return {
           { 51.93, 33 },
         },
       },
+      title = "Journeyman Tailor",
     },
     [3486] = {
       build = "70245",
@@ -5163,6 +5223,7 @@ return {
           { 52.12, 31.79 },
         },
       },
+      title = "Clothier",
     },
     [3487] = {
       build = "70245",
@@ -5177,6 +5238,7 @@ return {
           { 52.15, 31.71 },
         },
       },
+      title = "Bags & Sacks",
     },
     [3488] = {
       build = "70245",
@@ -5192,6 +5254,7 @@ return {
           { 50.94, 29.05 },
         },
       },
+      title = "Bowyer & Gunsmith",
     },
     [3489] = {
       build = "70245",
@@ -5205,6 +5268,7 @@ return {
           { 52.36, 30.66 },
         },
       },
+      title = "Butcher",
     },
     [3490] = {
       build = "70338",
@@ -5219,6 +5283,7 @@ return {
           { 51.47, 30.16 },
         },
       },
+      title = "Reagents and Herbs",
     },
     [3491] = {
       build = "70338",
@@ -5233,6 +5298,7 @@ return {
           { 62.25, 37.74 },
         },
       },
+      title = "Weaponsmith",
     },
     [3496] = {
       build = "70338",
@@ -5246,6 +5312,7 @@ return {
           { 62.69, 37.67 },
         },
       },
+      title = "Banker",
     },
     [3497] = {
       build = "70338",
@@ -5259,6 +5326,7 @@ return {
           { 62.86, 37.41 },
         },
       },
+      title = "Fisherman",
     },
     [3498] = {
       build = "70338",
@@ -5273,6 +5341,7 @@ return {
           { 61.91, 38.74 },
         },
       },
+      title = "General Supplies",
     },
     [3499] = {
       build = "70338",
@@ -5286,6 +5355,7 @@ return {
           { 61.94, 38.74 },
         },
       },
+      title = "Trade Supplies",
     },
     [3501] = {
       build = "70245",
@@ -5421,19 +5491,7 @@ return {
           { 62.08, 38.76 },
         },
       },
-    },
-    [3579] = {
-      build = "70245",
-      lastSeen = 1791394117,
-      maxLevel = 13,
-      minLevel = 13,
-      name = "Stoneclaw Totem",
-      sightings = 1,
-      spawns = {
-        [1413] = {
-          { 59.17, 24.46 },
-        },
-      },
+      title = "Fisherman",
     },
     [3615] = {
       build = "70245",
@@ -5451,6 +5509,7 @@ return {
           { 52, 30.41 },
         },
       },
+      title = "Wind Rider Master",
     },
     [3620] = {
       build = "70245",
@@ -5464,6 +5523,7 @@ return {
           { 51.98, 43.55 },
         },
       },
+      title = "Pet Trainer",
     },
     [3624] = {
       build = "70245",
@@ -5479,6 +5539,7 @@ return {
           { 31.17, 28.93 },
         },
       },
+      title = "Pet Trainer",
     },
     [3630] = {
       build = "70338",
@@ -5604,6 +5665,7 @@ return {
           { 58.2, 37.58 },
         },
       },
+      title = "Weapon Dealer",
     },
     [3659] = {
       build = "70338",
@@ -5622,6 +5684,7 @@ return {
           { 58.18, 38.09 },
         },
       },
+      title = "Lizzarik's Bodyguard",
     },
     [3665] = {
       build = "70338",
@@ -5663,6 +5726,7 @@ return {
           { 46.88, 59.61 },
         },
       },
+      title = "Pet Trainer",
     },
     [3703] = {
       build = "70245",
@@ -5676,6 +5740,7 @@ return {
           { 44.82, 59.14 },
         },
       },
+      title = "Expert Leatherworker",
     },
     [3704] = {
       build = "70245",
@@ -5689,6 +5754,7 @@ return {
           { 44.77, 59.4 },
         },
       },
+      title = "Expert Tailor",
     },
     [3705] = {
       build = "70338",
@@ -5702,6 +5768,7 @@ return {
           { 44.7, 59.42 },
         },
       },
+      title = "Butcher",
     },
     [3706] = {
       build = "70245",
@@ -5715,6 +5782,7 @@ return {
           { 54.03, 42.8 },
         },
       },
+      title = "Priest Trainer",
     },
     [3707] = {
       build = "70245",
@@ -5728,21 +5796,7 @@ return {
           { 42.49, 68.91 },
         },
       },
-    },
-    [3835] = {
-      build = "70338",
-      lastSeen = 1791723639,
-      maxLevel = 1,
-      minLevel = 1,
-      name = "Biletoad",
-      sightings = 4,
-      spawns = {
-        [1414] = {
-          { 51.97, 54.55 },
-          { 51.94, 55.07 },
-          { 52.61, 54.37 },
-        },
-      },
+      title = "Priest Trainer",
     },
     [3882] = {
       build = "70245",
@@ -5758,6 +5812,7 @@ return {
           { 42.79, 67.75 },
         },
       },
+      title = "Butcher",
     },
     [3883] = {
       build = "70205",
@@ -5770,19 +5825,7 @@ return {
           { 44.29, 78.12 },
         },
       },
-    },
-    [3902] = {
-      build = "70338",
-      lastSeen = 1791801740,
-      maxLevel = 21,
-      minLevel = 21,
-      name = "Searing Totem II",
-      sightings = 1,
-      spawns = {
-        [1414] = {
-          { 51.95, 55.3 },
-        },
-      },
+      title = "Baker",
     },
     [3934] = {
       build = "70245",
@@ -5797,6 +5840,7 @@ return {
           { 52.01, 30.06 },
         },
       },
+      title = "Innkeeper",
     },
     [3939] = {
       build = "70245",
@@ -6094,6 +6138,7 @@ return {
           { 81.52, 19.28 },
         },
       },
+      title = "Two-Handed Weapons Merchant",
     },
     [4046] = {
       build = "70338",
@@ -6109,6 +6154,7 @@ return {
           { 72.62, 30.39 },
         },
       },
+      title = "Elder Crone",
     },
     [4049] = {
       build = "70338",
@@ -6153,19 +6199,6 @@ return {
         },
       },
     },
-    [4075] = {
-      build = "70245",
-      lastSeen = 1791373456,
-      maxLevel = 1,
-      minLevel = 1,
-      name = "Rat",
-      sightings = 1,
-      spawns = {
-        [1434] = {
-          { 26.45, 73.46 },
-        },
-      },
-    },
     [4077] = {
       build = "70338",
       lastSeen = 1791773507,
@@ -6204,6 +6237,7 @@ return {
           { 46.63, 59.67 },
         },
       },
+      title = "General Goods",
     },
     [4127] = {
       build = "70245",
@@ -6296,27 +6330,6 @@ return {
           { 51.13, 53.89 },
           { 46.27, 49.43 },
           { 46.49, 46.82 },
-        },
-      },
-    },
-    [4166] = {
-      build = "70338",
-      lastSeen = 1791726429,
-      maxLevel = 3,
-      minLevel = 3,
-      name = "Gazelle",
-      sightings = 16,
-      spawns = {
-        [1413] = {
-          { 45.76, 23.99 },
-          { 45.05, 32.3 },
-          { 55.11, 16.72 },
-          { 48.73, 53.12 },
-          { 51.53, 32.56 },
-          { 49.33, 55 },
-          { 48.73, 51.47 },
-          { 50.07, 36.85 },
-          { 44.22, 59.54 },
         },
       },
     },
@@ -6477,6 +6490,7 @@ return {
           { 46.01, 60.4 },
         },
       },
+      title = "Wind Rider Master",
     },
     [4316] = {
       build = "70245",
@@ -6712,6 +6726,7 @@ return {
           { 56.23, 36.38 },
         },
       },
+      title = "Mining Trainer",
     },
     [4599] = {
       build = "70338",
@@ -6725,6 +6740,7 @@ return {
           { 55.83, 35.79 },
         },
       },
+      title = "Mining Supplier",
     },
     [4600] = {
       build = "70338",
@@ -6740,6 +6756,7 @@ return {
           { 57.31, 32.5 },
         },
       },
+      title = "Weapon Merchant",
     },
     [4601] = {
       build = "70338",
@@ -6754,6 +6771,7 @@ return {
           { 58.74, 32.75 },
         },
       },
+      title = "Weapon Merchant",
     },
     [4602] = {
       build = "70338",
@@ -6769,6 +6787,7 @@ return {
           { 57.31, 32.5 },
         },
       },
+      title = "Weapon Merchant",
     },
     [4604] = {
       build = "70338",
@@ -6784,6 +6803,7 @@ return {
           { 54.84, 38.39 },
         },
       },
+      title = "Bow Merchant",
     },
     [4606] = {
       build = "70338",
@@ -6797,6 +6817,7 @@ return {
           { 56.2, 28.38 },
         },
       },
+      title = "Priest Trainer",
     },
     [4614] = {
       build = "70338",
@@ -6810,6 +6831,7 @@ return {
           { 54.73, 49.43 },
         },
       },
+      title = "Herbalism Trainer",
     },
     [4615] = {
       build = "70338",
@@ -6825,6 +6847,7 @@ return {
           { 54.73, 49.43 },
         },
       },
+      title = "Herbalism Supplier",
     },
     [4624] = {
       build = "70245",
@@ -6918,6 +6941,7 @@ return {
           { 36.72, 31.03 },
         },
       },
+      title = "Butcher",
     },
     [4883] = {
       build = "70338",
@@ -6935,6 +6959,7 @@ return {
           { 36.31, 30.9 },
         },
       },
+      title = "Armorer",
     },
     [4884] = {
       build = "70338",
@@ -6949,6 +6974,7 @@ return {
           { 36.52, 31.68 },
         },
       },
+      title = "Weaponsmith",
     },
     [4926] = {
       build = "70338",
@@ -6990,6 +7016,7 @@ return {
           { 31.98, 37.93 },
         },
       },
+      title = "Warchief",
     },
     [5054] = {
       build = "70245",
@@ -7003,6 +7030,7 @@ return {
           { 37.59, 60.63 },
         },
       },
+      title = "Guild Master",
     },
     [5087] = {
       build = "70338",
@@ -7030,6 +7058,7 @@ return {
           { 37.57, 60.67 },
         },
       },
+      title = "Tabard Vendor",
     },
     [5543] = {
       build = "70338",
@@ -7263,6 +7292,7 @@ return {
           { 62.47, 64.41 },
         },
       },
+      title = "Royal Apothecary Society",
     },
     [5765] = {
       build = "70245",
@@ -7302,6 +7332,7 @@ return {
           { 51.9, 55.45 },
         },
       },
+      title = "Disciple of Naralex",
     },
     [5768] = {
       build = "70338",
@@ -7315,6 +7346,7 @@ return {
           { 51.9, 55.45 },
         },
       },
+      title = "Disciple of Naralex",
     },
     [5769] = {
       build = "70245",
@@ -7405,6 +7437,7 @@ return {
           { 51.91, 55.43 },
         },
       },
+      title = "Specialist Leatherworking Supplies",
     },
     [5784] = {
       build = "70338",
@@ -7418,6 +7451,7 @@ return {
           { 51.91, 55.44 },
         },
       },
+      title = "Journeyman Leatherworker",
     },
     [5797] = {
       build = "70338",
@@ -7434,6 +7468,7 @@ return {
           { 49.67, 53.63 },
         },
       },
+      title = "Alliance Outrunner",
     },
     [5798] = {
       build = "70245",
@@ -7449,6 +7484,7 @@ return {
           { 48.43, 53.31 },
         },
       },
+      title = "Alliance Outrunner",
     },
     [5799] = {
       build = "70338",
@@ -7464,6 +7500,7 @@ return {
           { 46.3, 66.06 },
         },
       },
+      title = "Alliance Outrunner",
     },
     [5800] = {
       build = "70245",
@@ -7478,6 +7515,7 @@ return {
           { 48.56, 53.13 },
         },
       },
+      title = "Alliance Outrunner",
     },
     [5807] = {
       build = "70245",
@@ -7520,6 +7558,7 @@ return {
           { 31.36, 29.6 },
         },
       },
+      title = "Innkeeper",
     },
     [5826] = {
       build = "70245",
@@ -7590,6 +7629,7 @@ return {
           { 46, 58.19 },
         },
       },
+      title = "Butcher",
     },
     [5871] = {
       build = "70245",
@@ -7604,33 +7644,7 @@ return {
           { 52.02, 29.93 },
         },
       },
-    },
-    [5874] = {
-      build = "70338",
-      lastSeen = 1791801743,
-      maxLevel = 21,
-      minLevel = 11,
-      name = "Strength of Earth Totem",
-      sightings = 10,
-      spawns = {
-        [1412] = {
-          { 58.49, 47.53 },
-          { 57.88, 43.83 },
-          { 56.79, 42.81 },
-        },
-        [1413] = {
-          { 39.31, 11.56 },
-          { 58.16, 25.24 },
-          { 57.79, 26.48 },
-        },
-        [1414] = {
-          { 52.38, 54.53 },
-          { 51.92, 55.35 },
-        },
-        [1442] = {
-          { 61.38, 59.39 },
-        },
-      },
+      title = "Beverage Merchant",
     },
     [5878] = {
       build = "70245",
@@ -7657,6 +7671,7 @@ return {
           { 55.91, 74.75 },
         },
       },
+      title = "Mage Trainer",
     },
     [5884] = {
       build = "70245",
@@ -7670,6 +7685,7 @@ return {
           { 42.71, 68.88 },
         },
       },
+      title = "Mage Trainer",
     },
     [5901] = {
       build = "70338",
@@ -7724,19 +7740,6 @@ return {
         },
       },
     },
-    [5919] = {
-      build = "70338",
-      lastSeen = 1791639073,
-      maxLevel = 15,
-      minLevel = 15,
-      name = "Stoneskin Totem II",
-      sightings = 1,
-      spawns = {
-        [1413] = {
-          { 57.66, 26.21 },
-        },
-      },
-    },
     [5931] = {
       build = "70245",
       lastSeen = 1791434865,
@@ -7764,6 +7767,7 @@ return {
           { 44.15, 63.74 },
         },
       },
+      title = "Fisherman",
     },
     [5939] = {
       build = "70245",
@@ -7778,6 +7782,7 @@ return {
           { 46.05, 63.94 },
         },
       },
+      title = "First Aid Trainer",
     },
     [5940] = {
       build = "70205",
@@ -7792,6 +7797,7 @@ return {
           { 46.61, 59.15 },
         },
       },
+      title = "Fishing Supplies",
     },
     [5941] = {
       build = "70245",
@@ -7807,6 +7813,7 @@ return {
           { 52.98, 82.42 },
         },
       },
+      title = "Fisherman",
     },
     [5942] = {
       build = "70245",
@@ -7820,6 +7827,7 @@ return {
           { 56.3, 73.49 },
         },
       },
+      title = "Fishing Supplies",
     },
     [5944] = {
       build = "70245",
@@ -7833,6 +7841,7 @@ return {
           { 44.84, 59.32 },
         },
       },
+      title = "Tailoring & Leatherworking Supplies",
     },
     [5952] = {
       build = "70245",
@@ -7884,6 +7893,7 @@ return {
           { 22, 17.96 },
         },
       },
+      title = "Portal Trainer",
     },
     [6020] = {
       build = "70338",
@@ -7916,24 +7926,6 @@ return {
         },
       },
     },
-    [6145] = {
-      build = "70338",
-      lastSeen = 1791732368,
-      maxLevel = 1,
-      minLevel = 1,
-      name = "School of Fish",
-      sightings = 5,
-      spawns = {
-        [1411] = {
-          { 62.16, 74.94 },
-          { 60.85, 77.69 },
-        },
-        [1413] = {
-          { 63.11, 53.55 },
-          { 64, 53.37 },
-        },
-      },
-    },
     [6290] = {
       build = "70205",
       lastSeen = 1791213180,
@@ -7947,6 +7939,7 @@ return {
           { 45.04, 61.45 },
         },
       },
+      title = "Skinner",
     },
     [6387] = {
       build = "70245",
@@ -7961,6 +7954,7 @@ return {
           { 45.09, 58.63 },
         },
       },
+      title = "Skinner",
     },
     [6393] = {
       build = "70338",
@@ -8099,6 +8093,7 @@ return {
           { 35.22, 30.86 },
         },
       },
+      title = "Tailoring Supplies",
     },
     [6746] = {
       build = "70338",
@@ -8113,6 +8108,7 @@ return {
           { 46.06, 65.12 },
         },
       },
+      title = "Innkeeper",
     },
     [6747] = {
       build = "70245",
@@ -8127,6 +8123,7 @@ return {
           { 45.95, 64.13 },
         },
       },
+      title = "Innkeeper",
     },
     [6776] = {
       build = "70245",
@@ -8168,6 +8165,7 @@ return {
           { 62.05, 39.44 },
         },
       },
+      title = "Innkeeper",
     },
     [6928] = {
       build = "70245",
@@ -8182,6 +8180,7 @@ return {
           { 51.61, 41.77 },
         },
       },
+      title = "Innkeeper",
     },
     [7089] = {
       build = "70338",
@@ -8195,35 +8194,7 @@ return {
           { 46.57, 40.42 },
         },
       },
-    },
-    [7387] = {
-      build = "70338",
-      lastSeen = 1791722160,
-      maxLevel = 30,
-      minLevel = 22,
-      name = "Green Wing Macaw",
-      sightings = 2,
-      spawns = {
-        [1414] = {
-          { 52.07, 55.02 },
-        },
-        [1456] = {
-          { 41.8, 55.41 },
-        },
-      },
-    },
-    [7389] = {
-      build = "70338",
-      lastSeen = 1791640212,
-      maxLevel = 27,
-      minLevel = 27,
-      name = "Senegal",
-      sightings = 2,
-      spawns = {
-        [1411] = {
-          { 50.69, 13.59 },
-        },
-      },
+      title = "Skinning Trainer",
     },
     [7427] = {
       build = "70338",
@@ -8243,6 +8214,7 @@ return {
           { 59.5, 78.66 },
         },
       },
+      title = "Alterac Valley Battlemaster",
     },
     [7485] = {
       build = "70245",
@@ -8257,19 +8229,7 @@ return {
           { 32.19, 29.21 },
         },
       },
-    },
-    [7565] = {
-      build = "70245",
-      lastSeen = 1791353768,
-      maxLevel = 1,
-      minLevel = 1,
-      name = "Black Kingsnake",
-      sightings = 1,
-      spawns = {
-        [1456] = {
-          { 40.54, 61.98 },
-        },
-      },
+      title = "Food & Drink",
     },
     [7714] = {
       build = "70338",
@@ -8283,6 +8243,7 @@ return {
           { 45.09, 58.63 },
         },
       },
+      title = "Innkeeper",
     },
     [7730] = {
       build = "70338",
@@ -8318,6 +8279,7 @@ return {
           { 47.65, 61.83 },
         },
       },
+      title = "Innkeeper",
     },
     [7790] = {
       build = "70245",
@@ -8344,6 +8306,7 @@ return {
           { 54.89, 75.72 },
         },
       },
+      title = "Raptor Handler",
     },
     [7953] = {
       build = "70245",
@@ -8358,6 +8321,7 @@ return {
           { 54.55, 75.77 },
         },
       },
+      title = "Raptor Riding Trainer",
     },
     [8016] = {
       build = "70338",
@@ -8384,6 +8348,7 @@ return {
           { 62.84, 37.66 },
         },
       },
+      title = "Banker",
     },
     [8306] = {
       build = "70245",
@@ -8398,6 +8363,7 @@ return {
           { 55.16, 32.05 },
         },
       },
+      title = "Cook",
     },
     [8307] = {
       build = "70338",
@@ -8412,6 +8378,7 @@ return {
           { 55.16, 32.05 },
         },
       },
+      title = "Baker",
     },
     [8356] = {
       build = "70338",
@@ -8425,6 +8392,7 @@ return {
           { 47.39, 57.89 },
         },
       },
+      title = "Banker",
     },
     [8358] = {
       build = "70205",
@@ -8440,6 +8408,7 @@ return {
           { 45.35, 56.24 },
         },
       },
+      title = "Cloth Armor Merchant",
     },
     [8359] = {
       build = "70205",
@@ -8455,6 +8424,7 @@ return {
           { 41.19, 53.3 },
         },
       },
+      title = "Leather Armor Merchant",
     },
     [8360] = {
       build = "70205",
@@ -8469,6 +8439,7 @@ return {
           { 45.23, 56.26 },
         },
       },
+      title = "Mail Armor Merchant",
     },
     [8361] = {
       build = "70245",
@@ -8486,6 +8457,7 @@ return {
           { 41.81, 55.45 },
         },
       },
+      title = "Reagent Vendor",
     },
     [8362] = {
       build = "70245",
@@ -8502,6 +8474,7 @@ return {
           { 41, 62.07 },
         },
       },
+      title = "General Goods Vendor",
     },
     [8363] = {
       build = "70205",
@@ -8518,6 +8491,7 @@ return {
           { 40.99, 61.47 },
         },
       },
+      title = "Trade Goods Supplier",
     },
     [8364] = {
       build = "70245",
@@ -8533,6 +8507,7 @@ return {
           { 39.46, 63.77 },
         },
       },
+      title = "Bag Vendor",
     },
     [8398] = {
       build = "70245",
@@ -8548,6 +8523,7 @@ return {
           { 53.86, 57.51 },
         },
       },
+      title = "Two Handed Weapon Merchant",
     },
     [8401] = {
       build = "70338",
@@ -8562,6 +8538,7 @@ return {
           { 62.47, 58.69 },
         },
       },
+      title = "Prairie Dog Vendor",
     },
     [8418] = {
       build = "70338",
@@ -8588,6 +8565,7 @@ return {
           { 62.54, 38.53 },
         },
       },
+      title = "Workshop Assistant",
     },
     [8664] = {
       build = "70245",
@@ -8677,6 +8655,7 @@ return {
           { 45.46, 59.61 },
         },
       },
+      title = "Bowyer",
     },
     [9552] = {
       build = "70338",
@@ -8692,6 +8671,7 @@ return {
           { 35.28, 30.75 },
         },
       },
+      title = "Bowyer",
     },
     [9558] = {
       build = "70245",
@@ -8706,6 +8686,7 @@ return {
           { 62.99, 38.08 },
         },
       },
+      title = "Shipmaster",
     },
     [9564] = {
       build = "70338",
@@ -8719,6 +8700,7 @@ return {
           { 50.69, 13.59 },
         },
       },
+      title = "Zeppelin Master",
     },
     [9796] = {
       build = "70245",
@@ -8759,6 +8741,7 @@ return {
           { 51.58, 29.8 },
         },
       },
+      title = "Stable Master",
     },
     [9983] = {
       build = "70245",
@@ -8772,6 +8755,7 @@ return {
           { 44.79, 58.73 },
         },
       },
+      title = "Stable Master",
     },
     [10036] = {
       build = "70338",
@@ -8804,6 +8788,7 @@ return {
           { 47.28, 59.82 },
         },
       },
+      title = "Stable Master",
     },
     [10050] = {
       build = "70245",
@@ -8817,6 +8802,7 @@ return {
           { 47.1, 63.58 },
         },
       },
+      title = "Stable Master",
     },
     [10054] = {
       build = "70245",
@@ -8836,6 +8822,7 @@ return {
           { 45.8, 53.44 },
         },
       },
+      title = "Stable Master",
     },
     [10060] = {
       build = "70245",
@@ -8849,6 +8836,7 @@ return {
           { 27.74, 76.67 },
         },
       },
+      title = "Stable Master",
     },
     [10063] = {
       build = "70338",
@@ -8862,6 +8850,7 @@ return {
           { 62.43, 39.44 },
         },
       },
+      title = "Stable Master",
     },
     [10086] = {
       build = "70338",
@@ -8877,6 +8866,7 @@ return {
           { 57.29, 78.08 },
         },
       },
+      title = "Pet Trainer",
     },
     [10176] = {
       build = "70245",
@@ -8906,6 +8896,7 @@ return {
           { 39.21, 56.29 },
         },
       },
+      title = "Journeyman Blacksmith",
     },
     [10360] = {
       build = "70245",
@@ -8921,6 +8912,7 @@ return {
           { 53.93, 76.96 },
         },
       },
+      title = "Warsong Gulch Battlemaster",
     },
     [10369] = {
       build = "70245",
@@ -8935,6 +8927,7 @@ return {
           { 56.46, 73.21 },
         },
       },
+      title = "Weapon Merchant",
     },
     [10378] = {
       build = "70338",
@@ -8949,6 +8942,7 @@ return {
           { 44.53, 58.95 },
         },
       },
+      title = "Wind Rider Master",
     },
     [10380] = {
       build = "70338",
@@ -8963,6 +8957,7 @@ return {
           { 45.14, 58.98 },
         },
       },
+      title = "Leather Armor Merchant",
     },
     [10578] = {
       build = "70245",
@@ -8977,6 +8972,7 @@ return {
           { 55.55, 75.31 },
         },
       },
+      title = "Witch Doctor in Training",
     },
     [10600] = {
       build = "70245",
@@ -9123,6 +9119,7 @@ return {
           { 58.63, 39.47 },
         },
       },
+      title = "Journeyman Engineer",
     },
     [11748] = {
       build = "70245",
@@ -9181,6 +9178,7 @@ return {
           { 70.68, 30.93 },
         },
       },
+      title = "Magatha's Servant",
     },
     [11856] = {
       build = "70245",
@@ -9298,6 +9296,7 @@ return {
           { 81.52, 19.28 },
         },
       },
+      title = "Weapon Master",
     },
     [11869] = {
       build = "70245",
@@ -9317,6 +9316,7 @@ return {
           { 40.85, 53.68 },
         },
       },
+      title = "Weapon Master",
     },
     [11870] = {
       build = "70338",
@@ -9333,6 +9333,7 @@ return {
           { 55.22, 34.32 },
         },
       },
+      title = "Weapon Master",
     },
     [11871] = {
       build = "70245",
@@ -9360,6 +9361,7 @@ return {
           { 35.61, 31.81 },
         },
       },
+      title = "Wind Rider Master",
     },
     [11910] = {
       build = "70245",
@@ -9610,6 +9612,7 @@ return {
           { 46.54, 60.2 },
         },
       },
+      title = "Trade Supplies",
     },
     [12136] = {
       build = "70245",
@@ -9624,6 +9627,7 @@ return {
           { 50.06, 12.83 },
         },
       },
+      title = "Zeppelin Master",
     },
     [12137] = {
       build = "70245",
@@ -9637,6 +9641,7 @@ return {
           { 31.5, 29.53 },
         },
       },
+      title = "Zeppelin Master",
     },
     [12198] = {
       build = "70338",
@@ -9651,37 +9656,7 @@ return {
           { 28.85, 21.04 },
         },
       },
-    },
-    [12296] = {
-      build = "70245",
-      lastSeen = 1791796531,
-      maxLevel = 3,
-      minLevel = 3,
-      name = "Sickly Gazelle",
-      sightings = 22,
-      spawns = {
-        [1413] = {
-          { 56.82, 38.84 },
-          { 42.91, 15.43 },
-          { 53.95, 24.51 },
-          { 41.28, 19.82 },
-          { 53.69, 18.03 },
-          { 55.2, 38.68 },
-          { 57.97, 21.15 },
-          { 59.27, 17.98 },
-          { 54.86, 31.84 },
-          { 59.99, 31.06 },
-          { 50.63, 36.52 },
-          { 58.74, 24.77 },
-          { 49.66, 23.71 },
-          { 54.79, 28.97 },
-          { 57.32, 37.14 },
-          { 53.1, 37.84 },
-          { 59.71, 30.39 },
-          { 50, 31.47 },
-          { 58.73, 23.89 },
-        },
-      },
+      title = "Arathi Basin Battlemaster",
     },
     [12430] = {
       build = "70245",
@@ -9734,6 +9709,7 @@ return {
           { 36.72, 31.03 },
         },
       },
+      title = "Potions, Scrolls and Reagents",
     },
     [13839] = {
       build = "70338",
@@ -10064,6 +10040,7 @@ return {
           { 32, 29.02 },
         },
       },
+      title = "Stable Master",
     },
     [16096] = {
       build = "70245",
@@ -10094,6 +10071,7 @@ return {
           { 63.07, 37.13 },
         },
       },
+      title = "Flight Master",
     },
     [185334] = {
       build = "70338",
@@ -10387,16 +10365,19 @@ return {
     },
     [251523] = {
       build = "70338",
-      lastSeen = 1791814169,
+      friendlyToFaction = "AH",
+      lastSeen = 1791816168,
       maxLevel = 20,
       minLevel = 20,
       name = "Constable Aonda",
-      sightings = 12,
+      sightings = 14,
       spawns = {
         [2521] = {
           { 45.19, 45.2 },
+          { 45.63, 45.49 },
         },
       },
+      title = "Peacekeeper",
     },
     [251661] = {
       build = "70338",
@@ -10508,31 +10489,34 @@ return {
     },
     [251903] = {
       build = "70338",
-      lastSeen = 1791807921,
+      friendlyToFaction = "A",
+      lastSeen = 1791816182,
       maxLevel = 20,
       minLevel = 20,
       name = "Rathiril Sunlance",
-      sightings = 3,
+      sightings = 5,
       spawns = {
         [2521] = {
           { 45, 46.29 },
           { 45.04, 45.51 },
         },
       },
+      title = "Elder of the High Order",
     },
     [251904] = {
       build = "70338",
-      lastSeen = 1791814161,
+      lastSeen = 1791816190,
       maxLevel = 7,
       minLevel = 7,
       name = "Sania Silverstream",
-      sightings = 8,
+      sightings = 13,
       spawns = {
         [2521] = {
           { 45.09, 44.84 },
           { 44.77, 45.45 },
         },
       },
+      title = "Al'Aketh Missionary",
     },
     [251905] = {
       build = "70338",
@@ -10729,17 +10713,19 @@ return {
     },
     [252172] = {
       build = "70338",
-      lastSeen = 1791814162,
+      friendlyToFaction = "AH",
+      lastSeen = 1791816150,
       maxLevel = 10,
       minLevel = 10,
       name = "Danarii Bellowveil",
-      sightings = 5,
+      sightings = 6,
       spawns = {
         [2521] = {
           { 45.07, 45.38 },
           { 45.09, 44.86 },
         },
       },
+      title = "Advisor",
     },
     [252377] = {
       build = "70338",
@@ -10825,16 +10811,19 @@ return {
     },
     [254081] = {
       build = "70338",
-      lastSeen = 1791813198,
+      friendlyToFaction = "AH",
+      lastSeen = 1791816156,
       maxLevel = 10,
       minLevel = 10,
       name = "Naeluna Swiftmend",
-      sightings = 5,
+      npcFlags = 16,
+      sightings = 7,
       spawns = {
         [2521] = {
           { 45.12, 44.57 },
         },
       },
+      title = "Druid Trainer",
     },
     [254082] = {
       build = "70338",
@@ -10855,29 +10844,36 @@ return {
     },
     [254084] = {
       build = "70338",
-      lastSeen = 1791813195,
+      friendlyToFaction = "AH",
+      lastSeen = 1791816157,
       maxLevel = 10,
       minLevel = 10,
       name = "Elayaa Easewind",
-      sightings = 5,
+      npcFlags = 16,
+      sightings = 7,
       spawns = {
         [2521] = {
           { 45.17, 44.31 },
         },
       },
+      title = "Hunter Trainer",
     },
     [254086] = {
       build = "70338",
-      lastSeen = 1791814168,
+      friendlyToFaction = "AH",
+      lastSeen = 1791816178,
       maxLevel = 10,
       minLevel = 10,
       name = "Shenaan Spellwind",
-      sightings = 3,
+      npcFlags = 16,
+      sightings = 6,
       spawns = {
         [2521] = {
           { 45.07, 45.38 },
+          { 45.57, 45.51 },
         },
       },
+      title = "Mage Trainer",
     },
     [254087] = {
       build = "70338",
@@ -10895,18 +10891,20 @@ return {
     },
     [254088] = {
       build = "70338",
-      lastSeen = 1791814339,
+      friendlyToFaction = "AH",
+      lastSeen = 1791816269,
       maxLevel = 10,
       minLevel = 10,
       name = "Corsan Earthrazer",
       npcFlags = 16,
-      sightings = 18,
+      sightings = 49,
       spawns = {
         [2521] = {
           { 45.27, 45.41 },
           { 44.81, 45.12 },
         },
       },
+      title = "Warrior Trainer",
     },
     [254089] = {
       build = "70338",
@@ -10925,11 +10923,12 @@ return {
     },
     [254100] = {
       build = "70338",
-      lastSeen = 1791814170,
+      friendlyToFaction = "AH",
+      lastSeen = 1791816196,
       maxLevel = 10,
       minLevel = 10,
       name = "Zephras Citizen",
-      sightings = 30,
+      sightings = 38,
       spawns = {
         [2521] = {
           { 43.99, 43.99 },
@@ -10982,31 +10981,35 @@ return {
     },
     [254358] = {
       build = "70338",
-      lastSeen = 1791814179,
+      friendlyToFaction = "AH",
+      lastSeen = 1791816191,
       maxLevel = 10,
       minLevel = 10,
       name = "Veena Vericloud",
       npcFlags = 4,
-      sightings = 7,
+      sightings = 9,
       spawns = {
         [2521] = {
           { 44.91, 45.45 },
         },
       },
+      title = "General Goods",
     },
     [254360] = {
       build = "70338",
-      lastSeen = 1791814159,
+      friendlyToFaction = "AH",
+      lastSeen = 1791816194,
       maxLevel = 10,
       minLevel = 10,
       name = "Belandiel Farflight",
       npcFlags = 4,
-      sightings = 15,
+      sightings = 21,
       spawns = {
         [2521] = {
           { 44.76, 45.41 },
         },
       },
+      title = "Trade Supplies",
     },
     [254411] = {
       build = "70338",
@@ -11484,19 +11487,6 @@ return {
         },
       },
     },
-    [259842] = {
-      build = "70245",
-      lastSeen = 1791379524,
-      maxLevel = 25,
-      minLevel = 25,
-      name = "Musical Gustjumper",
-      sightings = 1,
-      spawns = {
-        [1456] = {
-          { 71.06, 30.13 },
-        },
-      },
-    },
     [261366] = {
       build = "70338",
       lastSeen = 1791647980,
@@ -11713,33 +11703,6 @@ return {
       spawns = {
         [1412] = {
           { 46.24, 67.23 },
-        },
-      },
-    },
-    [266025] = {
-      build = "70338",
-      lastSeen = 1791644806,
-      maxLevel = 19,
-      minLevel = 19,
-      name = "Rat Familiar",
-      sightings = 1,
-      spawns = {
-        [1413] = {
-          { 52.03, 30.24 },
-        },
-      },
-    },
-    [266735] = {
-      build = "70338",
-      lastSeen = 1791644404,
-      maxLevel = 30,
-      minLevel = 30,
-      name = "Excitable Slime",
-      sightings = 2,
-      spawns = {
-        [1458] = {
-          { 65.22, 3.31 },
-          { 63.79, 35.97 },
         },
       },
     },
@@ -12166,36 +12129,6 @@ return {
       spawns = {
         [2521] = {
           { 58.09, 79.8 },
-        },
-      },
-    },
-    [268707] = {
-      build = "70245",
-      lastSeen = 1791376384,
-      maxLevel = 25,
-      minLevel = 25,
-      name = "Prairie Wolf Pup",
-      sightings = 2,
-      spawns = {
-        [1454] = {
-          { 53.24, 65.57 },
-          { 52.47, 66.16 },
-        },
-      },
-    },
-    [268744] = {
-      build = "70338",
-      lastSeen = 1791723639,
-      maxLevel = 21,
-      minLevel = 21,
-      name = "Frog Familiar",
-      sightings = 2,
-      spawns = {
-        [1413] = {
-          { 53.22, 53.55 },
-        },
-        [1414] = {
-          { 51.94, 55.07 },
         },
       },
     },
@@ -12638,4 +12571,5 @@ return {
       },
     },
   },
+  Quest = {},
 }

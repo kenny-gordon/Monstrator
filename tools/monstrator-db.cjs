@@ -6,6 +6,8 @@
 //   node tools\monstrator-db.cjs harvest [SavedVariables] [--include-pending]
 //                                                          fold in-game sightings + exact NPC scan sightings
 //                                                          into Data\Source\Discoveries.lua
+//   node tools\monstrator-db.cjs clean [SavedVariables] [--apply]
+//                                                          drop discovery NPCs that are critters/pets/totems/summons
 //   node tools\monstrator-db.cjs review <file|folder>... [--apply] [--min-reporters N] [--accept-held]
 //                                                          check player submissions (/monstrator submit): reject
 //                                                          broken seals, hold new/unusual data until N players agree,
@@ -344,9 +346,12 @@ function writeDiscoveries(discoveries, origin) {
     + 'return ' + writeLuaTable(discoveries).replace(/\n/g, '\r\n') + '\r\n', 'utf8');
 }
 
+// Creature types that are never directory entries (enUS UnitCreatureType): ambient wildlife, companions, totems.
+const NOISE_TYPES = new Set(['Critter', 'Non-combat Pet', 'Wild Pet', 'Totem', 'Gas Cloud']);
 const usableNpc = (record) => record && record.kind === 'npc' && Number.isInteger(Number(record.npcID)) && Number(record.npcID) > 0
   && typeof record.name === 'string' && record.name !== '' && record.name !== 'Unknown' && Number.isInteger(record.mapID) && record.mapID > 0
-  && Number.isFinite(record.x) && Number.isFinite(record.y) && record.x >= 0 && record.x <= 100 && record.y >= 0 && record.y <= 100;
+  && Number.isFinite(record.x) && Number.isFinite(record.y) && record.x >= 0 && record.x <= 100 && record.y >= 0 && record.y <= 100
+  && !NOISE_TYPES.has(record.creatureType);
 
 // How a record compares with the shipped database: null when consistent, otherwise the reason to look closer.
 function compareWithDatabase(base, record) {
@@ -447,7 +452,7 @@ function cmdHarvest(args) {
   const ledger = fs.existsSync(harvestLedgerFile) ? JSON.parse(fs.readFileSync(harvestLedgerFile, 'utf8')) : { schemaVersion: 1, records: [] };
   if (ledger.schemaVersion !== 1 || !Array.isArray(ledger.records)) fail(`${rel(harvestLedgerFile)}: unsupported ledger`);
   const harvested = new Set(ledger.records);
-  const report = { used: 0, skipped: 0, scans: 0, tampered: 0, already: 0, titles: 0, relations: 0, newNPCs: new Set(), newMaps: [], drift: [], points: 0 };
+  const report = { used: 0, skipped: 0, scans: 0, tampered: 0, already: 0, titles: 0, relations: 0, newNPCs: new Set(), newMaps: [], drift: [], held: [], points: 0 };
   for (const file of inputs) {
     const source = fs.readFileSync(file, 'utf8');
     const account = path.basename(path.dirname(path.dirname(file)));
@@ -480,8 +485,10 @@ function cmdHarvest(args) {
         continue;
       }
       harvested.add(identity);
-      if (mergeNpc(discoveries, record)) report.points++;
       const issue = compareWithDatabase(base, record);
+      // A known ID under another name is a player-named pet or summon, not a new placement of the database NPC.
+      if (issue && issue.kind === 'name') { report.held.push(issue.text); continue; }
+      if (mergeNpc(discoveries, record)) report.points++;
       if (!issue) continue;
       if (issue.kind === 'new') report.newNPCs.add(issue.text);
       else if (issue.kind === 'drift') report.drift.push(issue.text);
@@ -497,9 +504,48 @@ function cmdHarvest(args) {
   console.log(`Discoveries now: ${Object.keys(discoveries.Npc).length} NPCs, ${Object.keys(discoveries.Quest || {}).length} quests and `
     + `${Object.keys(discoveries.Item || {}).length} items in ${rel(discoveryFile)} (${report.relations} new quest/vendor/drop relationships).`);
   section('NPCs not in the database (Forever-only)', [...report.newNPCs]);
-  section('Known NPCs seen on a new map or under another name', report.newMaps);
+  section('Known NPCs seen on a new map', report.newMaps);
+  section('Held: known NPC IDs reported under another name (player pets/summons; fix by hand in Corrections.lua if real)', report.held);
   section(`Possible coordinate drift (> ${DRIFT}% from every known spawn)`, report.drift);
   console.log('\nNext: node tools\\monstrator-db.cjs overlay');
+}
+
+// ---------------------------------------------------------------- clean (discovery noise)
+// Removes Discoveries NPC entries that are not directory material: every journal sighting of the ID was a noise
+// creature type, or the ID is a known NPC that was harvested under another name (a player-named pet or summon).
+function cmdClean(args) {
+  const apply = args.includes('--apply');
+  const files = args.filter((a) => !a.startsWith('--'));
+  const inputs = files.length ? files.map((f) => path.resolve(f)) : findSavedVariables();
+  const base = readNative(nativeDir, 'Npc');
+  const discoveries = readDiscoveries();
+  const types = new Map();
+  for (const file of inputs) {
+    const obs = evalLua(fs.readFileSync(file, 'utf8'), rel(file), 'Monstrator_Observations');
+    for (const [, record] of entries((obs && obs.entries) || {})) {
+      if (!record || record.kind !== 'npc' || typeof record.creatureType !== 'string') continue;
+      const id = Number(record.npcID);
+      if (!types.has(id)) types.set(id, new Set());
+      types.get(id).add(record.creatureType);
+    }
+  }
+  const removed = [];
+  for (const [id, entry] of entries(discoveries.Npc)) {
+    const seen = types.get(id);
+    const known = base.has(id) ? decodeRow('Npc', base.get(id)) : null;
+    let why;
+    if (seen && [...seen].every((type) => NOISE_TYPES.has(type))) why = [...seen].join('/');
+    else if (entry.name === 'Unknown') why = 'uncached name';
+    else if (known && known.name && entry.name && known.name !== entry.name) why = `named "${entry.name}", database has "${known.name}"`;
+    if (!why) continue;
+    removed.push(`${id} ${entry.name}: ${why}`);
+    if (apply) delete discoveries.Npc[id];
+  }
+  if (apply && removed.length) writeDiscoveries(discoveries, 'clean');
+  console.log(`${removed.length} of ${Object.keys(discoveries.Npc).length + (apply ? removed.length : 0)} discovery NPCs are noise`
+    + ` (journal types from ${inputs.length} file(s))${apply ? '; removed.' : '; rerun with --apply to remove.'}`);
+  removed.forEach((line) => console.log('  ' + line));
+  if (apply && removed.length) console.log('\nNext: node tools\\monstrator-db.cjs overlay');
 }
 
 // ---------------------------------------------------------------- review (player submissions)
@@ -1164,13 +1210,13 @@ module.exports = { decodeRow, encodeRow, decodeSpawns, encodeSpawns, normalizeSp
 if (require.main !== module) return;
 const [command, ...rest] = process.argv.slice(2);
 const commands = {
-  import: cmdImport, harvest: cmdHarvest, overlay: cmdOverlay, verify: cmdVerify, diff: cmdDiff, stats: cmdStats, audit: cmdAudit,
+  import: cmdImport, harvest: cmdHarvest, clean: cmdClean, overlay: cmdOverlay, verify: cmdVerify, diff: cmdDiff, stats: cmdStats, audit: cmdAudit,
   package: cmdPackage, review: (args) => { process.exitCode = cmdReview(args) || 0; },
   build: (args) => { cmdImport(args); cmdOverlay(); cmdVerify([]); },
 };
 const wantsHelp = (a) => a === '-h' || a === '--help' || a === 'help';
 if (!commands[command] || rest.some(wantsHelp)) {
-  console.log(fs.readFileSync(__filename, 'utf8').split('\n').slice(1, 23).map((l) => l.replace(/^\/\/ ?/, '')).join('\n'));
+  console.log(fs.readFileSync(__filename, 'utf8').split('\n').slice(1, 25).map((l) => l.replace(/^\/\/ ?/, '')).join('\n'));
   process.exit(!command || wantsHelp(command) || commands[command] ? 0 : 1);
 }
 commands[command](rest);

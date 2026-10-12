@@ -273,6 +273,7 @@ SlashCmdList.MONSTRATOR = function(input)
     elseif command == "capture" then M:CaptureNPC("manual-target")
     elseif command == "npcs" then M:ShowNPCInventory()
     elseif command == "audit" then M:AuditObservations()
+    elseif command == "prune" then M:PruneCommand(argument)
     elseif command == "tags" then
         local tags = {}
         for tag in pairs(M.tags) do table.insert(tags, tag) end
@@ -288,7 +289,7 @@ SlashCmdList.MONSTRATOR = function(input)
         M:RefreshIfVisible()
         M:Notice(L["Local journal cleared. Favorites retained."])
     elseif command == "help" then
-        M:Notice("/monstrator [diagnostic | issues | profile | sync [world] | zone [NAME] | region [NAME] | find TEXT | items [NAME] | model | scan [add|remove|list|on|off|rares|sound|test] | reset | journal | npcs | audit | tags | capture | discover | debug | minimap | collect | limit N | landmark NAME | export | submit | clear CONFIRM]")
+        M:Notice("/monstrator [diagnostic | issues | profile | sync [world] | zone [NAME] | region [NAME] | find TEXT | items [NAME] | model | scan [add|remove|list|on|off|rares|sound|test] | reset | journal | npcs | audit | prune [CONFIRM] | tags | capture | discover | debug | minimap | collect | limit N | landmark NAME | export | submit | clear CONFIRM]")
     elseif command == "" then M:Toggle()
     else M:Error(L["Unknown command. Use /monstrator help."]) end
 end

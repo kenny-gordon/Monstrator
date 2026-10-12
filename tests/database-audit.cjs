@@ -55,7 +55,7 @@ try {
   const report = JSON.parse(fs.readFileSync(file, 'utf8'));
   assert.equal(report.base.issues.filter((i) => i.severity === 'error').length, 0);
   assert.equal(report.effective.issues.filter((i) => i.severity === 'error').length, 0);
-  assert.equal(report.effective.counts.Npc.entities, 10289);
+  assert.equal(report.effective.counts.Npc.entities, 10284);
   assert.deepEqual(report.effective.issues.filter((i) => i.code === 'unresolved-reference').map((i) => [i.id, i.relatedID]),
     [[10590, 3482], [20483, 8338], [22719, 9233], [227911, 84377]]);
   assert.ok(report.externalReview.unresolvedItemQuests.length === 4, 'review context accompanies unresolved IDs');

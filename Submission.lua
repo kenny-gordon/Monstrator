@@ -135,7 +135,9 @@ function M:SubmissionText()
     for _, key in ipairs(sortedKeys(self.observations.entries)) do
         local record = self.observations.entries[key]
         if self:ValidateRecord(record) and record.kind == "npc"
-            and (record.verification == "user-confirmed" or record.verification == "pending") then
+            and (record.verification == "user-confirmed" or record.verification == "pending")
+            and not self:IsNoiseRecord(record)
+            and self:ObservationNovelty(record) then
             records[#records + 1] = record
         elseif self:ValidateRecord(record) and record.kind == "location" and record.verification == "user-confirmed" then
             records[#records + 1] = record

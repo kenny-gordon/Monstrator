@@ -224,6 +224,84 @@ local groups, matched, total = M:AuditObservations()
 assert(total == 4 and matched == 1 and #groups.new == 1 and #groups.map == 1 and #groups.drift == 1)
 assert(copied:find("Forever Newcomer", 1, true) and copied:find("harvest", 1, true))
 
+-- Noise gate: only sightings that add to the database become journal records, and repeats collapse.
+local function sighting(npcID, name, x, y, fields)
+    playerMap, playerX, playerY = 1, x / 100, y / 100
+    local record = M:NewObservation(name, "npc", "Combat", {}, "UPDATE_MOUSEOVER_UNIT")
+    record.npcID = npcID
+    for key, value in pairs(fields or {}) do record[key] = value end
+    return record
+end
+assert(M:ObservationNovelty(sighting(11, "Harn Longcast", 22, 31)) == nil, "a sighting at a database spawn is not novel")
+assert(M:ObservationNovelty(sighting(11, "Harn Longcast", 40, 30)) == "position")
+assert(M:ObservationNovelty(sighting(99999, "Forever Newcomer", 1, 1)) == "new")
+assert(M:ObservationNovelty(sighting(13, "Tal", 47, 50)) == "map")
+assert(M:ObservationNovelty(sighting(11, "Harn Longcast", 20, 30, { title = "Herbalism Trainer" })) == "title")
+assert(M:ObservationNovelty(sighting(10, "Innkeeper Kauth", 40, 50, { level = 45 })) == "level")
+assert(M:ObservationNovelty(sighting(10, "Innkeeper Kauth", 40, 50, { level = 30 })) == nil)
+local vendorSighting = sighting(11, "Harn Longcast", 20, 30)
+vendorSighting.tags = { "vendor" }
+assert(M:ObservationNovelty(vendorSighting) == "service", "a service the database lacks is novel")
+vendorSighting.tags = { "trainer" }
+assert(M:ObservationNovelty(vendorSighting) == nil)
+
+M.observations = { entries = {}, nextID = 1 }
+local first = M:AddObservation(sighting(99999, "Forever Newcomer", 10, 10))
+local again = M:AddObservation(sighting(99999, "Forever Newcomer", 13, 12))
+assert(first and again == first and first.sightings == 2, "pending sightings within the encounter radius merge")
+first.verification = "user-confirmed"
+M:SealRecord(first)
+assert(M:AddObservation(sighting(99999, "Forever Newcomer", 11, 11)) == first and first.sightings == 2,
+    "confirmed placements absorb repeats without being edited")
+local far = M:AddObservation(sighting(99999, "Forever Newcomer", 30, 30))
+assert(far and far ~= first, "a distinct placement is a new record")
+local count = 0
+for _ in pairs(M.observations.entries) do count = count + 1 end
+assert(count == 2)
+
+-- Prune drops noise, database matches and repeats from an existing journal; submission skips the same.
+M.observations = { entries = {}, nextID = 1 }
+local function put(record, verification)
+    M.observations.nextID = M.observations.nextID + 1
+    record.key = "local:" .. M.observations.nextID
+    record.verification = verification or "user-confirmed"
+    M:SealRecord(record)
+    M.observations.entries[record.key] = record
+end
+put(sighting(99999, "Forever Newcomer", 10, 10))
+put(sighting(99999, "Forever Newcomer", 12, 10), "pending")
+put(sighting(99999, "Forever Newcomer", 50, 50))
+put(sighting(11, "Harn Longcast", 20, 30))
+put(sighting(99998, "Prairie Dog", 5, 5, { creatureType = "Critter" }))
+local repeatTrainer = sighting(99999, "Forever Newcomer", 11, 10)
+repeatTrainer.tags = { "trainer" }
+put(repeatTrainer)
+local savedScanLog = M.settings.scanLog
+M.settings.scanLog = {}
+local text, submitted = M:SubmissionText()
+M.settings.scanLog = savedScanLog
+assert(submitted == 4 and not text:find("Harn Longcast", 1, true) and not text:find("Prairie Dog", 1, true),
+    "submissions carry only records that add to the database")
+local pruneCounts, removedCount = M:PruneJournal(false)
+assert(removedCount == 3 and pruneCounts.noise == 1 and pruneCounts.known == 1 and pruneCounts.duplicate == 1
+    and pruneCounts.kept == 3)
+count = 0
+for _ in pairs(M.observations.entries) do count = count + 1 end
+assert(count == 6, "a preview must not delete")
+M:PruneJournal(true)
+count = 0
+for _, record in pairs(M.observations.entries) do
+    count = count + 1
+    assert(record.name == "Forever Newcomer" and record.verification == "user-confirmed")
+end
+assert(count == 3, "prune keeps distinct placements and sightings that add a service")
+local petSighting = sighting(11, "Gelmir", 20, 30, { creatureType = "Demon" })
+assert(M:IsNoiseRecord(petSighting), "a known ID under a player-given name is a pet or summon")
+assert(not M:IsNoiseRecord(sighting(11, "Harn Longcast", 20, 30, { creatureType = "Humanoid" })))
+assert(not M:IsNoiseRecord(sighting(11, "Harn the Renamed", 20, 30, { creatureType = "Humanoid" })),
+    "humanoid renames are reviewed, not discarded")
+assert(M:IsNoiseRecord(sighting(99999, "Unknown", 1, 1)))
+
 M.native, M.dbIndex, M.dbCache = saved.native, saved.index, saved.cache
 M.data.entries, M.observations, M.clientData = saved.data, saved.observations, saved.clientData
 M.settings.referenceEnabled, M.settings.evidenceFilter, M.settings.groupNPCs = saved.enabled, saved.filter, saved.grouping

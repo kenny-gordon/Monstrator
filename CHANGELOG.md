@@ -2,6 +2,13 @@
 
 ## 1.0.0
 
+- **Journal noise gate and cleanup**: the journal now records only what adds to the database.
+  - **Capture:** sightings already matching a database spawn (same map, within 5%, same subtitle, level and services) are skipped. So are critters, companion pets, totems, player-controlled units and uncached `Unknown` names. Repeat sightings within 5% collapse into one placement.
+  - **Prune:** `/monstrator prune` previews which existing entries add nothing; `/monstrator prune CONFIRM` deletes them.
+  - **Submission and harvest:** submissions use the same filter. `harvest` skips noise types and holds known IDs reported under another name (player-named pets).
+  - **Database cleanup:** the new `tools\monstrator-db.cjs clean` removed 25 noise discoveries (critters, shaman totems, companion pets and a warlock imp named after its owner's pet). Rerunning harvest gave 222 discoveries their subtitles (e.g. Corsan Earthrazer, *Warrior Trainer*).
+  - **Trainer capture:** services with unreadable fields are now saved without those fields, instead of the whole capture failing with "Trainer service data could not be read".
+
 - **Collector mirrors the database**: capture now fills every native NPC field and the relationships the directory shows.
   - **Services:** bank, stable, auction, guild charter, tabard and innkeeper windows tag the NPC, which fills `npcFlags`.
   - **Faction:** the NPC's faction becomes `friendlyToFaction`.

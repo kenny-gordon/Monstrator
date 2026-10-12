@@ -93,13 +93,29 @@ function M:AddObservation(record)
     local valid, reason = self:ValidateRecord(record)
     if not valid then self:Error(reason); return nil end
     local count = 0
+    local radius = record.kind == "npc" and self.encounterRadius or 0.05
+    local function near(existing)
+        return existing.npcID == record.npcID and existing.kind == record.kind and existing.mapID == record.mapID
+            and (record.kind == "npc" or existing.name == record.name)
+            and math.sqrt((existing.x - record.x) ^ 2 + (existing.y - record.y) ^ 2) < radius
+    end
+    local function addsDetail(existing)
+        if record.title ~= nil and existing.title ~= record.title then return true end
+        for _, tag in ipairs(record.tags) do
+            local found = false
+            for _, savedTag in ipairs(existing.tags or {}) do if tag == savedTag then found = true end end
+            if not found then return true end
+        end
+    end
     for _, existing in pairs(self.observations.entries) do
         count = count + 1
         local existingValid = self:ValidateRecord(existing)
-        if existingValid and existing.verification == "pending" and existing.npcID == record.npcID
-            and existing.kind == record.kind and existing.name == record.name
-            and existing.mapID == record.mapID
-            and math.abs(existing.x - record.x) < 0.05 and math.abs(existing.y - record.y) < 0.05 then
+        if existingValid and existing.verification ~= "pending" and existing.verification ~= "rejected"
+            and near(existing) and not addsDetail(existing) then
+            -- Already reviewed at this placement; another sighting adds nothing.
+            return existing
+        end
+        if existingValid and existing.verification == "pending" and near(existing) then
             -- Only reseal intact records; an edited SavedVariables entry must stay detectably broken.
             local intact = self:RecordSealValid(existing)
             existing.lastSeen = record.lastSeen
@@ -168,6 +184,70 @@ function M:BackfillTitlesFromDatabase()
     return count
 end
 
+-- Removes journal records that add nothing to the database: non-directory creatures, sightings that match a
+-- database placement, and repeat sightings of a kept record. Returns counts by reason; apply=true deletes.
+function M:PruneJournal(apply)
+    local lib = self.native and self:NativeProvider()
+    if not (lib and lib.Npc) then return nil, L["The database is still loading; try again in a moment."] end
+    local counts, removed, keys = { noise = 0, known = 0, duplicate = 0, kept = 0 }, {}, {}
+    for key, record in pairs(self.observations.entries) do
+        if record.kind == "npc" then table.insert(keys, key) end
+    end
+    local function rank(record) return record.verification == "user-confirmed" and 0 or 1 end
+    table.sort(keys, function(a, b)
+        local ra, rb = self.observations.entries[a], self.observations.entries[b]
+        if rank(ra) ~= rank(rb) then return rank(ra) < rank(rb) end
+        local na, nb = tonumber(a:match("%d+$")) or 0, tonumber(b:match("%d+$")) or 0
+        if na ~= nb then return na < nb end
+        return a < b
+    end)
+    local keptByPlacement = {}
+    for _, key in ipairs(keys) do
+        local record, reason = self.observations.entries[key]
+        if not self:ValidateRecord(record) then reason = nil
+        elseif self:IsNoiseRecord(record) then reason = "noise"
+        elseif not self:ObservationNovelty(record) then reason = "known"
+        else
+            local bucket = record.npcID .. ":" .. record.mapID
+            keptByPlacement[bucket] = keptByPlacement[bucket] or {}
+            for _, kept in ipairs(keptByPlacement[bucket]) do
+                if math.sqrt((kept.x - record.x) ^ 2 + (kept.y - record.y) ^ 2) < self.encounterRadius
+                    and (record.title == nil or record.title == kept.title) then
+                    local extra = false
+                    for _, tag in ipairs(record.tags) do
+                        local found = false
+                        for _, savedTag in ipairs(kept.tags) do if tag == savedTag then found = true end end
+                        if not found then extra = true end
+                    end
+                    if not extra then reason = "duplicate"; break end
+                end
+            end
+            if not reason then table.insert(keptByPlacement[bucket], record) end
+        end
+        if reason then
+            counts[reason] = counts[reason] + 1
+            removed[#removed + 1] = key
+        else counts.kept = counts.kept + 1 end
+    end
+    if apply then
+        for _, key in ipairs(removed) do self.observations.entries[key] = nil end
+        self.fullNotice = nil
+        self:BuildIndex()
+        self:RefreshIfVisible()
+    end
+    return counts, #removed
+end
+
+function M:PruneCommand(argument)
+    local apply = argument == "CONFIRM"
+    local counts, total = self:PruneJournal(apply)
+    if not counts then self:Error(total); return end
+    local summary = (L["%d non-directory creatures, %d already in the database, %d repeat sightings; %d NPC records kept."])
+        :format(counts.noise, counts.known, counts.duplicate, counts.kept)
+    if apply then self:Notice((L["Journal pruned: removed %d records. "]):format(total) .. summary)
+    else self:Notice((L["Prune would remove %d records: "]):format(total) .. summary .. L[" Use /monstrator prune CONFIRM to apply."]) end
+end
+
 -- NPC interaction windows -> the category and service tags the database derives from the matching npcFlags bit.
 M.serviceEvents = {
     TRAINER_SHOW = { "Trainers", { "trainer" } },
@@ -196,6 +276,70 @@ function M:UnitFriendlyFaction(unit)
         and attackable == false then return "Both" end
 end
 
+-- Creatures that are never directory entries: player companions, ambient wildlife and summoned totems.
+-- enUS names; other locales fall back to the player-controlled check and the database novelty test.
+M.nonDirectoryTypes = { ["Critter"] = true, ["Non-combat Pet"] = true, ["Wild Pet"] = true, ["Totem"] = true,
+    ["Gas Cloud"] = true }
+-- Encounter positions are where the player stood, so sightings closer than this are the same placement.
+M.encounterRadius = 5
+local SERVICE_FLAGS = { vendor = "VENDOR", repair = "REPAIR", flight = "FLIGHT_MASTER", trainer = "TRAINER",
+    innkeeper = "INNKEEPER", bank = "BANKER", auction = "AUCTIONEER", stable = "STABLEMASTER", guild = "PETITIONER",
+    tabard = "TABARD_DESIGNER", quest_giver = "QUEST_GIVER" }
+
+function M:IsDirectoryUnit(unit)
+    local controlled = UnitPlayerControlled and UnitPlayerControlled(unit)
+    if readable(controlled) and controlled == true then return false end
+    local otherPet = UnitIsOtherPlayersPet and UnitIsOtherPlayersPet(unit)
+    if readable(otherPet) and otherPet == true then return false end
+    local creatureType = UnitCreatureType and UnitCreatureType(unit)
+    if readable(creatureType) and self.nonDirectoryTypes[creatureType] then return false end
+    return true
+end
+
+-- Journal records that are not directory material: noise creature types, uncached names, and non-humanoid known
+-- IDs under a different name (player-named pets and summons share their template's NPC ID).
+function M:IsNoiseRecord(record)
+    if record.kind ~= "npc" then return false end
+    if record.name == "Unknown" or record.name == UNKNOWNOBJECT then return true end
+    if type(record.creatureType) == "string" and self.nonDirectoryTypes[record.creatureType] then return true end
+    local lib = self.native and self:NativeProvider()
+    local npc = lib and lib.Npc
+    if npc and npc.Has(record.npcID) and record.creatureType ~= "Humanoid" then
+        local known = self.ReadNativeField(npc.name, record.npcID)
+        if type(known) == "string" and known ~= "" and known ~= record.name then return true end
+    end
+    return false
+end
+
+-- Why an NPC observation adds something the database does not already have, or nil when it matches.
+function M:ObservationNovelty(record)
+    if record.kind ~= "npc" then return "location" end
+    local lib = self.native and self:NativeProvider()
+    local npc = lib and lib.Npc
+    if not npc or not npc.Has(record.npcID) then return "new" end
+    local read = self.ReadNativeField
+    local points = (read(npc.spawns, record.npcID) or {})[record.mapID]
+    if type(points) ~= "table" or #points == 0 then return "map" end
+    local best
+    for _, p in ipairs(points) do
+        local d = math.sqrt((p[1] - record.x) ^ 2 + (p[2] - record.y) ^ 2)
+        if not best or d < best then best = d end
+    end
+    if best > self.encounterRadius then return "position" end
+    if type(record.title) == "string" and read(npc.subName, record.npcID) ~= record.title then return "title" end
+    if self:IsFinite(record.level) and record.level > 0 then
+        local minLevel, maxLevel = read(npc.minLevel, record.npcID), read(npc.maxLevel, record.npcID)
+        if self:IsFinite(minLevel) and self:IsFinite(maxLevel) and (record.level < minLevel or record.level > maxLevel) then
+            return "level"
+        end
+    end
+    local npcFlags = read(npc.npcFlags, record.npcID) or 0
+    for _, tag in ipairs(record.tags or {}) do
+        local bit = SERVICE_FLAGS[tag] and self.npcFlags[SERVICE_FLAGS[tag]]
+        if bit and npcFlags % (bit * 2) < bit then return "service" end
+    end
+end
+
 function M:CaptureNPC(event, unit)
     local manual = event == "manual-target"
     local discovery = event == "PLAYER_TARGET_CHANGED" or event == "UPDATE_MOUSEOVER_UNIT"
@@ -211,6 +355,8 @@ function M:CaptureNPC(event, unit)
         if manual then self:Error(L["Select an NPC target before capturing."]); return end
         self:Debug("No NPC identity during " .. event); return
     end
+    -- The client reports this placeholder until the creature's name is cached.
+    if name == "Unknown" or name == UNKNOWNOBJECT then self:Debug("Uncached NPC name; capture skipped."); return end
     local kind, _, _, _, _, npcID = strsplit("-", guid)
     if kind ~= "Creature" and kind ~= "Vehicle" then
         if manual then self:Error(L["Only NPC targets can be captured; players are never recorded."]) end
@@ -218,6 +364,7 @@ function M:CaptureNPC(event, unit)
     end
     npcID = tonumber(npcID)
     if not npcID then self:Error(L["Could not parse NPC identity."]); return end
+    if not manual and not self:IsDirectoryUnit(unit) then return end
     if discovery then
         local now = GetTime()
         if not self.discoveryWindow or now - self.discoveryWindow >= 30 then
@@ -258,8 +405,14 @@ function M:CaptureNPC(event, unit)
         record.faction = self:UnitFriendlyFaction(unit)
         local title = self:UnitTitle(unit)
         self:ApplyObservedTitle(record, title)
-        local saved = self:AddObservation(record)
         if title then self:BackfillTitle(npcID, title) end
+        -- Sightings that only repeat what the database already says are not journal material.
+        if not self:ObservationNovelty(record) then
+            if discovery then self.discoverySeen[guid] = true end
+            if manual then self:Notice(L["Already in the database at this position; nothing new to record: "] .. name) end
+            return
+        end
+        local saved = self:AddObservation(record)
         if saved and discovery then self.discoverySeen[guid] = true end
         if saved and manual then self:Notice(L["NPC target saved for review: "] .. name .. " (player encounter position).") end
     end
@@ -280,11 +433,7 @@ end
 function M:CaptureTrainerServices()
     if not self.ready or not self.settings.collecting then return end
     local countFn, infoFn = GetNumTrainerServices, GetTrainerServiceInfo
-    if type(countFn) ~= "function" or type(infoFn) ~= "function"
-        or type(GetTrainerServiceSkillReq) ~= "function"
-        or type(GetTrainerServiceNumAbilityReq) ~= "function"
-        or type(GetTrainerServiceAbilityReq) ~= "function"
-        or type(GetTrainerServiceCost) ~= "function" then
+    if type(countFn) ~= "function" or type(infoFn) ~= "function" then
         self:Error(L["Trainer service data is unavailable on this client."])
         return
     end
@@ -309,96 +458,50 @@ function M:CaptureTrainerServices()
     -- the mainline client returns name, type, texture, reqLevel.
     local levelFn = GetTrainerServiceLevelReq
     local classic = type(levelFn) == "function"
+    -- Classic clients omit or blank individual requirement fields for some services; an unreadable field is left
+    -- out of the snapshot rather than discarding every service the trainer offers.
+    local function call(fn, ...)
+        if type(fn) ~= "function" then return end
+        local ok, a, b, c, d, e = pcall(fn, ...)
+        if ok then return a, b, c, d, e end
+    end
+    local skipped = 0
     for index = 1, count do
         local serviceName, serviceType, requiredLevel, subText
         if classic then
-            serviceName, subText, serviceType = infoFn(index)
-            if readable(serviceType) and serviceType ~= "header" then requiredLevel = levelFn(index) end
+            serviceName, subText, serviceType = call(infoFn, index)
+            if readable(serviceType) and serviceType ~= "header" then requiredLevel = call(levelFn, index) end
         else
-            serviceName, serviceType, _, requiredLevel, subText = infoFn(index)
+            local _
+            serviceName, serviceType, _, requiredLevel, subText = call(infoFn, index)
         end
         serviceName = boundedText(serviceName, 200)
         if not serviceName then
-            self:Error(L["Trainer service data could not be read."])
-            return
-        end
-        local service = { name = serviceName }
-        if not readable(serviceType) then
-            self:Error(L["Trainer service data could not be read."])
-            return
-        end
-        if serviceType ~= nil then
-            if type(serviceType) ~= "string" then
-                self:Error(L["Trainer service data could not be read."])
-                return
-            end
-            service.serviceType = boundedText(serviceType, 40)
-        end
-        if not readable(subText) then
-            self:Error(L["Trainer service data could not be read."])
-            return
-        end
-        if subText ~= nil then
-            if type(subText) ~= "string" then
-                self:Error(L["Trainer service data could not be read."])
-                return
-            end
-            service.subText = boundedText(subText, 200)
-        end
-        if not readable(requiredLevel) then
-            self:Error(L["Trainer service data could not be read."])
-            return
-        end
-        if requiredLevel ~= nil then
+            skipped = skipped + 1
+        else
+            local service = { name = serviceName }
+            service.serviceType = type(serviceType) == "string" and boundedText(serviceType, 40) or nil
+            service.subText = type(subText) == "string" and boundedText(subText, 200) or nil
             service.requiredLevel = boundedNumber(requiredLevel, 0, 255)
-            if not service.requiredLevel then
-                self:Error(L["Trainer service data could not be read."])
-                return
+            if service.serviceType ~= "header" then
+                local skill, rank = call(GetTrainerServiceSkillReq, index)
+                skill, rank = boundedText(skill, 100), boundedNumber(rank, 0, 100000)
+                if skill and rank then service.skill, service.skillRank = skill, rank end
+                local abilityCount = boundedNumber(call(GetTrainerServiceNumAbilityReq, index), 0, 20) or 0
+                service.abilities = {}
+                for abilityIndex = 1, abilityCount do
+                    local ability = boundedText(call(GetTrainerServiceAbilityReq, index, abilityIndex), 100)
+                    if ability then table.insert(service.abilities, ability) end
+                end
+                service.cost = boundedNumber(call(GetTrainerServiceCost, index), 0, 2000000000)
             end
+            table.insert(services, service)
         end
-        if service.serviceType ~= "header" then
-            local skill, rank = GetTrainerServiceSkillReq(index)
-            if not readable(skill) or not readable(rank) then
-                self:Error(L["Trainer service data could not be read."])
-                return
-            end
-            if skill == "" then skill, rank = nil, nil end
-            if skill ~= nil or rank ~= nil then
-                service.skill = boundedText(skill, 100)
-                service.skillRank = boundedNumber(rank, 0, 100000)
-                if not service.skill or not service.skillRank then
-                    self:Error(L["Trainer service data could not be read."])
-                    return
-                end
-            end
-            local abilityCount = boundedNumber(GetTrainerServiceNumAbilityReq(index), 0, 20)
-            if not abilityCount then
-                self:Error(L["Trainer service data could not be read."])
-                return
-            end
-            service.abilities = {}
-            for abilityIndex = 1, abilityCount do
-                local ability = boundedText(GetTrainerServiceAbilityReq(index, abilityIndex), 100)
-                if not ability then
-                    self:Error(L["Trainer service data could not be read."])
-                    return
-                end
-                table.insert(service.abilities, ability)
-            end
-            local cost = GetTrainerServiceCost(index)
-            if not readable(cost) then
-                self:Error(L["Trainer service data could not be read."])
-                return
-            end
-            if cost ~= nil then
-                service.cost = boundedNumber(cost, 0, 2000000000)
-                if not service.cost then
-                    self:Error(L["Trainer service data could not be read."])
-                    return
-                end
-            end
-        end
-        table.insert(services, service)
+    end
+    if skipped > 0 then self:Debug(("Trainer capture skipped %d unnamed service line(s)."):format(skipped)) end
+    if #services == 0 then
+        self:Debug("Trainer window listed no readable services; nothing saved.")
+        return
     end
     local _, build = GetBuildInfo()
     local characterClass = UnitClass and boundedText(UnitClass("player"), 100)
