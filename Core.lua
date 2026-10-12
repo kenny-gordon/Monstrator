@@ -7,7 +7,8 @@ M.defaults = {
     collecting = false, observationLimit = 1000, frameScale = 1,
     textScale = 1, highContrast = false, minimapHidden = false,
     minimapAngle = 225, debug = false, discovering = false,
-    sortOrder = "distance", evidenceFilter = "all", referenceEnabled = true, groupNPCs = true,
+    sortOrder = "distance", evidenceFilter = "all", journalGroup = "zone",
+    referenceEnabled = true, groupNPCs = true,
     scope = "zone", zoneMap = 0, regionMap = 0, windowX = 0, windowY = 0,
 }
 
@@ -164,9 +165,14 @@ function M:Initialize()
     self.settings = initializeTable("Monstrator_Settings", self.defaults)
     self.favorites = initializeTable("Monstrator_Favorites", { entries = {} })
     self.observations = initializeTable("Monstrator_Observations", { entries = {}, nextID = 1 })
-    if not self.settings or not self.favorites or not self.observations then return end
+    self.trainerSnapshots = initializeTable("Monstrator_TrainerSnapshots", {})
+    if not self.settings or not self.favorites or not self.observations or not self.trainerSnapshots then return end
     if type(self.favorites.entries) ~= "table" or type(self.observations.entries) ~= "table" then
         self:Error(L["Invalid saved entries; preserved unchanged. Addon disabled."])
+        return
+    end
+    if type(self.trainerSnapshots) ~= "table" then
+        self:Error(L["Invalid trainer snapshots; preserved unchanged. Addon disabled."])
         return
     end
     local s = self.settings
@@ -180,10 +186,11 @@ function M:Initialize()
         self:Error(L["Invalid saved limits/scales/identity counter; preserved unchanged. Addon disabled."])
         return
     end
-    if not ({ distance = true, name = true, zone = true, npcID = true, level = true })[s.sortOrder]
+    if not ({ distance = true, name = true, zone = true, npcID = true, level = true, recent = true })[s.sortOrder]
         or not ({ all = true, confirmed = true, pending = true, map = true, reference = true })[s.evidenceFilter] then
         self:Error(L["Invalid saved sort/evidence filter; preserved unchanged. Addon disabled."]); return
     end
+    if not ({ zone = true, type = true, none = true })[s.journalGroup] then s.journalGroup = "zone" end
     for _, key in ipairs({ "collecting", "discovering", "referenceEnabled", "groupNPCs", "highContrast", "minimapHidden", "debug" }) do
         if type(s[key]) ~= "boolean" then
             self:Error(L["Invalid saved setting "] .. key .. "; preserved unchanged. Addon disabled.")

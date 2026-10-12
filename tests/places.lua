@@ -200,6 +200,23 @@ if M.copyFrame then
     assert(not M.copyFrame:IsShown(), "Escape closes the copy dialog")
 end
 
+-- One NPC confirmed with different roles must count in every category its list shows it in.
+local savedGrouping = M.settings.groupNPCs
+M.settings.groupNPCs = true
+local combatSighting = npc(106, "Corsan Test", 1, 70, 10)
+combatSighting.key, combatSighting.category, combatSighting.tags = "curated:place-106a", "Combat", {}
+local trainerSighting = npc(106, "Corsan Test", 1, 71, 10)
+trainerSighting.key, trainerSighting.category, trainerSighting.tags = "curated:place-106b", "Trainers", { "trainer" }
+table.insert(M.data.entries, combatSighting)
+table.insert(M.data.entries, trainerSighting)
+M.zoneMap = 1
+M:BuildIndex()
+local roleCounts = M:DirectoryCounts("zone", "")
+assert(roleCounts.categories.npc.Trainers == 1 and #M:Query("zone", "npc", "Trainers", "", "directory") == 1,
+    "a category count must match the grouped list it opens")
+assert(roleCounts.categories.npc.Combat == 1 and roleCounts.npc == 3, "the NPC still counts once overall")
+M.settings.groupNPCs = savedGrouping
+
 C_Map.GetMapInfo, M.data.entries, M.observations, M.clientData = saved.info, saved.entries, saved.observations, saved.clientData
 M.settings.referenceEnabled, M.settings.sortOrder = saved.reference, saved.sort
 M.scope, M.kind, M.category, playerMap = saved.scope, saved.kind, saved.category, saved.map

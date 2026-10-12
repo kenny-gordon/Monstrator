@@ -12,7 +12,7 @@ for _, tag in ipairs({
 
 M.categories = {
     all = { "All" },
-    npc = { "All", "Services", "Vendors", "Trainers", "Transit", "Combat" },
+    npc = { "All", "Services", "Vendors", "Trainers", "Transit", "Combat", "Unclassified" },
     location = { "All", "Mailboxes", "Instances", "Transit", "Landmarks", "Objects" },
 }
 

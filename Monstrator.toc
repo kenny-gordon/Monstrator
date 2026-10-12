@@ -14,7 +14,7 @@
 ## Author: Metalbullz
 ## Version: 1.0.0
 ## OptionalDeps: TomTom
-## SavedVariables: Monstrator_Settings, Monstrator_Favorites, Monstrator_Observations
+## SavedVariables: Monstrator_Settings, Monstrator_Favorites, Monstrator_Observations, Monstrator_TrainerSnapshots
 
 Core.lua
 Locales\enUS.lua

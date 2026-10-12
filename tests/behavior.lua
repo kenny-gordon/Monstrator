@@ -68,6 +68,157 @@ assert(M:ObservationCount() == 1)
 local observation
 for _, r in pairs(M.observations.entries) do observation = r end
 assert(observation.precision == "encounter" and observation.sightings == 2)
+local originalUnitGUID, originalUnitName = UnitGUID, UnitName
+UnitGUID = function(unit)
+    if unit == "nameplate1" then return "Creature-0-0-0-0-456-0001" end
+    return originalUnitGUID(unit)
+end
+UnitName = function(unit)
+    if unit == "nameplate1" then return "Synthetic Screecher" end
+    return originalUnitName(unit)
+end
+local countBeforeDiscovery = M:ObservationCount()
+M.settings.discovering = false
+M:HandleCaptureEvent("NAME_PLATE_UNIT_ADDED", "nameplate1")
+assert(M:ObservationCount() == countBeforeDiscovery, "nameplate discovery must remain opt-in")
+M.settings.discovering = true
+M:HandleCaptureEvent("NAME_PLATE_UNIT_ADDED", "nameplate1")
+assert(M:ObservationCount() == countBeforeDiscovery + 1)
+local plateObservation
+for _, r in pairs(M.observations.entries) do
+    if r.name == "Synthetic Screecher" then plateObservation = r end
+end
+assert(plateObservation and plateObservation.source == "local:NAME_PLATE_UNIT_ADDED")
+assert(plateObservation.precision == "encounter" and plateObservation.verification == "pending")
+assert(plateObservation.category == "Unclassified", "a friendly nameplate must not be guessed to be a combat target or service")
+M:HandleCaptureEvent("NAME_PLATE_UNIT_ADDED", "nameplate1")
+assert(M:ObservationCount() == countBeforeDiscovery + 1, "a GUID should be throttled during the discovery window")
+M:Review(plateObservation, "reject")
+local savedUnitCanAttack = UnitCanAttack
+UnitCanAttack = function(_, unit) return unit == "nameplate2" end
+UnitGUID = function(unit)
+    if unit == "nameplate2" then return "Creature-0-0-0-0-789-0001" end
+    return originalUnitGUID(unit)
+end
+UnitName = function(unit)
+    if unit == "nameplate2" then return "Synthetic Hostile" end
+    return originalUnitName(unit)
+end
+M:HandleCaptureEvent("NAME_PLATE_UNIT_ADDED", "nameplate2")
+local hostileObservation
+for _, r in pairs(M.observations.entries) do
+    if r.name == "Synthetic Hostile" then hostileObservation = r end
+end
+assert(hostileObservation and hostileObservation.category == "Combat",
+    "only a client-confirmed attackable NPC should be classified as combat")
+M:Review(hostileObservation, "reject")
+UnitGUID = function(unit)
+    if unit == "npc" then return "Creature-0-0-0-0-987-0001" end
+    return originalUnitGUID(unit)
+end
+UnitName = function(unit)
+    if unit == "npc" then return "Synthetic Gossip" end
+    return originalUnitName(unit)
+end
+M:HandleCaptureEvent("GOSSIP_SHOW", "npc")
+local gossipObservation
+for _, r in pairs(M.observations.entries) do
+    if r.name == "Synthetic Gossip" then gossipObservation = r end
+end
+assert(gossipObservation and gossipObservation.category == "Unclassified",
+    "opening a generic gossip window does not prove an NPC service role")
+M:Review(gossipObservation, "reject")
+UnitGUID = function(unit)
+    if unit == "npc" then return "Creature-0-0-0-0-988-0001" end
+    return originalUnitGUID(unit)
+end
+UnitName = function(unit)
+    if unit == "npc" then return "Synthetic Quest Giver" end
+    return originalUnitName(unit)
+end
+M:HandleCaptureEvent("QUEST_GREETING", "npc")
+local questObservation
+for _, r in pairs(M.observations.entries) do
+    if r.name == "Synthetic Quest Giver" then questObservation = r end
+end
+assert(questObservation and questObservation.category == "Services"
+    and questObservation.tags[1] == "quest_giver", "quest interaction should assign an observed quest-giver role")
+M:Review(questObservation, "reject")
+M.settings.discovering = false
+UnitGUID, UnitName, UnitCanAttack = originalUnitGUID, originalUnitName, savedUnitCanAttack
+
+local originalUnitClass, originalUnitLevel = UnitClass, UnitLevel
+GetNumTrainerServices = function() return 2 end
+UnitClass = function() return "Synthetic", "SYNTHETIC" end
+UnitLevel = function() return 10 end
+GetTrainerServiceInfo = function(index)
+    if index == 1 then return "Synthetic Recipe", "available", nil, 5, "Apprentice" end
+    return "Advanced Recipe", "unavailable", nil, 10, ""
+end
+GetTrainerServiceSkillReq = function(index)
+    if index == 1 then return "Blacksmithing", 1, true end
+end
+GetTrainerServiceNumAbilityReq = function(index) return index == 1 and 1 or 0 end
+GetTrainerServiceAbilityReq = function() return "Copper Bar", true end
+GetTrainerServiceCost = function(index) return index == 1 and 100 or 200 end
+LearnTrainerService = function() error("trainer capture must never learn a service") end
+M:HandleCaptureEvent("TRAINER_SHOW", "npc")
+local trainerCapture = table.remove(pendingTimers)
+assert(type(trainerCapture) == "function", "trainer capture should wait for the trainer list")
+trainerCapture()
+local snapshot = M.trainerSnapshots[123]
+assert(snapshot and #snapshot.services == 2)
+assert(snapshot.services[1].name == "Synthetic Recipe" and snapshot.services[1].cost == 100)
+assert(snapshot.services[1].skill == "Blacksmithing" and snapshot.services[1].abilities[1] == "Copper Bar")
+assert(snapshot.characterClass == "Synthetic" and snapshot.characterLevel == 10)
+UnitClass, UnitLevel = originalUnitClass, originalUnitLevel
+local trainerLines = M:TrainerSnapshotLines(123)
+assert(table.concat(trainerLines, "\n"):find("Synthetic Recipe", 1, true))
+assert(table.concat(trainerLines, "\n"):find("100 copper", 1, true))
+local savedSnapshot = snapshot
+GetTrainerServiceInfo = function(index)
+    if index == 1 then return "Protection", nil, "header", 1 end
+    return "Revenge", "Rank 2", "available", nil
+end
+GetTrainerServiceLevelReq = function(index)
+    assert(index == 2, "header rows must not query requirements")
+    return 24
+end
+GetTrainerServiceSkillReq = function(index)
+    assert(index == 2, "header rows must not query requirements")
+    return "", 0, false
+end
+GetTrainerServiceNumAbilityReq = function(index)
+    assert(index == 2, "header rows must not query requirements")
+    return 1
+end
+GetTrainerServiceAbilityReq = function() return "Revenge (Rank 1)", true end
+GetTrainerServiceCost = function(index)
+    assert(index == 2, "header rows must not query requirements")
+    return 80, false
+end
+M:CaptureTrainerServices()
+local classicSnapshot = M.trainerSnapshots[123]
+assert(classicSnapshot ~= savedSnapshot and #classicSnapshot.services == 2,
+    "classic trainer return order must be captured")
+assert(classicSnapshot.services[1].serviceType == "header" and not classicSnapshot.services[1].requiredLevel)
+local revenge = classicSnapshot.services[2]
+assert(revenge.serviceType == "available" and revenge.subText == "Rank 2" and revenge.requiredLevel == 24
+    and revenge.cost == 80 and not revenge.skill and revenge.abilities[1] == "Revenge (Rank 1)",
+    "classic services use the subText/type order and the separate level API")
+GetTrainerServiceLevelReq = nil
+M.trainerSnapshots[123] = savedSnapshot
+GetNumTrainerServices = function() return 201 end
+M:CaptureTrainerServices()
+assert(M.trainerSnapshots[123] == savedSnapshot, "oversized lists must not replace a valid snapshot")
+GetNumTrainerServices = nil
+M:CaptureTrainerServices()
+assert(M.trainerSnapshots[123] == savedSnapshot, "unsupported APIs must preserve existing snapshots")
+GetNumTrainerServices = function() return 2 end
+GetTrainerServiceInfo, GetTrainerServiceSkillReq = nil, nil
+GetTrainerServiceNumAbilityReq, GetTrainerServiceAbilityReq, GetTrainerServiceCost = nil, nil, nil
+LearnTrainerService = nil
+M.settings.discovering = false
 M.settings.observationLimit = 1
 M:CaptureLandmark("Synthetic landmark")
 assert(M:ObservationCount() == 1 and M.fullNotice)
@@ -133,11 +284,29 @@ assert(M.kind == "all", "first opening must expose both NPCs and map markers")
 assert(window.kindButtons.all.activeMarker:IsShown())
 assert(window.kindButtons.all:GetText():find("%(2%)"), "type buttons must show available counts")
 assert(window.rows[1].detail:GetText():find("Synthetic Map", 1, true), "rows must identify their zone")
+M.kind = "npc"
+M:UpdateCategories()
+assert(window.categoryButtons[7]:IsShown()
+    and window.categoryButtons[7]:GetText():find(M.L["Unclassified"], 1, true),
+    "unclassified observations must have a visible category filter")
+window.categoryButtons[7]:Click()
+assert(M.category == "Unclassified", "unclassified filter must be selectable")
+M.kind, M.category = "all", "All"
+M:UpdateCategories()
 window.detailsButton:Click()
 assert(M.detailsFrame:IsShown() and M.detailsFrame.entry.record == M.results[M.selected].record)
 assert(M.detailsFrame.body:GetText():find("NPC ID: 123", 1, true))
 assert(M.detailsFrame.body:GetText():find("Evidence: Curated", 1, true))
 assert(not M.detailsFrame.review:IsShown(), "static data must not be edited as a journal record")
+M.trainerSnapshots[123] = {
+    npcID = 123, name = "Synthetic Vendor", observedAt = 1234, build = "test", locale = "enUS",
+    characterClass = "Synthetic", characterLevel = 10,
+    services = { { name = "Synthetic Recipe", serviceType = "available", requiredLevel = 5, cost = 100 } },
+}
+window.detailsButton:Click()
+assert(M.detailsFrame.body:GetText():find("Synthetic Recipe", 1, true), "NPC Details must show local trainer snapshots")
+assert(M.detailsFrame.body:GetText():find("character-specific", 1, true), "trainer snapshot caveat must be visible")
+M.trainerSnapshots[123] = nil
 local detailKey = M.detailsFrame.entry.record.key
 local wasFavorite = M.favorites.entries[detailKey] ~= nil
 M.detailsFrame.favorite:Click()
@@ -272,7 +441,72 @@ assert(M.lastDistanceUpdate > tickTime)
 M.window:Hide()
 assert(M.window:GetScript("OnUpdate") == nil)
 C_Timer.NewTicker = withoutTicker
+M.settings.observationLimit = 10
+local pendingAlpha = M:NewObservation("Queue Alpha", "npc", "Combat", {}, "manual-target")
+pendingAlpha.npcID = 202
+pendingAlpha.lastSeen = 10
+assert(M:AddObservation(pendingAlpha))
+local pendingBeta = M:NewObservation("Queue Beta", "npc", "Combat", {}, "manual-target")
+pendingBeta.npcID = 201
+pendingBeta.lastSeen = 20
+assert(M:AddObservation(pendingBeta))
+local grouped = { { record = pendingAlpha }, { record = pendingBeta } }
+M.settings.sortOrder, M.settings.journalGroup = "name", "npc"
+M:SortResults(grouped, true)
+assert(grouped[1].record == pendingBeta, "NPC grouping takes precedence over the secondary name sort")
+M.settings.sortOrder, M.settings.journalGroup = "recent", "zone"
+M:SortResults(grouped)
+assert(grouped[1].record == pendingBeta, "most-recent sorting orders journal encounters newest first")
+M.window.search:SetText("")
 M:Toggle("review")
+for _, callback in ipairs(pendingTimers) do callback() end
+assert(M.window.group:IsShown(), "review view exposes journal grouping")
+M.window.group:Click()
+assert(M.settings.journalGroup == "type", "journal grouping cycles to entry type")
+M.window.group:Click()
+assert(M.settings.journalGroup == "none")
+M.window.group:Click()
+assert(M.settings.journalGroup == "zone")
+M.settings.sortOrder = "name"
+M:Refresh()
+M:ShowReview(pendingAlpha)
+assert(M.reviewFrame.next:IsEnabled() and M.reviewFrame.confirm:GetText() == M.L["Confirm & Next"],
+    "review modal offers deliberate confirm-and-advance through pending entries")
+M.reviewFrame.confirm:Click()
+assert(pendingAlpha.verification == "user-confirmed" and M.reviewFrame.record == pendingBeta,
+    "confirming one observation advances to the next pending observation")
+M.reviewFrame.confirm:Click()
+assert(pendingBeta.verification == "user-confirmed" and not M.reviewFrame:IsShown(),
+    "confirming the last queued observation closes the review form")
+
+local function addBulkEntry(name, npcID, mapID)
+    local entry = M:NewObservation(name, "npc", "Services", {}, "manual-target")
+    entry.npcID, entry.mapID = npcID, mapID
+    return assert(M:AddObservation(entry))
+end
+local bulkZoneA = addBulkEntry("Bulk Zone A", 301, 1)
+local bulkZoneB = addBulkEntry("Bulk Zone B", 302, 1)
+local bulkTypeA = addBulkEntry("Bulk Type A", 303, 2)
+local bulkTypeB = addBulkEntry("Bulk Type B", 304, 2)
+M.settings.journalGroup = "zone"
+M:Refresh()
+M:ShowReview(bulkZoneA)
+assert(M.reviewFrame.bulk:IsShown() and M.reviewFrame.bulk:GetText():find("2", 1, true),
+    "review form counts the selected zone's pending placements")
+M.reviewFrame.bulk:Click()
+assert(M.bulkReviewFrame:IsShown()
+    and M.bulkReviewFrame.message:GetText():find("2 pending placements", 1, true),
+    "bulk add requires an explicit confirmation that reports its scope and count")
+M.bulkReviewFrame.confirm:Click()
+assert(bulkZoneA.verification == "user-confirmed" and bulkZoneB.verification == "user-confirmed"
+    and bulkTypeA.verification == "pending" and bulkTypeB.verification == "pending",
+    "zone bulk add confirms only entries in the selected zone")
+local bulkTypeC = addBulkEntry("Bulk Type C", 305, 1)
+M.settings.journalGroup = "type"
+assert(M:BulkReview(bulkTypeA, "type") == 3,
+    "type bulk add can confirm matching entries across different zones")
+assert(bulkTypeA.verification == "user-confirmed" and bulkTypeB.verification == "user-confirmed"
+    and bulkTypeC.verification == "user-confirmed")
 M:ShowSettings()
 M:ShowReview(observation)
 local reviewEvidence = M.reviewFrame.evidence:GetText()
@@ -282,7 +516,7 @@ if type(date) == "function" then
     if ok then seenAt = formatted end
 end
 assert(reviewEvidence:find(M.L["NPC ID: "] .. observation.npcID, 1, true))
-assert(reviewEvidence:find(M.L["Seen: %s | Sightings: %d"]:format(seenAt, 2), 1, true))
+assert(reviewEvidence:find(M.L["Seen: %s | Sightings: %d"]:format(seenAt, observation.sightings), 1, true))
 assert(reviewEvidence:find(M.L["Submission seal: %s"]:format(M.L["seal:intact"]), 1, true))
 assert(reviewEvidence:find(M.L["Source: "] .. M.L["Vendors"], 1, true))
 local intactSeal = observation.seal
@@ -290,6 +524,10 @@ observation.seal = "invalid"
 M:ShowReview(observation)
 assert(M.reviewFrame.evidence:GetText():find(M.L["seal:mismatch"], 1, true), "tampered records must be marked")
 observation.seal = intactSeal
+for _, entry in ipairs({ bulkZoneA, bulkZoneB, bulkTypeA, bulkTypeB, bulkTypeC }) do
+    M.observations.entries[entry.key] = nil
+end
+M:BuildIndex()
 M.window:Hide()
 assert(M.ticker == nil)
 local many = {}
@@ -300,14 +538,16 @@ for i = 1, 10000 do
 end
 M.data.entries = many
 M:BuildIndex()
+M.settings.sortOrder = "distance"
+M.view = "directory"
 clock = clock + 1
 results = M:Query("global", "npc", "All", "synthetic", "directory")
-assert(#results == 10001, "all stress records plus reviewed observation must remain available")
+assert(#results == 10003, "all stress records plus reviewed observations must remain available")
 M.offset = 0
 M:Render()
 window.pageDown:Click()
 assert(M.offset == 9 and window.rows[1].entry == results[10])
-assert(window.page:GetText():find("Rows 10-18 of 10001", 1, true))
+assert(window.page:GetText():find("Rows 10-18 of 10003", 1, true))
 window.pageUp:Click()
 assert(M.offset == 0)
 for i = 2, #results do

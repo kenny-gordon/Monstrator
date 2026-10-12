@@ -13,7 +13,7 @@ Runtime indexes and quarantined records are not SavedVariables.
 | `npcID` | Positive integer for NPC records; omit for landmarks; one NPC can have multiple record keys |
 | `name` | Nonempty localized display name, not a stable identifier |
 | `kind` | `npc` or `location` |
-| `category` | NPC: Services, Vendors, Trainers, Transit, Combat. Location: Mailboxes, Instances, Transit, Landmarks, Objects |
+| `category` | NPC: Services, Vendors, Trainers, Transit, Combat, Unclassified. Location: Mailboxes, Instances, Transit, Landmarks, Objects |
 | `mapID` | Positive integer **UI map ID**, verified against the live Forever client; not a legacy area ID |
 | `x`, `y` | Finite numbers in **0–100 percent**, converted once at API boundaries |
 | `tags` | Contiguous array of canonical strings from `Data.lua`; suggest taxonomy extensions for review |
@@ -130,8 +130,21 @@ explicit validated tags; edits rebuild index state and discard old
 world-coordinate caches. Unknown tags do not partially mutate records.
 Duplicate pending sightings merge newly observed service tags. Manual NPC
 target capture does not record players and remains approximate encounter data.
-Opt-in target/mouseover discovery shares the journal and review gate, with a
-30-second transient per-GUID throttle. GUIDs are never persisted/exported.
+Opt-in target/mouseover/nameplate discovery shares the journal and review gate,
+with a 30-second transient per-GUID throttle. Nameplate events establish only
+that an NPC was nearby; the recorded position remains the player's position,
+not an exact NPC coordinate. GUIDs are never persisted/exported.
+Capture categories are evidence-based: merchant, trainer, taxi and quest UI
+events identify those roles; generic gossip does not. Discovery assigns
+Combat only when `UnitCanAttack("player", unit)` explicitly returns true;
+otherwise it records `Unclassified`. Reviewers can use that category for
+unresolved sightings and promote them only after verifying a role.
+When local collection is enabled, opening a trainer separately saves the
+client-reported service list by NPC ID. It includes only the displayed name,
+availability, requirements and cost, plus the observing character's class and
+level. It is labeled character-specific because class, level, skill and trainer
+state can change the list. These snapshots stay local and are not included in
+sealed NPC observations or submissions.
 Metadata merges only on matching nearby pending observations; service
 interactions can upgrade a generic Combat category. Confirmed placement evidence
 is not silently replaced by new encounter coordinates.

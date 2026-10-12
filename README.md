@@ -143,7 +143,7 @@ The window has three columns:
 creature type and rank, categories, tags and keywords, and zone names. Searching
 `riverglades flight` in World scope finds flight masters in that zone.
 
-**Sort** cycles Nearest first, Zone A-Z, Name A-Z, Level and NPC ID. Unknown
+**Sort** cycles Nearest first, Zone A-Z, Name A-Z, Level, NPC ID and Most recent. Unknown
 distances sort last. **Evidence** filters all sources, confirmed placements,
 pending review, client map locations or database records.
 
@@ -303,14 +303,36 @@ The last 50 sightings are listed under **Recent sightings**; click one to go bac
 Collection is **off by default**. Turn on **Local collection** in Settings (or
 `/monstrator collect`) to record NPCs you talk to: vendors, trainers, gossip and
 flight masters. **NPC discovery** (`/monstrator discover`) also records NPCs you
-target or mouse over. `/monstrator capture` records your current target, and
+target, mouse over or see on a nameplate. It is opt-in and records nearby
+nameplate NPCs while you explore. `/monstrator capture` records your current target, and
 `/monstrator landmark NAME` saves your position as a named landmark.
+
+Roles are recorded only when the client provides evidence: a merchant, trainer,
+flight-master or quest interaction assigns that corresponding category. A
+generic gossip window is not proof of a service role. A sighting is categorized
+as combat only when the client says the NPC is attackable; otherwise it appears
+under **Unclassified** until review or a later, more informative interaction.
 
 Recorded positions are **your** position at the time, not the NPC's exact spawn.
 Every entry starts as *Pending review*: open **Review journal**, check the
 location, category and tags, then confirm or delete it. Only confirmed entries
 appear in the directory. **Manage journal** (`/monstrator journal`) edits
 confirmed entries too.
+
+When local collection is enabled, opening a trainer also saves the service list
+currently reported by the client. NPC Details can show that local snapshot,
+including displayed requirements and costs plus the observing character's
+class and level. The list may be filtered by class, level, skill or trainer
+state; it is not
+automatically submitted as a universal trainer catalog.
+
+The pending-review list can be grouped by **Zone**, **Type** (category) or left
+ungrouped, and sorted by distance, zone, name, level, NPC ID or most recently
+seen. Open a pending entry and choose **Add group to directory** to bulk-confirm
+the matching pending placements in its zone or category. The confirmation step
+shows how many entries will be added. Bulk-confirmed encounter positions are
+still approximate and should be checked before relying on them.
+**Previous**, **Next** and **Confirm & Next** remain available for individual review.
 
 The review form shows the capture source, NPC ID, sighting count and time,
 client build/locale, and whether the submission seal still matches the record.
@@ -376,7 +398,7 @@ database still work. This does not delete your journal, favorites or settings.
 | `/monstrator scan add\|remove ID/NAME` | Add or remove a watched NPC |
 | `/monstrator scan list\|on\|off\|rares\|sound\|clear\|test` | List watches, toggle scanning, rare alerts or sound, clear the log, test an alert |
 | `/monstrator collect` | Toggle local collection |
-| `/monstrator discover` | Toggle target/mouseover NPC discovery |
+| `/monstrator discover` | Toggle target/mouseover/nameplate NPC discovery |
 | `/monstrator capture` | Record your current NPC target |
 | `/monstrator landmark NAME` | Save your position as a named landmark |
 | `/monstrator journal` | Manage pending and confirmed journal entries |

@@ -224,6 +224,20 @@ local function npcOrder(a, b)
     return nameOrder(a, b)
 end
 
+local function recentOrder(a, b)
+    local first, second = a.record.lastSeen or 0, b.record.lastSeen or 0
+    if first ~= second then return first > second end
+    return nameOrder(a, b)
+end
+
+local function journalGroupKey(entry, group)
+    local r = entry.record
+    if group == "zone" then return entry.sortZone end
+    if group == "type" then return r.kind .. ":" .. r.category end
+    if r.npcID then return "0:" .. string.format("%012d", r.npcID) end
+    return "1:" .. string.lower(r.kind .. ":" .. r.name)
+end
+
 local function selectPlacement(entry)
     if not entry.placements then return end
     local nearest = entry.placements[1]
@@ -256,7 +270,7 @@ function M:GroupNPCResults(results)
     return grouped
 end
 
-function M:SortResults(results)
+function M:SortResults(results, forceJournalGrouping)
     local order = self.settings.sortOrder
     local labels = {}
     for _, entry in ipairs(results) do
@@ -269,8 +283,17 @@ function M:SortResults(results)
         end
         entry.sortZone = text
     end
-    table.sort(results, order == "name" and nameOrder or (order == "zone" and zoneOrder
+    local sort = order == "recent" and recentOrder or (order == "name" and nameOrder or (order == "zone" and zoneOrder
         or (order == "npcID" and npcOrder or (order == "level" and levelOrder or distanceOrder))))
+    local groupedView = forceJournalGrouping or self.view == "review" or self.view == "journal"
+    local group = groupedView and self.settings.journalGroup
+    table.sort(results, function(a, b)
+        if group and group ~= "none" then
+            local first, second = journalGroupKey(a, group), journalGroupKey(b, group)
+            if first ~= second then return first < second end
+        end
+        return sort(a, b)
+    end)
 end
 
 function M:MatchesEvidence(record)
@@ -460,8 +483,23 @@ function M:DirectoryCounts(scope, query)
             and (not r.faction or r.faction == "Both" or r.faction == faction)
             and matches(entry.text, query) then
             -- Count rows exactly as GroupNPCResults builds them, so each button matches the list it opens.
+            -- Category/sub-group lists are filtered before grouping, so dedupe those per bucket.
             local identity = grouped and (r.kind == "npc" and r.npcID or (r.objectID and "o" .. r.objectID))
             local groupKey = identity and (identity .. ":" .. r.mapID .. ":" .. r.verification)
+            local categories = counts.categories[r.kind]
+            if not categories then categories = {}; counts.categories[r.kind] = categories end
+            local categoryKey = groupKey and (groupKey .. "\31c" .. r.category)
+            if not categoryKey or not objects[categoryKey] then
+                if categoryKey then objects[categoryKey] = true end
+                categories[r.category] = (categories[r.category] or 0) + 1
+            end
+            for _, key in ipairs(entry.subgroups or {}) do
+                local subgroupKey = groupKey and (groupKey .. "\31s" .. key)
+                if not subgroupKey or not objects[subgroupKey] then
+                    if subgroupKey then objects[subgroupKey] = true end
+                    counts.subgroups[key] = (counts.subgroups[key] or 0) + 1
+                end
+            end
             if groupKey and objects[groupKey] then
             else
             if groupKey then objects[groupKey] = true end
@@ -471,10 +509,6 @@ function M:DirectoryCounts(scope, query)
                 identities[r.npcID] = true
                 counts.uniqueNPCs = counts.uniqueNPCs + 1
             end
-            local categories = counts.categories[r.kind]
-            if not categories then categories = {}; counts.categories[r.kind] = categories end
-            categories[r.category] = (categories[r.category] or 0) + 1
-            for _, key in ipairs(entry.subgroups or {}) do counts.subgroups[key] = (counts.subgroups[key] or 0) + 1 end
             end
         end
     end

@@ -28,6 +28,7 @@ local categoryIcons = {
     Services = "INV_Misc_GroupLooking", Vendors = "INV_Misc_Coin_01",
     Trainers = "INV_Misc_Book_09", Transit = "Ability_Mount_Wyvern_01",
     Combat = "Ability_Tracking", Mailboxes = "INV_Letter_15",
+    Unclassified = "INV_Misc_QuestionMark", Mailboxes = "INV_Letter_15",
     Instances = "INV_Misc_StoneTablet_05", Landmarks = "INV_Misc_Map02",
     Objects = "INV_Box_01",
 }
@@ -605,10 +606,10 @@ function M:ShowIssues()
     self:ShowCopy(table.concat(lines, "\n"))
 end
 
-function M:ShowReview(record)
+function M:ShowReview(record, queue, queueIndex)
     if not self.reviewFrame then
         local f = CreateFrame("Frame", nil, UIParent, "BackdropTemplate")
-        f:SetSize(560, 450)
+        f:SetSize(560, 490)
         f:SetPoint("CENTER")
         f:SetFrameStrata("DIALOG")
         applyWindowBackdrop(f)
@@ -641,27 +642,90 @@ function M:ShowReview(record)
         label(f, "Tags (comma separated)", 20, -292)
         f.tags = edit(f, 25, -317, 495)
         label(f, "Examples: food, innkeeper, repair, mailbox, flight", 20, -349, 11)
-        button(f, "Confirm placement", 20, -394, 160, function()
+        f.bulk = button(f, "Add group to directory", 20, -385, 250, function()
+            self:ShowBulkReviewConfirmation(f.record, self.settings.journalGroup)
+        end)
+        f.previous = button(f, "Previous", 20, -440, 85, function()
+            self:AdvanceReview(f, -1)
+        end)
+        f.confirm = button(f, "Confirm placement", 110, -440, 160, function()
             local x, y = tonumber(f.x:GetText()), tonumber(f.y:GetText())
             if not self:IsFinite(x) or not self:IsFinite(y) or x < 0 or x > 100 or y < 0 or y > 100 then
                 self:Error(L["Enter coordinates between 0 and 100."]); return
             end
-            if self:Review(f.record, "accept", x, y, f.value, f.tags:GetText()) then f:Hide() end
+            local wasPending = f.record.verification == "pending"
+            if self:Review(f.record, "accept", x, y, f.value, f.tags:GetText()) then
+                if wasPending then self:AdvanceReview(f, 1) else f:Hide() end
+            end
         end)
-        button(f, "Delete record", 190, -394, 130, function()
-            if self:Review(f.record, "reject") then f:Hide() end
+        f.delete = button(f, "Delete record", 275, -440, 100, function()
+            local wasPending = f.record.verification == "pending"
+            if self:Review(f.record, "reject") then
+                if wasPending then self:AdvanceReview(f, 1) else f:Hide() end
+            end
         end)
-        button(f, "Cancel", 330, -394, 100, function() f:Hide() end)
+        f.next = button(f, "Next", 380, -440, 85, function()
+            self:AdvanceReview(f, 1)
+        end)
+        button(f, "Cancel", 470, -440, 70, function() f:Hide() end)
         self.reviewFrame = f
     end
     local f = self.reviewFrame
+    if queue then
+        f.queue, f.queueIndex = queue, queueIndex
+    else
+        local candidates, seen = {}, {}
+        if self.view == "review" or self.view == "journal" then
+            for _, entry in ipairs(self.results or {}) do
+                local pending = entry.record
+                if pending.verification == "pending" and not seen[pending.key] then
+                    candidates[#candidates + 1] = { record = pending }
+                    seen[pending.key] = true
+                end
+            end
+        else
+            for _, pending in pairs(self.observations.entries) do
+                if pending.verification == "pending" and not seen[pending.key] then
+                    candidates[#candidates + 1] = { record = pending }
+                    seen[pending.key] = true
+                end
+            end
+            self:SortResults(candidates, true)
+        end
+        f.queue = {}
+        for _, entry in ipairs(candidates) do f.queue[#f.queue + 1] = entry.record end
+        if record.verification == "pending" and not seen[record.key] then
+            table.insert(f.queue, 1, record)
+        end
+        f.queueIndex = 1
+        for i, queued in ipairs(f.queue) do
+            if queued == record then f.queueIndex = i; break end
+        end
+    end
     f.record, f.value = record, record.category
     f.title:SetText(record.name .. " - " .. self:MapName(record.mapID))
+    local pending = record.verification == "pending"
+    local hasPrevious, hasNext = false, false
+    for i = f.queueIndex - 1, 1, -1 do
+        if f.queue[i].verification == "pending" then hasPrevious = true; break end
+    end
+    for i = f.queueIndex + 1, #f.queue do
+        if f.queue[i].verification == "pending" then hasNext = true; break end
+    end
+    f.previous:SetShown(pending)
+    f.previous:SetEnabled(hasPrevious)
+    f.next:SetShown(pending)
+    f.next:SetEnabled(hasNext)
+    f.confirm:SetText(L[pending and hasNext and "Confirm & Next" or "Confirm placement"])
+    local bulkCount = pending and self:PendingObservationGroupCount(record, self.settings.journalGroup) or 0
+    f.bulk:SetShown(bulkCount > 0 and self.settings.journalGroup ~= "none")
+    f.bulk:SetText(L["Add group to directory (%d)"]:format(bulkCount))
     local sourceEvent = type(record.source) == "string" and record.source:match("^local:(.+)$")
     local captureLabels = {
         ["manual-target"] = L["npc"],
         ["PLAYER_TARGET_CHANGED"] = L["scan:target"],
         ["UPDATE_MOUSEOVER_UNIT"] = L["scan:mouseover"],
+        ["NAME_PLATE_UNIT_ADDED"] = L["NPC discovery"],
         ["MERCHANT_SHOW"] = L["Vendors"],
         ["TRAINER_SHOW"] = L["Trainers"],
         ["GOSSIP_SHOW"] = L["Services"],
@@ -701,6 +765,53 @@ function M:ShowReview(record)
     f.category:SetText(L[f.value])
     f.tags:SetText(table.concat(record.tags, ", "))
     f:Show()
+end
+
+function M:ShowBulkReviewConfirmation(record, group)
+    if not self.bulkReviewFrame then
+        local f = CreateFrame("Frame", nil, self.reviewFrame, "BackdropTemplate")
+        f:SetSize(430, 180)
+        f:SetPoint("CENTER")
+        f:SetFrameStrata("DIALOG")
+        applyWindowBackdrop(f)
+        f.title = label(f, "Bulk review", 20, -20)
+        f.message = label(f, "", 20, -58, 13)
+        f.message:SetWidth(390)
+        f.message:SetHeight(56)
+        f.message:SetJustifyH("LEFT")
+        f.confirm = button(f, "Confirm all", 20, -130, 170, function()
+            local count = self:BulkReview(f.record, f.group)
+            if count then
+                f:Hide()
+                if self.reviewFrame then self.reviewFrame:Hide() end
+            end
+        end)
+        button(f, "Cancel", 205, -130, 110, function() f:Hide() end)
+        self.bulkReviewFrame = f
+    end
+    local count = self:PendingObservationGroupCount(record, group)
+    if count == 0 then self:Error(L["No pending placements in this group."]); return end
+    local context = group == "zone" and self:MapName(record.mapID)
+        or (L[record.category] .. " / " .. L[record.kind])
+    local f = self.bulkReviewFrame
+    f.record, f.group = record, group
+    f.message:SetText((L["Confirm all %d pending placements in %s? They will be added as user-confirmed, but encounter positions remain approximate."])
+        :format(count, context))
+    f.confirm:SetText((L["Confirm all %d"]:format(count)))
+    f:Show()
+end
+
+function M:AdvanceReview(frame, direction)
+    local queue = frame.queue or {}
+    for i = (frame.queueIndex or 1) + direction, direction > 0 and #queue or 1, direction do
+        local record = queue[i]
+        if record and record.verification == "pending"
+            and self.observations.entries[record.key] == record then
+            self:ShowReview(record, queue, i)
+            return
+        end
+    end
+    if direction > 0 then frame:Hide() end
 end
 
 function M:ExportNPCInventory()
@@ -938,7 +1049,7 @@ function M:ShowEntryDetails(entry)
     local provider = self:NativeProvider()
     f.quests:SetEnabled(provider ~= nil and provider.Quest ~= nil)
     f.title:SetText(r.name .. (r.title and (" <" .. r.title .. ">") or ""))
-    f.body:SetText(table.concat({
+    local detailLines = {
         (map and map.name or (L["Map %d"]):format(r.mapID)) .. (" | %.2f, %.2f"):format(r.x, r.y),
         L[r.kind] .. " / " .. L[r.category] .. " | " .. L[r.faction or "Both"],
         entry.distance and (L["Distance: %d yd"]):format(math.floor(entry.distance + 0.5))
@@ -952,11 +1063,18 @@ function M:ShowEntryDetails(entry)
         r.nativeOrigin and L["nativeOrigin." .. r.nativeOrigin] or "",
         r.npcID and (L["Level: %s | Type: %s | Rank: %s | Reaction: %s"]):format(tostring(r.level or L["unknown"]),
             r.creatureType or L["unknown"], r.classification or L["unknown"], tostring(r.reaction or L["unknown"])) or "",
-        r.verification == "client-map" and L["Map marker only; not a confirmed NPC or object spawn."] or "",
-        r.verification == "client-object" and L["Client object position checked against the live map. Signs locate the sign, not its named destination."] or "",
-        isReferenceRecord(r) and L["Reference data; not verified for this server."] or "",
-        isReferenceRecord(r) and tostring(r.permission) or "",
-    }, "\n"))
+    }
+    for _, line in ipairs(self:TrainerSnapshotLines(r.npcID)) do
+        table.insert(detailLines, line)
+    end
+    table.insert(detailLines,
+        r.verification == "client-map" and L["Map marker only; not a confirmed NPC or object spawn."] or "")
+    table.insert(detailLines,
+        r.verification == "client-object" and L["Client object position checked against the live map. Signs locate the sign, not its named destination."] or "")
+    table.insert(detailLines,
+        isReferenceRecord(r) and L["Reference data; not verified for this server."] or "")
+    table.insert(detailLines, isReferenceRecord(r) and tostring(r.permission) or "")
+    f.body:SetText(table.concat(detailLines, "\n"))
     local height = math.max(212, f.body:GetStringHeight() or 212)
     f.body:SetHeight(height)
     f.content:SetHeight(height)
@@ -1098,10 +1216,16 @@ end
 function M:Render()
     local f = self.window
     if not f then return end
-    local sortText = L["Sort: "] .. L["sort:" .. self.settings.sortOrder]
+    local sortText = L["Sort: "] .. (self.settings.sortOrder == "recent" and L["sort:recent"]
+        or L["sort:" .. self.settings.sortOrder])
     if f.sort.renderText ~= sortText then f.sort:SetText(sortText); f.sort.renderText = sortText end
     local evidenceText = L["Evidence: "] .. L["filter:" .. self.settings.evidenceFilter]
     if f.evidence.renderText ~= evidenceText then f.evidence:SetText(evidenceText); f.evidence.renderText = evidenceText end
+    local journalView = self.view == "review" or self.view == "journal"
+    f.group:SetShown(journalView)
+    local groupText = L[self.settings.journalGroup == "type" and "Group: Type"
+        or self.settings.journalGroup == "none" and "Group: Off" or "Group: Zone"]
+    if f.group.renderText ~= groupText then f.group:SetText(groupText); f.group.renderText = groupText end
     local counts = self.directoryCounts or { all = 0, npc = 0, location = 0, categories = {} }
     for key, b in pairs(f.kindButtons) do
         local text
@@ -1464,7 +1588,7 @@ function M:CreateWindow()
     f.search:SetScript("OnEditFocusGained", function() f.searchHint:Hide() end)
     f.search:SetScript("OnEditFocusLost", function() f.searchHint:SetShown(f.search:GetText() == "") end)
     f.sort = button(f, "Sort", 600, -68, 200, function()
-        local orders = { "distance", "zone", "name", "level", "npcID" }
+        local orders = { "distance", "zone", "name", "level", "npcID", "recent" }
         for i, order in ipairs(orders) do
             if self.settings.sortOrder == order then self.settings.sortOrder = orders[i % #orders + 1]; break end
         end
@@ -1501,6 +1625,19 @@ function M:CreateWindow()
     f.clearFilter = button(f, "Clear item filter", 670, -110, 118, function() self:SetNPCFilter(nil) end)
     quietButton(f.clearFilter)
     f.clearFilter:Hide()
+    f.group = button(f, "Group: Zone", 604, -110, 184, function()
+        local groups = { "zone", "type", "none" }
+        for i, group in ipairs(groups) do
+            if self.settings.journalGroup == group then
+                self.settings.journalGroup = groups[i % #groups + 1]
+                break
+            end
+        end
+        self.offset = 0
+        self:Refresh()
+    end)
+    quietButton(f.group)
+    f.group:Hide()
     self.focusOrder = { f.search, clearButton, f.sort, f.evidence }
     local function control(text, x, y, callback, width, listIcon, primary)
         local b = button(f, text, x, y, width or 208, callback, listIcon)
@@ -1573,7 +1710,7 @@ function M:CreateWindow()
     for _, b in pairs(f.kindButtons) do browseRow(b) end
     section("Categories", -366)
     f.categoryButtons, f.subgroupButtons = {}, {}
-    for i = 1, 6 do
+    for i = 1, 7 do
         local b = control("All", 28, -386 - (i - 1) * 38, function()
             local kind, category = self:BrowseCategory(i)
             self.kind, self.category, self.subgroup = kind, category, nil

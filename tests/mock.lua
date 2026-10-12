@@ -9,6 +9,7 @@ function GetBuildInfo() return "1.60.1", "test", "test-date", 16001 end
 function GetLocale() return "enUS" end
 function UnitFactionGroup() return "Alliance" end
 function time() return 1234 end
+function date(_, timestamp) return tostring(timestamp or "test-date") end
 clock = 0
 function GetTime() return clock end
 function IsShiftKeyDown() return false end

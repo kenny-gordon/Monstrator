@@ -20,7 +20,10 @@ function M:AddObservation(record)
             local intact = self:RecordSealValid(existing)
             existing.lastSeen = record.lastSeen
             existing.sightings = (existing.sightings or 1) + 1
-            if existing.category == "Combat" and record.category ~= "Combat" then existing.category = record.category end
+            if (existing.category == "Unclassified" or existing.category == "Combat")
+                and record.category ~= "Unclassified" and record.category ~= "Combat" then
+                existing.category = record.category
+            end
             for _, key in ipairs({ "level", "reaction", "creatureType", "classification" }) do
                 if record[key] ~= nil then existing[key] = record[key] end
             end
@@ -67,6 +70,7 @@ end
 function M:CaptureNPC(event, unit)
     local manual = event == "manual-target"
     local discovery = event == "PLAYER_TARGET_CHANGED" or event == "UPDATE_MOUSEOVER_UNIT"
+        or event == "NAME_PLATE_UNIT_ADDED"
     if not self.ready or (discovery and not self.settings.discovering)
         or (not manual and not discovery and not self.settings.collecting) then return end
     unit = unit or (manual and "target" or "npc")
@@ -92,13 +96,20 @@ function M:CaptureNPC(event, unit)
         end
         if self.discoverySeen[guid] then return end
     end
-    local category, tags = (manual or discovery) and "Combat" or "Services", {}
+    local category, tags = "Unclassified", {}
+    if manual or discovery then
+        local attackable = UnitCanAttack and UnitCanAttack("player", unit)
+        if readable(attackable) and attackable == true then category = "Combat" end
+    end
     if event == "MERCHANT_SHOW" then
         category, tags = "Vendors", { "vendor" }
         local repair = CanMerchantRepair and CanMerchantRepair()
         if readable(repair) and repair then table.insert(tags, "repair") end
     elseif event == "TRAINER_SHOW" then category, tags = "Trainers", { "trainer" }
     elseif event == "TAXIMAP_OPENED" then category, tags = "Transit", { "flight" }
+    elseif event == "QUEST_GREETING" or event == "QUEST_DETAIL"
+        or event == "QUEST_PROGRESS" or event == "QUEST_COMPLETE" then
+        category, tags = "Services", { "quest_giver" }
     end
     local record = self:NewObservation(name, "npc", category, tags, event)
     if record then
@@ -119,6 +130,260 @@ function M:CaptureNPC(event, unit)
         local saved = self:AddObservation(record)
         if saved and discovery then self.discoverySeen[guid] = true end
         if saved and manual then self:Notice(L["NPC target saved for review: "] .. name .. " (player encounter position).") end
+    end
+end
+
+local function boundedText(value, limit)
+    if readable(value) and type(value) == "string" and #value <= limit and not value:match("^%s*$") then
+        return value
+    end
+end
+
+local function boundedNumber(value, minimum, maximum)
+    if readable(value) and M:IsFinite(value) and value >= minimum and value <= maximum and value % 1 == 0 then
+        return value
+    end
+end
+
+function M:CaptureTrainerServices()
+    if not self.ready or not self.settings.collecting then return end
+    local countFn, infoFn = GetNumTrainerServices, GetTrainerServiceInfo
+    if type(countFn) ~= "function" or type(infoFn) ~= "function"
+        or type(GetTrainerServiceSkillReq) ~= "function"
+        or type(GetTrainerServiceNumAbilityReq) ~= "function"
+        or type(GetTrainerServiceAbilityReq) ~= "function"
+        or type(GetTrainerServiceCost) ~= "function" then
+        self:Error(L["Trainer service data is unavailable on this client."])
+        return
+    end
+    local guid, name = UnitGUID("npc"), UnitName("npc")
+    if not readable(guid) or not readable(name) or type(guid) ~= "string" or type(name) ~= "string" then
+        self:Debug("Trainer identity unavailable; trainer services were not saved.")
+        return
+    end
+    local kind, _, _, _, _, npcID = strsplit("-", guid)
+    npcID = tonumber(npcID)
+    if (kind ~= "Creature" and kind ~= "Vehicle") or not npcID then
+        self:Debug("Trainer identity was not an NPC; trainer services were not saved.")
+        return
+    end
+    local count = boundedNumber(countFn(), 0, 200)
+    if not count then
+        self:Error(L["Trainer service list exceeded the capture limit."])
+        return
+    end
+    local services = {}
+    -- Classic returns name, subText, type, isExpanded and exposes the level separately;
+    -- the mainline client returns name, type, texture, reqLevel.
+    local levelFn = GetTrainerServiceLevelReq
+    local classic = type(levelFn) == "function"
+    for index = 1, count do
+        local serviceName, serviceType, requiredLevel, subText
+        if classic then
+            serviceName, subText, serviceType = infoFn(index)
+            if readable(serviceType) and serviceType ~= "header" then requiredLevel = levelFn(index) end
+        else
+            serviceName, serviceType, _, requiredLevel, subText = infoFn(index)
+        end
+        serviceName = boundedText(serviceName, 200)
+        if not serviceName then
+            self:Error(L["Trainer service data could not be read."])
+            return
+        end
+        local service = { name = serviceName }
+        if not readable(serviceType) then
+            self:Error(L["Trainer service data could not be read."])
+            return
+        end
+        if serviceType ~= nil then
+            if type(serviceType) ~= "string" then
+                self:Error(L["Trainer service data could not be read."])
+                return
+            end
+            service.serviceType = boundedText(serviceType, 40)
+        end
+        if not readable(subText) then
+            self:Error(L["Trainer service data could not be read."])
+            return
+        end
+        if subText ~= nil then
+            if type(subText) ~= "string" then
+                self:Error(L["Trainer service data could not be read."])
+                return
+            end
+            service.subText = boundedText(subText, 200)
+        end
+        if not readable(requiredLevel) then
+            self:Error(L["Trainer service data could not be read."])
+            return
+        end
+        if requiredLevel ~= nil then
+            service.requiredLevel = boundedNumber(requiredLevel, 0, 255)
+            if not service.requiredLevel then
+                self:Error(L["Trainer service data could not be read."])
+                return
+            end
+        end
+        if service.serviceType ~= "header" then
+            local skill, rank = GetTrainerServiceSkillReq(index)
+            if not readable(skill) or not readable(rank) then
+                self:Error(L["Trainer service data could not be read."])
+                return
+            end
+            if skill == "" then skill, rank = nil, nil end
+            if skill ~= nil or rank ~= nil then
+                service.skill = boundedText(skill, 100)
+                service.skillRank = boundedNumber(rank, 0, 100000)
+                if not service.skill or not service.skillRank then
+                    self:Error(L["Trainer service data could not be read."])
+                    return
+                end
+            end
+            local abilityCount = boundedNumber(GetTrainerServiceNumAbilityReq(index), 0, 20)
+            if not abilityCount then
+                self:Error(L["Trainer service data could not be read."])
+                return
+            end
+            service.abilities = {}
+            for abilityIndex = 1, abilityCount do
+                local ability = boundedText(GetTrainerServiceAbilityReq(index, abilityIndex), 100)
+                if not ability then
+                    self:Error(L["Trainer service data could not be read."])
+                    return
+                end
+                table.insert(service.abilities, ability)
+            end
+            local cost = GetTrainerServiceCost(index)
+            if not readable(cost) then
+                self:Error(L["Trainer service data could not be read."])
+                return
+            end
+            if cost ~= nil then
+                service.cost = boundedNumber(cost, 0, 2000000000)
+                if not service.cost then
+                    self:Error(L["Trainer service data could not be read."])
+                    return
+                end
+            end
+        end
+        table.insert(services, service)
+    end
+    local _, build = GetBuildInfo()
+    local characterClass = UnitClass and boundedText(UnitClass("player"), 100)
+    local characterLevel = UnitLevel and boundedNumber(UnitLevel("player"), 1, 255)
+    self.trainerSnapshots[npcID] = {
+        npcID = npcID, name = name, observedAt = time(), build = tostring(build),
+        locale = GetLocale(), characterClass = characterClass, characterLevel = characterLevel,
+        services = services,
+    }
+    self:Notice(L["Trainer services saved locally for "] .. name .. ".")
+    self:RefreshIfVisible()
+end
+
+function M:TrainerSnapshotLines(npcID)
+    local snapshot = self.trainerSnapshots and self.trainerSnapshots[npcID]
+    if snapshot == nil then return {} end
+    if type(snapshot) ~= "table" or snapshot.npcID ~= npcID or type(snapshot.services) ~= "table"
+        or not boundedNumber(snapshot.observedAt, 0, 2000000000)
+        or not boundedText(snapshot.build, 100) or not boundedText(snapshot.name, 200)
+        or (snapshot.characterClass ~= nil and not boundedText(snapshot.characterClass, 100))
+        or (snapshot.characterLevel ~= nil and not boundedNumber(snapshot.characterLevel, 1, 255)) then
+        self:Error(L["Invalid saved trainer snapshot; it was not displayed."])
+        return {}
+    end
+    local count = 0
+    for key in pairs(snapshot.services) do
+        if not self:IsFinite(key) or key < 1 or key > 200 or key % 1 ~= 0 then
+            self:Error(L["Invalid saved trainer snapshot; it was not displayed."])
+            return {}
+        end
+        count = count + 1
+    end
+    if count > 200 then
+        self:Error(L["Invalid saved trainer snapshot; it was not displayed."])
+        return {}
+    end
+    for index = 1, count do
+        local service = snapshot.services[index]
+        if type(service) ~= "table" or not boundedText(service.name, 200)
+            or (service.serviceType ~= nil and not boundedText(service.serviceType, 40))
+            or (service.subText ~= nil and not boundedText(service.subText, 200))
+            or (service.requiredLevel ~= nil and not boundedNumber(service.requiredLevel, 0, 255))
+            or (service.skill ~= nil and not boundedText(service.skill, 100))
+            or (service.skillRank ~= nil and not boundedNumber(service.skillRank, 0, 100000))
+            or (service.cost ~= nil and not boundedNumber(service.cost, 0, 2000000000))
+            or (service.abilities ~= nil and type(service.abilities) ~= "table") then
+            self:Error(L["Invalid saved trainer snapshot; it was not displayed."])
+            return {}
+        end
+        local abilityCount = 0
+        for key, ability in pairs(service.abilities or {}) do
+            if not self:IsFinite(key) or key < 1 or key > 20 or key % 1 ~= 0
+                or not boundedText(ability, 100) then
+                self:Error(L["Invalid saved trainer snapshot; it was not displayed."])
+                return {}
+            end
+            abilityCount = abilityCount + 1
+        end
+        if abilityCount > 20 then
+            self:Error(L["Invalid saved trainer snapshot; it was not displayed."])
+            return {}
+        end
+        for abilityIndex = 1, abilityCount do
+            if not boundedText(service.abilities[abilityIndex], 100) then
+                self:Error(L["Invalid saved trainer snapshot; it was not displayed."])
+                return {}
+            end
+        end
+    end
+    local lines = {
+        L["Trainer services observed %s (build %s; character-specific: %s, level %s)."]:format(
+            date("%Y-%m-%d", snapshot.observedAt), snapshot.build,
+            snapshot.characterClass or L["unknown"], tostring(snapshot.characterLevel or L["unknown"])),
+        L["The client may hide services by class, level, skill or trainer state."],
+    }
+    if count == 0 then
+        table.insert(lines, L["No services were listed by the trainer UI."])
+        return lines
+    end
+    for index = 1, math.min(count, 30) do
+        local service = snapshot.services[index]
+        if type(service) ~= "table" or boundedText(service.name, 200) == nil then
+            self:Error(L["Invalid saved trainer snapshot; it was not displayed."])
+            return {}
+        end
+        local details = { "- " .. service.name }
+        if boundedText(service.serviceType, 40) then
+            table.insert(details, L["Availability: %s"]:format(service.serviceType))
+        end
+        if boundedText(service.subText, 200) then table.insert(details, service.subText) end
+        if boundedNumber(service.requiredLevel, 0, 255) and service.requiredLevel > 1 then
+            table.insert(details, L["Required level: %d"]:format(service.requiredLevel))
+        end
+        if boundedText(service.skill, 100) and boundedNumber(service.skillRank, 0, 100000) then
+            table.insert(details, L["Required skill: %s %d"]:format(service.skill, service.skillRank))
+        end
+        if boundedNumber(service.cost, 0, 2000000000) then
+            table.insert(details, L["Cost: %d copper"]:format(service.cost))
+        end
+        if type(service.abilities) == "table" then
+            for _, ability in ipairs(service.abilities) do
+                ability = boundedText(ability, 100)
+                if ability then table.insert(details, L["Required ability: %s"]:format(ability)) end
+            end
+        end
+        table.insert(lines, table.concat(details, " | "))
+    end
+    if count > 30 then table.insert(lines, L["%d additional services not shown."]:format(count - 30)) end
+    return lines
+end
+
+function M:HandleCaptureEvent(event, unit)
+    self:CaptureNPC(event, unit or (event == "PLAYER_TARGET_CHANGED" and "target"
+        or (event == "UPDATE_MOUSEOVER_UNIT" and "mouseover" or "npc")))
+    if event == "TRAINER_SHOW" and self.settings and self.settings.collecting then
+        local capture = function() self:CaptureTrainerServices() end
+        if C_Timer and C_Timer.After then C_Timer.After(0.1, capture) else capture() end
     end
 end
 
@@ -143,7 +408,7 @@ function M:ParseTags(text)
     return tags
 end
 
-function M:Review(record, action, x, y, category, tagText)
+function M:Review(record, action, x, y, category, tagText, deferRefresh)
     if self.observations.entries[record.key] ~= record then
         self:Error(L["This record is not in your journal."]); return false
     end
@@ -174,21 +439,75 @@ function M:Review(record, action, x, y, category, tagText)
         record.precision = "confirmed"
         self:SealRecord(record)
         if not self.index or alreadyIndexed then self:BuildIndex() else self:IndexRecord(record) end
-        self:Notice(L["User-confirmed placement saved. This does not independently verify a static spawn."])
+        if not deferRefresh then
+            self:Notice(L["User-confirmed placement saved. This does not independently verify a static spawn."])
+        end
     else self:Error(L["Unknown review action."]); return false end
     if action == "reject" then self:BuildIndex() end
-    self:RefreshIfVisible()
+    if not deferRefresh then self:RefreshIfVisible() end
     return true
+end
+
+function M:ObservationGroupMatches(record, anchor, group)
+    if group == "zone" then return record.mapID == anchor.mapID end
+    if group == "type" then return record.kind == anchor.kind and record.category == anchor.category end
+    return false
+end
+
+function M:PendingObservationGroupCount(anchor, group)
+    local count = 0
+    for _, record in pairs(self.observations.entries) do
+        if record.verification == "pending" and self:ObservationGroupMatches(record, anchor, group) then
+            count = count + 1
+        end
+    end
+    return count
+end
+
+function M:BulkReview(anchor, group)
+    if group ~= "zone" and group ~= "type" then
+        self:Error(L["Bulk review requires grouping by zone or type."])
+        return nil
+    end
+    if self.observations.entries[anchor.key] ~= anchor or anchor.verification ~= "pending" then
+        self:Error(L["Select a pending journal entry for bulk review."])
+        return nil
+    end
+    local records = {}
+    for _, record in pairs(self.observations.entries) do
+        if record.verification == "pending" and self:ObservationGroupMatches(record, anchor, group) then
+            local valid, reason = self:ValidateRecord(record)
+            if not valid then
+                self:Error((L["Bulk review stopped; invalid record %s: %s"]):format(tostring(record.key), reason))
+                return nil
+            end
+            table.insert(records, record)
+        end
+    end
+    if #records == 0 then return 0 end
+    for index, record in ipairs(records) do
+        if not self:Review(record, "accept", record.x, record.y, record.category,
+            table.concat(record.tags, ","), true) then
+            self:RefreshIfVisible()
+            self:Error((L["Bulk review stopped after %d entries."]):format(index - 1))
+            return nil
+        end
+    end
+    self:RefreshIfVisible()
+    self:Notice((L["Bulk-confirmed %d placements in %s. Encounter positions remain approximate."])
+        :format(#records, group == "zone" and self:MapName(anchor.mapID)
+            or (L[anchor.category] .. " / " .. L[anchor.kind])))
+    return #records
 end
 
 local frame = CreateFrame("Frame")
 for _, event in ipairs({ "MERCHANT_SHOW", "TRAINER_SHOW", "GOSSIP_SHOW", "TAXIMAP_OPENED",
-    "PLAYER_TARGET_CHANGED", "UPDATE_MOUSEOVER_UNIT" }) do
+    "QUEST_GREETING", "QUEST_DETAIL", "QUEST_PROGRESS", "QUEST_COMPLETE",
+    "PLAYER_TARGET_CHANGED", "UPDATE_MOUSEOVER_UNIT", "NAME_PLATE_UNIT_ADDED" }) do
     frame:RegisterEvent(event)
 end
-frame:SetScript("OnEvent", function(_, event)
-    M:CaptureNPC(event, event == "PLAYER_TARGET_CHANGED" and "target"
-        or (event == "UPDATE_MOUSEOVER_UNIT" and "mouseover" or "npc"))
+frame:SetScript("OnEvent", function(_, event, unit)
+    M:HandleCaptureEvent(event, unit)
 end)
 
 function M:ExportText()
