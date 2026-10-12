@@ -366,6 +366,8 @@ function mergeNpc(discoveries, record) {
   entry.spawns = normalizeSpawns(entry.spawns);
   entry.name = record.name;
   if (record.title) entry.title = record.title;
+  const side = { Alliance: 'A', Horde: 'H', Both: 'AH' }[record.faction];
+  if (side) entry.friendlyToFaction = [...new Set(`${entry.friendlyToFaction || ''}${side}`)].sort().join('');
   // UnitLevel returns -1 for "??" (skull) units; that is not a level.
   if (Number.isInteger(record.level) && record.level > 0) {
     entry.minLevel = Math.min(entry.minLevel ?? record.level, record.level);
@@ -379,6 +381,32 @@ function mergeNpc(discoveries, record) {
   entry.lastSeen = Math.max(entry.lastSeen || 0, record.lastSeen || 0);
   entry.build = record.build || entry.build;
   return addPoint(entry.spawns, record.mapID, record.x, record.y);
+}
+
+// Journal relationship lists (Monstrator_Observations.relations) -> Discoveries Quest/Item list fields.
+const RELATION_FIELDS = {
+  quests: ['Quest', ['starterNpcs', 'starterObjects', 'finisherNpcs', 'finisherObjects']],
+  items: ['Item', ['vendors', 'npcDrops', 'objectDrops']],
+};
+function mergeRelations(discoveries, relations) {
+  let added = 0;
+  for (const [bucket, [kind, fields]] of Object.entries(RELATION_FIELDS)) {
+    discoveries[kind] = Object.fromEntries(entries(discoveries[kind]));
+    for (const [id, found] of entries(relations && relations[bucket])) {
+      if (!Number.isInteger(id) || id <= 0 || !found || typeof found !== 'object') continue;
+      const entry = discoveries[kind][id] = discoveries[kind][id] || {};
+      if (typeof found.name === 'string' && found.name && !entry.name) entry.name = found.name;
+      for (const field of fields) {
+        const refs = entries(found[field]).map(([ref]) => ref).filter((ref) => Number.isInteger(ref) && ref > 0);
+        if (!refs.length) continue;
+        const list = new Set(entries(entry[field]).map(([, ref]) => Number(ref)));
+        for (const ref of refs) if (!list.has(ref)) { list.add(ref); added++; }
+        entry[field] = [...list].sort((a, b) => a - b);
+      }
+      if (!Object.keys(entry).length) delete discoveries[kind][id];
+    }
+  }
+  return added;
 }
 
 // Runs Submission.lua (the same code the addon uses) so seals are computed identically.
@@ -419,12 +447,13 @@ function cmdHarvest(args) {
   const ledger = fs.existsSync(harvestLedgerFile) ? JSON.parse(fs.readFileSync(harvestLedgerFile, 'utf8')) : { schemaVersion: 1, records: [] };
   if (ledger.schemaVersion !== 1 || !Array.isArray(ledger.records)) fail(`${rel(harvestLedgerFile)}: unsupported ledger`);
   const harvested = new Set(ledger.records);
-  const report = { used: 0, skipped: 0, scans: 0, tampered: 0, already: 0, titles: 0, newNPCs: new Set(), newMaps: [], drift: [], points: 0 };
+  const report = { used: 0, skipped: 0, scans: 0, tampered: 0, already: 0, titles: 0, relations: 0, newNPCs: new Set(), newMaps: [], drift: [], points: 0 };
   for (const file of inputs) {
     const source = fs.readFileSync(file, 'utf8');
     const account = path.basename(path.dirname(path.dirname(file)));
     const seals = savedVariableSeals(source);
     const obs = evalLua(source, rel(file), 'Monstrator_Observations');
+    report.relations += mergeRelations(discoveries, obs && obs.relations);
     const records = Object.entries((obs && obs.entries) || {}).map(([key, record]) => ({ ...record, seal: seals.obs[key] }));
     // NPC scan sightings with an exact vignette position are first-party spawn data too (usually rares).
     const settings = evalLua(source, rel(file), 'Monstrator_Settings');
@@ -465,7 +494,8 @@ function cmdHarvest(args) {
     + `${includePending ? 'invalid' : 'pending - use --include-pending'}); ${report.already} already harvested`
     + `${report.titles ? ` (${report.titles} gained a subtitle)` : ''}; ${report.points} new points.`);
   if (report.tampered) console.log(`Rejected ${report.tampered} record(s) whose seal no longer matches (edited outside the game).`);
-  console.log(`Discoveries now: ${Object.keys(discoveries.Npc).length} NPCs in ${rel(discoveryFile)}`);
+  console.log(`Discoveries now: ${Object.keys(discoveries.Npc).length} NPCs, ${Object.keys(discoveries.Quest || {}).length} quests and `
+    + `${Object.keys(discoveries.Item || {}).length} items in ${rel(discoveryFile)} (${report.relations} new quest/vendor/drop relationships).`);
   section('NPCs not in the database (Forever-only)', [...report.newNPCs]);
   section('Known NPCs seen on a new map or under another name', report.newMaps);
   section(`Possible coordinate drift (> ${DRIFT}% from every known spawn)`, report.drift);
@@ -615,11 +645,35 @@ function buildOverlay(standalone = false) {
   const held = [];
   const review = [];
   let dropped = 0;
+  const effectiveNpc = new Set([...(standalone ? [] : readNative(nativeDir, 'Npc').keys()),
+    ...entries(discoveries.Npc).map(([id]) => id), ...entries(corrections.Npc).filter(([, fix]) => fix).map(([id]) => id)]);
+  const effectiveObject = new Set([...(standalone ? [] : readNative(nativeDir, 'Object').keys()),
+    ...entries(corrections.Object).filter(([, fix]) => fix).map(([id]) => id)]);
+  for (const [kind, set] of [['Npc', effectiveNpc], ['Object', effectiveObject]]) {
+    for (const [id, fix] of entries(corrections[kind])) if (fix === false) set.delete(id);
+  }
   for (const kind of KINDS) {
     const base = standalone ? new Map() : readNative(nativeDir, kind);
     const rows = new Map(); // id -> { row|false, origin }
     const corrected = new Set(entries(corrections[kind]).map(([id]) => id));
     for (const [id, found] of entries(discoveries[kind])) {
+      if (kind === 'Quest' || kind === 'Item') {
+        const known = base.has(id) ? decodeRow(kind, base.get(id)) : {};
+        const row = { ...known, name: known.name || found.name };
+        if (!row.name) continue;
+        let linked = false;
+        for (const field of RELATION_FIELDS[kind === 'Quest' ? 'quests' : 'items'][1]) {
+          // References must resolve in the shipped data: NPCs from the base or discoveries, objects from the base.
+          const target = /Objects$|objectDrops/.test(field) ? 'Object' : 'Npc';
+          const refs = entries(found[field]).map(([, ref]) => Number(ref)).filter((ref) => (target === 'Npc'
+            ? effectiveNpc.has(ref) : effectiveObject.has(ref)));
+          if (refs.length) { row[field] = [...new Set([...(known[field] || []), ...refs])]; linked = true; }
+        }
+        if (!linked) continue;
+        const text = encodeRow(kind, row);
+        if (text !== base.get(id)) rows.set(id, { text, origin: 'discovery' });
+        continue;
+      }
       if (kind !== 'Npc') continue;
       const known = base.has(id) ? decodeRow(kind, base.get(id)) : {};
       const row = { ...known, spawns: normalizeSpawns(known.spawns) };
@@ -629,6 +683,10 @@ function buildOverlay(standalone = false) {
       if (!row.name) row.name = found.name;
       else if (found.name && found.name !== row.name) note(`name seen as "${found.name}"`);
       if (found.title && !row.subName) row.subName = found.title;
+      if (found.friendlyToFaction && found.friendlyToFaction !== row.friendlyToFaction) {
+        if (!base.has(id)) row.friendlyToFaction = found.friendlyToFaction;
+        else note(`friendly to ${found.friendlyToFaction} seen, database ${row.friendlyToFaction || 'hostile/none'}`);
+      }
       row.npcFlags = (row.npcFlags || 0) | (found.npcFlags || 0);
       const min = found.minLevel > 0 ? found.minLevel : undefined;
       const max = found.maxLevel > 0 ? found.maxLevel : undefined;
@@ -1102,7 +1160,7 @@ function cmdPackage(args = []) {
 
 // ---------------------------------------------------------------- main
 module.exports = { decodeRow, encodeRow, decodeSpawns, encodeSpawns, normalizeSpawns, readNative, evalLua, LAYOUT,
-  mergeDiscoverySpawns };
+  mergeDiscoverySpawns, buildOverlay };
 if (require.main !== module) return;
 const [command, ...rest] = process.argv.slice(2);
 const commands = {

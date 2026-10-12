@@ -730,6 +730,12 @@ function M:ShowReview(record, queue, queueIndex)
         ["TRAINER_SHOW"] = L["Trainers"],
         ["GOSSIP_SHOW"] = L["Services"],
         ["TAXIMAP_OPENED"] = L["Transit"],
+        ["BANKFRAME_OPENED"] = L["Services"],
+        ["PET_STABLE_SHOW"] = L["Services"],
+        ["AUCTION_HOUSE_SHOW"] = L["Services"],
+        ["PETITION_VENDOR_SHOW"] = L["Services"],
+        ["OPEN_TABARD_FRAME"] = L["Services"],
+        ["CONFIRM_BINDER"] = L["Services"],
         ["manual-landmark"] = L["Landmarks"],
     }
     local captureSource = (sourceEvent and captureLabels[sourceEvent]) or record.source

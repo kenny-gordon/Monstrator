@@ -282,6 +282,7 @@ SlashCmdList.MONSTRATOR = function(input)
     elseif command == "clear" then
         if argument ~= "CONFIRM" then M:Error(L["Use /monstrator clear CONFIRM to erase the local journal."]); return end
         wipe(M.observations.entries)
+        M.observations.relations = nil
         M.fullNotice = nil
         M:BuildIndex()
         M:RefreshIfVisible()

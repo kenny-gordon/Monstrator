@@ -108,7 +108,7 @@ function M:AddObservation(record)
                 and record.category ~= "Unclassified" and record.category ~= "Combat" then
                 existing.category = record.category
             end
-            for _, key in ipairs({ "level", "reaction", "creatureType", "classification", "title" }) do
+            for _, key in ipairs({ "level", "reaction", "creatureType", "classification", "title", "faction" }) do
                 if record[key] ~= nil then existing[key] = record[key] end
             end
             for _, tag in ipairs(record.tags) do
@@ -168,6 +168,34 @@ function M:BackfillTitlesFromDatabase()
     return count
 end
 
+-- NPC interaction windows -> the category and service tags the database derives from the matching npcFlags bit.
+M.serviceEvents = {
+    TRAINER_SHOW = { "Trainers", { "trainer" } },
+    TAXIMAP_OPENED = { "Transit", { "flight" } },
+    BANKFRAME_OPENED = { "Services", { "bank" } },
+    PET_STABLE_SHOW = { "Services", { "stable" } },
+    AUCTION_HOUSE_SHOW = { "Services", { "auction" } },
+    PETITION_VENDOR_SHOW = { "Services", { "guild" } },
+    OPEN_TABARD_FRAME = { "Services", { "tabard" } },
+    CONFIRM_BINDER = { "Services", { "innkeeper" } },
+    QUEST_GREETING = { "Services", { "quest_giver" } },
+    QUEST_DETAIL = { "Services", { "quest_giver" } },
+    QUEST_PROGRESS = { "Services", { "quest_giver" } },
+    QUEST_COMPLETE = { "Services", { "quest_giver" } },
+}
+
+-- The database's friendlyToFaction: faction-aligned NPCs report their group; unaligned NPCs the player may not
+-- attack and that are at least neutral serve both factions. Hostile creatures have no faction.
+function M:UnitFriendlyFaction(unit)
+    if UnitIsPlayer and UnitIsPlayer(unit) == true then return end
+    local group = UnitFactionGroup and UnitFactionGroup(unit)
+    if readable(group) and (group == "Alliance" or group == "Horde") then return group end
+    local reaction = UnitReaction and UnitReaction(unit, "player")
+    local attackable = UnitCanAttack and UnitCanAttack("player", unit)
+    if readable(reaction) and readable(attackable) and type(reaction) == "number" and reaction >= 4
+        and attackable == false then return "Both" end
+end
+
 function M:CaptureNPC(event, unit)
     local manual = event == "manual-target"
     local discovery = event == "PLAYER_TARGET_CHANGED" or event == "UPDATE_MOUSEOVER_UNIT"
@@ -206,11 +234,10 @@ function M:CaptureNPC(event, unit)
         category, tags = "Vendors", { "vendor" }
         local repair = CanMerchantRepair and CanMerchantRepair()
         if readable(repair) and repair then table.insert(tags, "repair") end
-    elseif event == "TRAINER_SHOW" then category, tags = "Trainers", { "trainer" }
-    elseif event == "TAXIMAP_OPENED" then category, tags = "Transit", { "flight" }
-    elseif event == "QUEST_GREETING" or event == "QUEST_DETAIL"
-        or event == "QUEST_PROGRESS" or event == "QUEST_COMPLETE" then
-        category, tags = "Services", { "quest_giver" }
+    elseif M.serviceEvents[event] then
+        local service = M.serviceEvents[event]
+        category, tags = service[1], {}
+        for i, tag in ipairs(service[2]) do tags[i] = tag end
     end
     local record = self:NewObservation(name, "npc", category, tags, event)
     if record then
@@ -228,6 +255,7 @@ function M:CaptureNPC(event, unit)
                 record[key] = value
             end
         end
+        record.faction = self:UnitFriendlyFaction(unit)
         local title = self:UnitTitle(unit)
         self:ApplyObservedTitle(record, title)
         local saved = self:AddObservation(record)
@@ -482,10 +510,127 @@ function M:TrainerSnapshotLines(npcID)
     return lines
 end
 
-function M:HandleCaptureEvent(event, unit)
+-- Relationships the database stores alongside NPCs: quest starters/finishers, vendor stock and loot drops.
+-- Kept by ID in Monstrator_Observations.relations and folded into Quest/Item rows by `monstrator-db.cjs harvest`.
+local RELATION_LIMIT = 20000
+-- Skinning and Pick Pocket loot comes from a creature but is not that creature's drop table.
+local NON_DROP_SPELLS = { [8613] = true, [8617] = true, [8618] = true, [10768] = true, [921] = true }
+
+function M:Relations()
+    local relations = self.observations.relations
+    if type(relations) ~= "table" then relations = {}; self.observations.relations = relations end
+    for _, key in ipairs({ "quests", "items" }) do
+        if type(relations[key]) ~= "table" then relations[key] = {} end
+    end
+    if not self:IsFinite(relations.size) or relations.size < 0 then
+        local size = 0
+        for _, key in ipairs({ "quests", "items" }) do for _ in pairs(relations[key]) do size = size + 1 end end
+        relations.size = size
+    end
+    return relations
+end
+
+function M.GUIDIdentity(guid)
+    if not readable(guid) or type(guid) ~= "string" then return end
+    local kind, _, _, _, _, id = strsplit("-", guid)
+    id = tonumber(id)
+    if not id or id <= 0 or id % 1 ~= 0 then return end
+    if kind == "Creature" or kind == "Vehicle" then return "npc", id end
+    if kind == "GameObject" then return "object", id end
+end
+
+-- Records that `ref` belongs in list `field` of quest/item `id`; returns true when it was new.
+function M:NoteRelation(bucket, id, name, field, ref)
+    if not self.settings.collecting or not self:IsFinite(id) or id <= 0 or id % 1 ~= 0
+        or not self:IsFinite(ref) or ref <= 0 then return false end
+    local relations = self:Relations()
+    local entry = relations[bucket][id]
+    if type(entry) ~= "table" then
+        if relations.size >= RELATION_LIMIT then return false end
+        entry = {}
+        relations[bucket][id] = entry
+        relations.size = relations.size + 1
+    end
+    if readable(name) and type(name) == "string" and name ~= "" and #name <= 120 then entry.name = name end
+    if type(entry[field]) ~= "table" then entry[field] = {} end
+    local new = entry[field][ref] == nil
+    entry[field][ref] = time()
+    return new
+end
+
+function M:CaptureQuestRelation(event)
+    local questID = GetQuestID and GetQuestID()
+    if not readable(questID) or not self:IsFinite(questID) or questID <= 0 then return end
+    local kind, id = self.GUIDIdentity(UnitGUID("npc"))
+    if not kind then return end
+    local title = GetTitleText and GetTitleText()
+    local starts = event == "QUEST_DETAIL"
+    local field = (starts and "starter" or "finisher") .. (kind == "npc" and "Npcs" or "Objects")
+    return self:NoteRelation("quests", questID, title, field, id)
+end
+
+local function linkItemID(link)
+    return readable(link) and type(link) == "string" and tonumber(link:match("item:(%d+)")) or nil
+end
+
+function M:CaptureVendorStock(guid)
+    local kind, npcID = self.GUIDIdentity(guid)
+    if kind ~= "npc" or not GetMerchantNumItems then return 0 end
+    local total, count = GetMerchantNumItems(), 0
+    if not readable(total) or not self:IsFinite(total) then return 0 end
+    for slot = 1, math.min(total, 200) do
+        local itemID = GetMerchantItemID and GetMerchantItemID(slot)
+        if not readable(itemID) or type(itemID) ~= "number" then
+            itemID = linkItemID(GetMerchantItemLink and GetMerchantItemLink(slot))
+        end
+        local name = GetMerchantItemInfo and GetMerchantItemInfo(slot)
+        if itemID and self:NoteRelation("items", itemID, name, "vendors", npcID) then count = count + 1 end
+    end
+    return count
+end
+
+function M:CaptureLoot()
+    if not GetNumLootItems or not GetLootSourceInfo then return 0 end
+    local fishing = IsFishingLoot and IsFishingLoot()
+    if readable(fishing) and fishing then return 0 end
+    local gathered = self.nonDropCast and GetTime() - self.nonDropCast < 5
+    local slots, count = GetNumLootItems(), 0
+    if not readable(slots) or not self:IsFinite(slots) then return 0 end
+    for slot = 1, math.min(slots, 50) do
+        local itemID = linkItemID(GetLootSlotLink and GetLootSlotLink(slot))
+        if itemID then
+            local _, name = GetLootSlotInfo(slot)
+            local sources = { GetLootSourceInfo(slot) }
+            for i = 1, #sources, 2 do
+                local kind, id = self.GUIDIdentity(sources[i])
+                local field = kind == "npc" and not gathered and "npcDrops" or kind == "object" and "objectDrops"
+                if field and self:NoteRelation("items", itemID, name, field, id) then count = count + 1 end
+            end
+        end
+    end
+    return count
+end
+
+function M:HandleCaptureEvent(event, unit, _, spellID)
+    if event == "UNIT_SPELLCAST_SUCCEEDED" then
+        if unit == "player" and NON_DROP_SPELLS[spellID] then self.nonDropCast = GetTime() end
+        return
+    end
+    if event == "LOOT_OPENED" then
+        if self.ready and self.settings.collecting then self:CaptureLoot() end
+        return
+    end
     self:CaptureNPC(event, unit or (event == "PLAYER_TARGET_CHANGED" and "target"
         or (event == "UPDATE_MOUSEOVER_UNIT" and "mouseover" or "npc")))
-    if event == "TRAINER_SHOW" and self.settings and self.settings.collecting then
+    if not self.ready or not (self.settings and self.settings.collecting) then return end
+    if event == "QUEST_DETAIL" or event == "QUEST_COMPLETE" then self:CaptureQuestRelation(event) end
+    if event == "MERCHANT_SHOW" then
+        -- Merchant item data can arrive a moment after the window opens; keep the vendor's GUID from now.
+        local guid = UnitGUID("npc")
+        local capture = function() self:CaptureVendorStock(guid) end
+        if C_Timer and C_Timer.After then C_Timer.After(0.3, capture) else capture() end
+    end
+    if event == "TRAINER_SHOW" then
         local capture = function() self:CaptureTrainerServices() end
         if C_Timer and C_Timer.After then C_Timer.After(0.1, capture) else capture() end
     end
@@ -606,12 +751,17 @@ end
 
 local frame = CreateFrame("Frame")
 for _, event in ipairs({ "MERCHANT_SHOW", "TRAINER_SHOW", "GOSSIP_SHOW", "TAXIMAP_OPENED",
-    "QUEST_GREETING", "QUEST_DETAIL", "QUEST_PROGRESS", "QUEST_COMPLETE",
+    "BANKFRAME_OPENED", "PET_STABLE_SHOW", "AUCTION_HOUSE_SHOW", "PETITION_VENDOR_SHOW", "OPEN_TABARD_FRAME",
+    "CONFIRM_BINDER", "QUEST_GREETING", "QUEST_DETAIL", "QUEST_PROGRESS", "QUEST_COMPLETE", "LOOT_OPENED",
     "PLAYER_TARGET_CHANGED", "UPDATE_MOUSEOVER_UNIT", "NAME_PLATE_UNIT_ADDED" }) do
-    frame:RegisterEvent(event)
+    -- Not every event exists in every client build.
+    pcall(frame.RegisterEvent, frame, event)
 end
-frame:SetScript("OnEvent", function(_, event, unit)
-    M:HandleCaptureEvent(event, unit)
+pcall(frame.RegisterUnitEvent or frame.RegisterEvent, frame, "UNIT_SPELLCAST_SUCCEEDED", "player")
+frame:SetScript("OnEvent", function(_, event, ...)
+    -- Only these events carry a unit token; other payloads (e.g. QUEST_DETAIL's item ID) are not units.
+    if event == "NAME_PLATE_UNIT_ADDED" or event == "UNIT_SPELLCAST_SUCCEEDED" then M:HandleCaptureEvent(event, ...)
+    else M:HandleCaptureEvent(event) end
 end)
 
 function M:ExportText()
@@ -621,7 +771,7 @@ function M:ExportText()
     table.sort(keys)
     local fields = { "key", "npcID", "name", "kind", "category", "mapID", "x", "y",
         "source", "build", "locale", "verification", "precision", "lastSeen", "sightings", "faction",
-        "level", "reaction", "creatureType", "classification" }
+        "level", "reaction", "creatureType", "classification", "title" }
     for _, key in ipairs(keys) do
         local record = self.observations.entries[key]
         local valid, reason = self:ValidateRecord(record)

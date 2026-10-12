@@ -181,6 +181,57 @@ assert(M:UnitTitle("target") == nil, "pets do not carry NPC subtitles")
 UnitPlayerControlled = savedControlled
 C_TooltipInfo = savedTooltipInfo
 M:Review(titledCorsan, "reject"); M:Review(confirmedCorsan, "reject")
+
+-- Every interaction window the database has an npcFlags bit for tags the NPC; faction comes from the unit.
+UnitGUID = function() return "Creature-0-0-0-0-254090-0001" end
+UnitName = function() return "Zephras Banker" end
+M:HandleCaptureEvent("BANKFRAME_OPENED", "npc")
+local banker
+for _, r in pairs(M.observations.entries) do if r.npcID == 254090 then banker = r end end
+assert(banker and banker.category == "Services" and banker.tags[1] == "bank" and banker.faction == "Alliance",
+    "bank windows tag the NPC as a banker with its faction")
+assert(M.ParseSubmission(M:SubmissionText()), "faction joins the sealed submission")
+M:Review(banker, "reject")
+local savedGroup, savedReaction, savedAttack = UnitFactionGroup, UnitReaction, UnitCanAttack
+UnitFactionGroup = function(unit) if unit ~= "player" then return nil end return "Alliance" end
+UnitReaction, UnitCanAttack = function() return 4 end, function() return false end
+assert(M:UnitFriendlyFaction("npc") == "Both", "unaligned, unattackable NPCs serve both factions")
+UnitCanAttack = function() return true end
+assert(M:UnitFriendlyFaction("npc") == nil, "attackable creatures have no faction")
+UnitFactionGroup, UnitReaction, UnitCanAttack = savedGroup, savedReaction, savedAttack
+
+-- Quest givers/turn-ins, vendor stock and loot drops are recorded by ID for the database harvest.
+GetQuestID, GetTitleText = function() return 90001 end, function() return "Isle Errand" end
+M:HandleCaptureEvent("QUEST_DETAIL", "npc")
+M:HandleCaptureEvent("QUEST_COMPLETE", "npc")
+local relations = M:Relations()
+assert(relations.quests[90001].name == "Isle Errand" and relations.quests[90001].starterNpcs[254090]
+    and relations.quests[90001].finisherNpcs[254090], "quest starters and finishers are recorded")
+for _, r in pairs(M.observations.entries) do if r.npcID == 254090 then M:Review(r, "reject") end end
+GetMerchantNumItems = function() return 2 end
+GetMerchantItemID = function(slot) return slot == 1 and 90100 or nil end
+GetMerchantItemLink = function() return "|cffffffff|Hitem:90101::::::::|h[Isle Bread]|h|r" end
+GetMerchantItemInfo = function(slot) return slot == 1 and "Isle Water" or "Isle Bread" end
+assert(M:CaptureVendorStock("Creature-0-0-0-0-254090-0001") == 2
+    and relations.items[90100].vendors[254090] and relations.items[90101].name == "Isle Bread",
+    "vendor stock is recorded from item IDs or links")
+assert(M:CaptureVendorStock("Creature-0-0-0-0-254090-0001") == 0, "re-opening a vendor adds nothing new")
+GetNumLootItems = function() return 2 end
+GetLootSlotLink = function(slot) return slot == 1 and "|Hitem:90200::|h[Isle Pelt]|h" or nil end
+GetLootSlotInfo = function() return nil, "Isle Pelt" end
+GetLootSourceInfo = function() return "Creature-0-0-0-0-254091-0002", 1, "GameObject-0-0-0-0-180000-0003", 1 end
+assert(M:CaptureLoot() == 2 and relations.items[90200].npcDrops[254091] and relations.items[90200].objectDrops[180000],
+    "loot is credited to the creature or object it came from")
+M:HandleCaptureEvent("UNIT_SPELLCAST_SUCCEEDED", "player", "cast", 8613)
+GetLootSourceInfo = function() return "Creature-0-0-0-0-254092-0002", 1 end
+assert(M:CaptureLoot() == 0 and not relations.items[90200].npcDrops[254092], "skinning loot is not a drop")
+M.settings.collecting = false
+assert(not M:NoteRelation("items", 90300, "Off", "vendors", 1), "nothing is recorded while collection is off")
+M.settings.collecting = true
+M.nonDropCast = nil
+M.observations.relations = nil
+GetQuestID, GetTitleText, GetMerchantNumItems, GetMerchantItemID, GetMerchantItemLink, GetMerchantItemInfo = nil
+GetNumLootItems, GetLootSlotLink, GetLootSlotInfo, GetLootSourceInfo = nil
 M.settings.discovering = false
 UnitGUID, UnitName, UnitCanAttack = originalUnitGUID, originalUnitName, savedUnitCanAttack
 

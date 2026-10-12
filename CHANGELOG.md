@@ -2,6 +2,12 @@
 
 ## 1.0.0
 
+- **Collector mirrors the database**: capture now fills every native NPC field and the relationships the directory shows.
+  - **Services:** bank, stable, auction, guild charter, tabard and innkeeper windows tag the NPC, which fills `npcFlags`.
+  - **Faction:** the NPC's faction becomes `friendlyToFaction`.
+  - **Relationships:** quest givers and turn-ins, vendor stock and loot drops are recorded by ID. Fishing, Skinning and Pick Pocket loot is excluded.
+  - **Harvest and overlay:** `harvest` and `overlay` fold all of this into Quest and Item rows, alongside the NPC data.
+
 - **NPC subtitles in the journal**: captured NPCs now keep their `<Warrior Trainer>`-style subtitle from the unit tooltip and are grouped like database NPCs (e.g. Trainers → Warrior trainers rather than "Other trainers"). Earlier journal records of the same NPC are updated (intact seals stay valid), known NPCs are backfilled from the database on login, and `harvest` carries subtitles into discoveries.
 
 - **Native waypoint compatibility**: accept plain `x`/`y` vectors as well as `GetXY` vectors when verifying the client's map pin. Missing/invalid/mismatched readback coordinates still reject explicitly and offer manual copying rather than raising a nil-method error.

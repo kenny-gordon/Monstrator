@@ -236,10 +236,10 @@ It includes confirmed placements, pending NPC sightings (always held for
 review) and exact scan sightings. The canonical fields are key, kind, npcID, name,
 category, mapID, x, y, tags, source, build, locale, verification, precision,
 sightings, lastSeen, level, classification and edited. Coordinates are written
-in hundredths, and `% | ; CR LF` are percent-escaped. NPC records may append an
-optional `title=<subtitle>` field (for example `title=Warrior Trainer`) after the
-canonical fields. It is part of the record seal only when present, so records
-captured before subtitles were recorded keep their seals.
+in hundredths, and `% | ; CR LF` are percent-escaped. NPC records may append
+optional `title=<subtitle>` and `faction=<Alliance|Horde|Both>` fields (for example
+`title=Warrior Trainer`) after the canonical fields. Each is part of the record seal
+only when present, so records captured before these fields were recorded keep their seals.
 
 Subtitles come from the unit tooltip line under the name. Level lines and
 player-controlled units are ignored. The subtitle classifies the NPC the same
@@ -247,6 +247,34 @@ way as the database's `subName` (for example `Trainers` / `trainer:warrior`). On
 login, journal NPCs without a subtitle are backfilled from the database.
 `harvest` copies the subtitle into `Discoveries.lua`, including for records it
 harvested earlier.
+
+**What the collector records.** Capture mirrors the native NPC row
+(`name, subName, npcFlags, minLevel, maxLevel, friendlyToFaction, spawns`):
+
+| Database field | Captured from |
+|---|---|
+| `subName` | Unit tooltip subtitle |
+| `npcFlags` | Merchant (vendor/repair), trainer, flight map, bank, stable, auction, guild charter, tabard and innkeeper windows, plus quest dialogs |
+| `minLevel`/`maxLevel` | `UnitLevel` (skull `-1` ignored) |
+| `friendlyToFaction` | `UnitFactionGroup`; unaligned NPCs that are at least neutral and not attackable count as `Both` (`AH`) |
+| `spawns` | Player encounter position (approximate; see above) |
+
+Relationships go to `Monstrator_Observations.relations`, keyed by ID, with a
+20,000-entry cap. They are recorded only while collection is on.
+
+| Relation | Captured from | Becomes |
+|---|---|---|
+| `quests[id].starterNpcs/Objects` | `QUEST_DETAIL` | `Quest.starterNpcs/starterObjects` |
+| `quests[id].finisherNpcs/Objects` | `QUEST_COMPLETE` | `Quest.finisherNpcs/finisherObjects` |
+| `items[id].vendors` | Merchant item list | `Item.vendors` |
+| `items[id].npcDrops/objectDrops` | Loot source GUIDs | `Item.npcDrops/objectDrops` |
+
+Fishing, Skinning and Pick Pocket loot is not credited as a drop. `harvest`
+unions relations into `Discoveries.lua`; running it again adds nothing new.
+`overlay` adds them to existing Quest/Item rows. It keeps only references to
+NPCs and objects present in the shipped data, and creates a named row for a
+quest or item the base data lacks. Relations are local maintainer data: they
+are not part of sealed submissions.
 
 **Seals.** Every record is sealed when the addon captures it, using the
 submitter ID. Merging a repeat sighting reseals it only if the seal was still

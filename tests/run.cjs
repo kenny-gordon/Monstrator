@@ -399,15 +399,28 @@ try {
     const saved = path.join(account, 'Monstrator.lua');
     fs.writeFileSync(saved, 'Monstrator_Observations = { entries = { ["local:1"] = { key = "local:1", kind = "npc", '
       + 'npcID = 999998, name = "Harvest Probe", mapID = 1429, x = 12.5, y = 13.5, verification = "user-confirmed", '
-      + 'sightings = 3, lastSeen = 100, tags = {} } } }\n');
+      + 'sightings = 3, lastSeen = 100, tags = { "bank" }, faction = "Both" } }, relations = { size = 2, '
+      + 'quests = { [9999001] = { name = "Probe Quest", starterNpcs = { [999998] = 100 }, finisherNpcs = { [424242424] = 100 } } }, '
+      + 'items = { [9999002] = { name = "Probe Item", vendors = { [999998] = 100 }, npcDrops = { [999998] = 100 } } } } }\n');
     const harvest = () => spawnSync(process.execPath, ['--stack-size=65500', path.join(root, 'tools', 'monstrator-db.cjs'), 'harvest', saved],
       { encoding: 'utf8', env: { ...process.env, MONSTRATOR_SOURCE_DIR: source } });
     run = harvest();
     assert.equal(run.status, 0, run.stderr);
+    assert.match(run.stdout, /1 quests and 1 items .*\(4 new quest\/vendor\/drop relationships\)/, run.stdout);
     run = harvest();
     assert.match(run.stdout, /1 already harvested; 0 new points/, run.stdout);
+    assert.match(run.stdout, /\(0 new quest\/vendor\/drop relationships\)/, 'relationships merge idempotently');
     const probe = fs.readFileSync(path.join(source, 'Discoveries.lua'), 'utf8');
-    assert.match(probe, /name = "Harvest Probe",\r?\n\s+sightings = 3,/, 'sightings are counted once');
+    assert.match(probe, /name = "Harvest Probe",\r?\n\s+npcFlags = 256,\r?\n\s+sightings = 3,/, 'sightings are counted once');
+    assert.match(probe, /friendlyToFaction = "AH"/, 'an NPC serving both factions is recorded as such');
+    // The overlay turns the harvest into database rows; references to unknown NPCs are dropped.
+    const overlay = spawnSync(process.execPath, ['--stack-size=65500', '-e',
+      `process.stdout.write(require(${JSON.stringify(path.join(root, 'tools', 'monstrator-db.cjs'))}).buildOverlay(false).text)`],
+      { encoding: 'utf8', env: { ...process.env, MONSTRATOR_SOURCE_DIR: source } });
+    assert.equal(overlay.status, 0, overlay.stderr);
+    assert.match(overlay.stdout, /D\[999998\]="Harvest Probe\t\t256\t\t\tAH\t1429:12\.5,13\.5"/, overlay.stdout.slice(0, 2000));
+    assert.match(overlay.stdout, /D\[9999001\]="Probe Quest\t\t\t999998\t\t\t"/, 'quest starter recorded; unknown finisher dropped');
+    assert.match(overlay.stdout, /D\[9999002\]="Probe Item\t\t\t\t\t\t999998\t999998\t\t\t"/, 'vendor and drop recorded');
   } finally {
     fs.rmSync(work, { recursive: true, force: true });
   }

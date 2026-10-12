@@ -17,7 +17,7 @@ local LANES = {
 local FIELDS = { "key", "kind", "npcID", "name", "category", "mapID", "x", "y", "tags", "source", "build",
     "locale", "verification", "precision", "sightings", "lastSeen", "level", "classification", "edited" }
 -- Optional fields join the canonical text only when present, so records sealed before they existed stay valid.
-local OPTIONAL = { "title" }
+local OPTIONAL = { "title", "faction" }
 local INTEGER = { npcID = true, mapID = true, sightings = true, lastSeen = true, level = true }
 local HUNDREDTHS = { x = true, y = true }
 
