@@ -49,6 +49,12 @@ const TAG_FLAGS = { quest_giver: 2, vendor: 4, flight: 8, trainer: 16, innkeeper
 const EVENT_FLAGS = { 'local:MERCHANT_SHOW': 4, 'local:TRAINER_SHOW': 16, 'local:TAXIMAP_OPENED': 8 };
 const SAME_POINT = 0.5;  // map % - closer points are one spawn
 const DRIFT = 2.0;       // map % - farther from every known spawn is reported as drift
+// Journal positions are where the player stood when targeting/mousing over/talking to an NPC, not the NPC itself.
+const ENCOUNTER_DRIFT = 5.0;  // map % - a known NPC gains a discovery point only beyond this distance
+const STATIC_CLUSTER = 5.0;   // map % - sightings of a stationary (service) NPC this close are one spawn
+// Service roles that mark a stationary NPC (quest giver, vendor, flight, trainer, innkeeper, bank, guild,
+// tabard, auction, stable, repair).
+const STATIC_FLAGS = 2 | 4 | 8 | 16 | 128 | 256 | 512 | 1024 | 4096 | 8192 | 16384;
 
 // ---------------------------------------------------------------- helpers
 const fail = (message) => { console.error('error: ' + message); process.exit(1); };
@@ -214,6 +220,38 @@ function addPoint(spawns, map, x, y) {
   return true;
 }
 
+// Greedy clustering: each point joins the first cluster whose centroid is within radius.
+function clusterPoints(points, radius) {
+  const clusters = [];
+  for (const [x, y] of points) {
+    const hit = clusters.find((c) => Math.hypot(c.x - x, c.y - y) <= radius);
+    if (hit) { hit.n++; hit.sx += x; hit.sy += y; hit.x = hit.sx / hit.n; hit.y = hit.sy / hit.n; }
+    else clusters.push({ x, y, sx: x, sy: y, n: 1 });
+  }
+  return clusters.map((c) => [round(c.x), round(c.y)]);
+}
+
+// Folds encounter-approximate discovery points into a row's spawns. Stationary NPCs keep their database
+// placement on maps where they already have one (differences are held for review as possible relocations);
+// elsewhere their sightings collapse into one point per cluster. Other NPCs gain points only beyond
+// ENCOUNTER_DRIFT from a known spawn. Returns the held points.
+function mergeDiscoverySpawns(spawns, found, npcFlags) {
+  const stationary = ((npcFlags || 0) & STATIC_FLAGS) !== 0;
+  const held = [];
+  for (const [map, points] of Object.entries(normalizeSpawns(found))) {
+    const known = spawns[map] && spawns[map].length ? spawns[map].slice() : null;
+    if (known && stationary) {
+      for (const [x, y] of points) held.push({ map: Number(map), x, y, gap: nearest(known, x, y) });
+      continue;
+    }
+    const candidates = stationary ? clusterPoints(points, STATIC_CLUSTER) : points;
+    for (const [x, y] of candidates) {
+      if (!known || nearest(known, x, y) > ENCOUNTER_DRIFT) addPoint(spawns, Number(map), x, y);
+    }
+  }
+  return held;
+}
+
 function writeLuaTable(value, indent = '') {
   const pad = indent + '  ';
   if (Array.isArray(value)) {
@@ -290,6 +328,7 @@ function findSavedVariables() {
 
 const discoveryFile = path.join(sourceDir, 'Discoveries.lua');
 const ledgerFile = path.join(sourceDir, 'SubmissionLedger.json');
+const harvestLedgerFile = path.join(sourceDir, 'HarvestLedger.json');
 const section = (title, list) => { if (list.length) { console.log(`\n${title} (${list.length}):`); list.slice(0, 50).forEach((l) => console.log('  ' + l)); } };
 
 function readDiscoveries() {
@@ -306,7 +345,7 @@ function writeDiscoveries(discoveries, origin) {
 }
 
 const usableNpc = (record) => record && record.kind === 'npc' && Number.isInteger(Number(record.npcID)) && Number(record.npcID) > 0
-  && typeof record.name === 'string' && record.name !== '' && Number.isInteger(record.mapID) && record.mapID > 0
+  && typeof record.name === 'string' && record.name !== '' && record.name !== 'Unknown' && Number.isInteger(record.mapID) && record.mapID > 0
   && Number.isFinite(record.x) && Number.isFinite(record.y) && record.x >= 0 && record.x <= 100 && record.y >= 0 && record.y <= 100;
 
 // How a record compares with the shipped database: null when consistent, otherwise the reason to look closer.
@@ -327,7 +366,8 @@ function mergeNpc(discoveries, record) {
   entry.spawns = normalizeSpawns(entry.spawns);
   entry.name = record.name;
   if (record.title) entry.title = record.title;
-  if (record.level) {
+  // UnitLevel returns -1 for "??" (skull) units; that is not a level.
+  if (Number.isInteger(record.level) && record.level > 0) {
     entry.minLevel = Math.min(entry.minLevel ?? record.level, record.level);
     entry.maxLevel = Math.max(entry.maxLevel ?? record.level, record.level);
   }
@@ -374,9 +414,15 @@ function cmdHarvest(args) {
   if (!inputs.length) fail('no SavedVariables\\Monstrator.lua found; pass its path');
   const base = readNative(nativeDir, 'Npc');
   const discoveries = readDiscoveries();
-  const report = { used: 0, skipped: 0, scans: 0, tampered: 0, newNPCs: new Set(), newMaps: [], drift: [], points: 0 };
+  // Confirmed journal entries never change after confirmation, so a hash of their identity and contents lets
+  // repeated harvests skip what was already folded in (sightings would otherwise be counted again).
+  const ledger = fs.existsSync(harvestLedgerFile) ? JSON.parse(fs.readFileSync(harvestLedgerFile, 'utf8')) : { schemaVersion: 1, records: [] };
+  if (ledger.schemaVersion !== 1 || !Array.isArray(ledger.records)) fail(`${rel(harvestLedgerFile)}: unsupported ledger`);
+  const harvested = new Set(ledger.records);
+  const report = { used: 0, skipped: 0, scans: 0, tampered: 0, already: 0, newNPCs: new Set(), newMaps: [], drift: [], points: 0 };
   for (const file of inputs) {
     const source = fs.readFileSync(file, 'utf8');
+    const account = path.basename(path.dirname(path.dirname(file)));
     const seals = savedVariableSeals(source);
     const obs = evalLua(source, rel(file), 'Monstrator_Observations');
     const records = Object.entries((obs && obs.entries) || {}).map(([key, record]) => ({ ...record, seal: seals.obs[key] }));
@@ -395,6 +441,10 @@ function cmdHarvest(args) {
         && (record.verification === 'user-confirmed' || (includePending && record.verification === 'pending'));
       if (!usable) { report.skipped++; continue; }
       report.used++;
+      const identity = sha256([account, record.key || record.source, record.npcID, record.mapID, record.x, record.y,
+        record.lastSeen, record.sightings].join('|'));
+      if (harvested.has(identity)) { report.already++; continue; }
+      harvested.add(identity);
       if (mergeNpc(discoveries, record)) report.points++;
       const issue = compareWithDatabase(base, record);
       if (!issue) continue;
@@ -404,8 +454,9 @@ function cmdHarvest(args) {
     }
   }
   writeDiscoveries(discoveries, 'harvest');
+  fs.writeFileSync(harvestLedgerFile, JSON.stringify({ schemaVersion: 1, records: [...harvested].sort() }, null, 1) + '\n', 'utf8');
   console.log(`Harvested ${report.used} observations from ${inputs.length} file(s), including ${report.scans} exact NPC scan sightings (${report.skipped} skipped: not NPC, `
-    + `${includePending ? 'invalid' : 'pending - use --include-pending'}); ${report.points} new points.`);
+    + `${includePending ? 'invalid' : 'pending - use --include-pending'}); ${report.already} already harvested; ${report.points} new points.`);
   if (report.tampered) console.log(`Rejected ${report.tampered} record(s) whose seal no longer matches (edited outside the game).`);
   console.log(`Discoveries now: ${Object.keys(discoveries.Npc).length} NPCs in ${rel(discoveryFile)}`);
   section('NPCs not in the database (Forever-only)', [...report.newNPCs]);
@@ -554,21 +605,32 @@ function buildOverlay(standalone = false) {
     + (standalone ? '\n-- Standalone build: rows contain only Monstrator\'s own data.' : ''),
     'local _, M = ...'];
   const summary = [];
+  const held = [];
+  const review = [];
   let dropped = 0;
   for (const kind of KINDS) {
     const base = standalone ? new Map() : readNative(nativeDir, kind);
     const rows = new Map(); // id -> { row|false, origin }
+    const corrected = new Set(entries(corrections[kind]).map(([id]) => id));
     for (const [id, found] of entries(discoveries[kind])) {
       if (kind !== 'Npc') continue;
       const known = base.has(id) ? decodeRow(kind, base.get(id)) : {};
       const row = { ...known, spawns: normalizeSpawns(known.spawns) };
-      row.name = found.name || row.name;
-      if (found.title) row.subName = found.title;
+      const note = (text) => { if (!corrected.has(id)) review.push({ id, name: row.name, text }); };
+      // The journal sees what the unit frame shows: hunter/warlock pets carry player-given names and totems, pets and
+      // escorts take their owner's level. Database names and levels therefore stand; differences are listed for review.
+      if (!row.name) row.name = found.name;
+      else if (found.name && found.name !== row.name) note(`name seen as "${found.name}"`);
+      if (found.title && !row.subName) row.subName = found.title;
       row.npcFlags = (row.npcFlags || 0) | (found.npcFlags || 0);
-      if (found.minLevel) row.minLevel = Math.min(row.minLevel ?? found.minLevel, found.minLevel);
-      if (found.maxLevel) row.maxLevel = Math.max(row.maxLevel ?? found.maxLevel, found.maxLevel);
-      for (const [map, points] of Object.entries(normalizeSpawns(found.spawns))) {
-        for (const [x, y] of points) if (nearest(row.spawns[map], x, y) > DRIFT || !row.spawns[map]) addPoint(row.spawns, Number(map), x, y);
+      const min = found.minLevel > 0 ? found.minLevel : undefined;
+      const max = found.maxLevel > 0 ? found.maxLevel : undefined;
+      if (row.minLevel === undefined && row.maxLevel === undefined) { row.minLevel = min; row.maxLevel = max; }
+      else if (min !== undefined && (min < row.minLevel || max > row.maxLevel)) {
+        note(`level ${min === max ? min : `${min}-${max}`} seen, database ${row.minLevel}-${row.maxLevel}`);
+      }
+      for (const point of mergeDiscoverySpawns(row.spawns, found.spawns, row.npcFlags)) {
+        held.push({ id, name: row.name, ...point });
       }
       const text = encodeRow(kind, row);
       if (text !== base.get(id)) rows.set(id, { text, origin: 'discovery' });
@@ -593,14 +655,23 @@ function buildOverlay(standalone = false) {
     for (const { origin, text } of rows.values()) { const k = text === false ? 'deleted' : origin; counts[k] = (counts[k] || 0) + 1; }
     summary.push(`${kind}: ${Object.entries(counts).map(([k, v]) => `${v} ${k}`).join(', ')}`);
   }
-  return { text: lines.join('\n').replace(/\n/g, '\r\n') + '\r\n', summary, dropped };
+  return { text: lines.join('\n').replace(/\n/g, '\r\n') + '\r\n', summary, dropped, held, review };
 }
 
 function cmdOverlay() {
-  const { text, summary } = buildOverlay(false);
+  const { text, summary, held, review } = buildOverlay(false);
   const file = path.join(nativeDir, 'Overlay.lua');
   fs.writeFileSync(file, text, 'utf8');
   console.log(`Wrote ${rel(file)}: ${summary.length ? summary.join('; ') : 'empty (no discoveries or corrections)'}`);
+  if (held.length) {
+    const npcs = new Set(held.map((h) => h.id)).size;
+    console.log(`Held ${held.length} encounter point(s) for ${npcs} stationary NPC(s) that already have a database placement on that map.`);
+    section(`Possible relocations (> ${2 * ENCOUNTER_DRIFT}% from the database placement; confirm in game, then add a correction)`,
+      held.filter((h) => h.gap > 2 * ENCOUNTER_DRIFT).sort((a, b) => b.gap - a.gap)
+        .map((h) => `${h.id} ${h.name}: map ${h.map} ${fmt(h.x)},${fmt(h.y)} is ${fmt(h.gap)}% away`));
+  }
+  section('Name/level differences kept as in the database (pets, totems and escorts often differ; correct genuine changes by hand)',
+    review.sort((a, b) => a.id - b.id).map((r) => `${r.id} ${r.name}: ${r.text}`));
 }
 
 // ---------------------------------------------------------------- verify
@@ -1023,7 +1094,8 @@ function cmdPackage(args = []) {
 }
 
 // ---------------------------------------------------------------- main
-module.exports = { decodeRow, encodeRow, decodeSpawns, encodeSpawns, normalizeSpawns, readNative, evalLua, LAYOUT };
+module.exports = { decodeRow, encodeRow, decodeSpawns, encodeSpawns, normalizeSpawns, readNative, evalLua, LAYOUT,
+  mergeDiscoverySpawns };
 if (require.main !== module) return;
 const [command, ...rest] = process.argv.slice(2);
 const commands = {

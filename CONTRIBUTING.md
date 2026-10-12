@@ -212,6 +212,16 @@ retain its source/licence; standalone packages omit all imported loot.
 - Hand-reviewed fixes go in `Data\Source\Corrections.lua` (see the examples there).
 - Player discoveries come from `harvest` (your own SavedVariables) or `review`
   (submission issues). Then run `overlay` and `verify`.
+- `harvest` records each confirmed journal entry in `Data\Source\HarvestLedger.json`,
+  so re-running it on the same SavedVariables does not count sightings twice.
+  Commit the ledger with `Discoveries.lua`. Entries with the placeholder name
+  `Unknown` and `??` levels (-1) are ignored.
+- Journal positions are where *you* stood when you saw the NPC, so `overlay` treats them as approximate:
+  - Stationary service NPCs (vendors, trainers, flight masters, etc.) keep their database placement on maps where they already have one. Differing points are held, and anything more than 10% away is listed as a *possible relocation*.
+  - On a new map, a stationary NPC's sightings collapse into one point per 5% cluster.
+  - Other NPCs only gain points more than 5% from a known spawn.
+  - Database names and levels stand, because pets carry player-given names and totems or pets report their owner's level. Differences are listed for review.
+- Confirm relocations and level changes before adding them to `Corrections.lua`, either in game or against an independent source such as the Wowhead Classic tooltip (`https://nether.wowhead.com/classic/tooltip/npc/<id>`). Note the evidence in a comment.
 
 ### Reviewing submissions
 

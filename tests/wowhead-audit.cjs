@@ -73,14 +73,15 @@ try {
   assert.equal(run.status, 2, run.stderr); // Review findings, not a failed comparison.
   const actual = JSON.parse(fs.readFileSync(report, 'utf8')).wowhead;
   assert.equal(actual.summary.references, 32);
-  assert.equal(actual.summary.matched, 27);
-  assert.equal(actual.summary.conflicts, 1);
+  assert.equal(actual.summary.matched, 28);
+  assert.equal(actual.summary.conflicts, 0);
   assert.equal(actual.summary.versionMismatch, 1);
   assert.equal(actual.summary.missingLocal, 3);
-  const conflict = actual.results.find((r) => r.status === 'conflict');
-  assert.equal(conflict.id, 89);
-  assert.deepEqual(conflict.fields.find((f) => f.field === 'maxLevel'), {
-    field: 'maxLevel', local: 50, reference: 60, matches: false, evidence: 'page metadata',
+  // NPC 89's maxLevel conflict was settled by a reviewed correction (Wowhead 50-60 vs QuestieDB 50).
+  const infernal = actual.results.find((r) => r.kind === 'Npc' && r.id === 89);
+  assert.equal(infernal.status, 'matched-fields');
+  assert.deepEqual(infernal.fields.find((f) => f.field === 'maxLevel'), {
+    field: 'maxLevel', local: 60, reference: 60, matches: true, evidence: 'page metadata',
   });
   assert.equal(actual.coverage.Npc.checkedRecords, 16);
   assert.equal(actual.coverage.Item.checkedRecords, 10);

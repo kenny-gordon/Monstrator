@@ -381,6 +381,33 @@ try {
     run = review(inbox);
     assert.match(run.stdout, /1-alpha\.txt: already reviewed, skipped/, 'resubmitting the same text is ignored');
     assert.match(run.stdout, /Reviewed 0 new submission/);
+
+    // Encounter positions are approximate: stationary NPCs keep their placement, sightings collapse.
+    let spawns = { 1456: [[40, 50]] };
+    let held = db.mergeDiscoverySpawns(spawns, { 1456: [[43, 52], [48, 50]], 1414: [[10, 10], [11, 10.5], [30, 30]] }, 4);
+    assert.deepEqual(spawns[1456], [[40, 50]], 'a vendor with a database placement gains no encounter points');
+    assert.equal(held.length, 2, 'their differing sightings are held for review');
+    assert.deepEqual(spawns[1414], [[10.5, 10.25], [30, 30]], 'new-map vendor sightings collapse per cluster');
+    spawns = { 1412: [[40, 50]] };
+    held = db.mergeDiscoverySpawns(spawns, { 1412: [[43, 50], [60, 50]] }, 0);
+    assert.deepEqual(spawns[1412], [[40, 50], [60, 50]], 'other NPCs gain only points well away from known spawns');
+    assert.equal(held.length, 0);
+
+    // Re-harvesting the same journal must not count sightings again.
+    const account = path.join(work, 'WTF', 'Account', 'TEST', 'SavedVariables');
+    fs.mkdirSync(account, { recursive: true });
+    const saved = path.join(account, 'Monstrator.lua');
+    fs.writeFileSync(saved, 'Monstrator_Observations = { entries = { ["local:1"] = { key = "local:1", kind = "npc", '
+      + 'npcID = 999998, name = "Harvest Probe", mapID = 1429, x = 12.5, y = 13.5, verification = "user-confirmed", '
+      + 'sightings = 3, lastSeen = 100, tags = {} } } }\n');
+    const harvest = () => spawnSync(process.execPath, ['--stack-size=65500', path.join(root, 'tools', 'monstrator-db.cjs'), 'harvest', saved],
+      { encoding: 'utf8', env: { ...process.env, MONSTRATOR_SOURCE_DIR: source } });
+    run = harvest();
+    assert.equal(run.status, 0, run.stderr);
+    run = harvest();
+    assert.match(run.stdout, /1 already harvested; 0 new points/, run.stdout);
+    const probe = fs.readFileSync(path.join(source, 'Discoveries.lua'), 'utf8');
+    assert.match(probe, /name = "Harvest Probe",\r?\n\s+sightings = 3,/, 'sightings are counted once');
   } finally {
     fs.rmSync(work, { recursive: true, force: true });
   }

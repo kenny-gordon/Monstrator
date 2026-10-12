@@ -72,7 +72,7 @@
       "itemID": 22719,
       "questID": 9233,
       "url": "https://www.wowhead.com/classic/quest=9233/omarions-handbook",
-      "observation": "Classic page confirms item 22719 and recipient NPC 16376; quest is absent in both tested Forever source conversions.",
+      "observation": "Classic page confirms item 22719 and recipient NPC 16376; quest is absent in both tested Forever source conversions. 2026-10-07 re-check: Wowhead quick facts Level 60, Requires level 60, End npc=16376 (recorded in WowheadFacts.json).",
       "action": "Hold for Forever quest-availability verification; do not remove a valid published relationship."
     },
     {
@@ -84,6 +84,10 @@
     }
   ],
   "limitedWowheadChecks": [
+    {
+      "url": "https://nether.wowhead.com/classic/tooltip/npc/<id>",
+      "result": "Tooltip API exposes name and level range. Used 2026-10-07 to settle 18 NPC level disagreements where the in-game journal and Wowhead agreed against QuestieDB (89, 3078, 3080, 3221, 3634, 3945, 4196, 4388, 4883, 5766, 5774, 5781, 5797, 5814, 5953, 7730, 10048, 14718); fixes live in Corrections.lua. Pets, totems and companions (416, 2523, 2630, 3579, 3902, 5874, 5919, 7387, 7389) report their owner's level and are left as published. Forever-only NPCs (e.g. 254088 Corsan Earthrazer) return 404 on Classic and Retail Wowhead; in-game journal evidence is their only source."
+    },
     {
       "url": "https://www.wowhead.com/classic/npc=11520/taragaman-the-hungerer",
       "result": "Fetched page exposed only generic client information; NPC statistics and drop data were not verified."

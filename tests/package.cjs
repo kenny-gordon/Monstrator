@@ -97,7 +97,7 @@ __release = { ready = M.ready, counts = counts, items = M:ItemProvider() ~= nil,
     assert.equal(loaded.ready, true);
     assert.equal(loaded.items, !standalone);
     assert.equal(loaded.loot, !standalone);
-    assert.equal(loaded.counts.Npc, standalone ? 7 : 10122);
+    assert.equal(loaded.counts.Npc, standalone ? 779 : 10289);
     assert.equal(loaded.counts.Item || 0, standalone ? 0 : 14899);
   }
   assert.equal(run('--unknown').status, 1);

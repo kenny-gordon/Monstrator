@@ -32,7 +32,7 @@
     { "kind": "Quest", "id": 3482, "url": "https://www.wowhead.com/classic/quest=3482/nyi-txt-the-pocked-black-box", "checkedAt": "2026-10-07", "facts": { "name": "<NYI> <TXT> The Pocked Black Box" }, "evidence": { "name": "page title; unimplemented marker retained" } },
     { "kind": "Quest", "id": 6545, "url": "https://www.wowhead.com/classic/quest=6545/warsong-runner-update", "checkedAt": "2026-10-07", "facts": { "name": "Warsong Runner Update" }, "evidence": { "name": "page title" } },
     { "kind": "Quest", "id": 7787, "url": "https://www.wowhead.com/classic/quest=7787/rise-thunderfury", "checkedAt": "2026-10-07", "facts": { "name": "Rise, Thunderfury!" }, "evidence": { "name": "page title" } },
-    { "kind": "Quest", "id": 9233, "url": "https://www.wowhead.com/classic/quest=9233/omarions-handbook", "checkedAt": "2026-10-07", "facts": { "name": "Omarion's Handbook" }, "evidence": { "name": "page title" } },
+    { "kind": "Quest", "id": 9233, "url": "https://www.wowhead.com/classic/quest=9233/omarions-handbook", "checkedAt": "2026-10-07", "facts": { "name": "Omarion's Handbook", "questLevel": 60, "requiredLevel": 60 }, "evidence": { "name": "page title", "questLevel": "quick facts Level: 60", "requiredLevel": "quick facts Requires level 60" } },
     { "kind": "Quest", "id": 84377, "url": "https://www.wowhead.com/classic/quest=84377/end-of-the-dark-horde", "checkedAt": "2026-10-07", "facts": { "name": "End of the Dark Horde" }, "evidence": { "name": "page title" } }
   ]
 }
