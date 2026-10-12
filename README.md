@@ -350,7 +350,8 @@ that the encounter position is an exact spawn.
 - `/monstrator audit` compares your journal with the database: new NPCs, moved
   spawns and new services.
 - Sightings that only repeat what the database already has are not recorded, and
-  neither are critters, pets or totems. `/monstrator prune` shows which older
+  neither are critters, pets, totems or friendly world props (untyped objects
+  such as crates or braziers). `/monstrator prune` shows which older
   entries add nothing; `/monstrator prune CONFIRM` removes them.
 - **Advanced NPC inventory** (`/monstrator npcs`, command only) opens a searchable, paged window grouped
   by NPC ID. It starts with collected NPCs (confirmed or pending); filters also

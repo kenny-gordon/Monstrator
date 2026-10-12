@@ -162,6 +162,15 @@ one row. A trainer with no subtitle falls back to the profession named by its
 local trainer snapshot. Only rank lines such as `Blacksmithing` or
 `Herb Gathering` count.
 
+**Inferred friendliness and props.** Harvest infers `friendlyToFaction = "AH"`
+for a journal record with no `faction` when its reaction is 5 or more, or 4 with
+an interaction source. In `Discoveries.lua` the entry is then marked
+`factionInferred = true`. A real `Alliance`/`Horde`/`Both` seen later replaces
+the inference. The marker never ships in the overlay. NPCs typed
+`Not specified` with reaction 4 or more and no service tag are world props. The
+collector skips them, harvest ignores them, and `clean` removes them from
+discoveries.
+
 Map/world transforms supply comparable yard positions only within compatible
 world instances. No transit route, patrol history or server spawn GUID is stored.
 Localized zone names are display metadata and must not replace map IDs.

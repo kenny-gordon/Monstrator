@@ -348,10 +348,34 @@ function writeDiscoveries(discoveries, origin) {
 
 // Creature types that are never directory entries (enUS UnitCreatureType): ambient wildlife, companions, totems.
 const NOISE_TYPES = new Set(['Critter', 'Non-combat Pet', 'Wild Pet', 'Totem', 'Gas Cloud']);
+// Untyped, non-hostile creatures with no service are world props (crates, braziers, wardrobes); hostile untyped
+// creatures (oozes, swarms, elementals) are real. Mirrors Collector.lua IsPropRecord.
+const PROP_TYPES = new Set(['Not specified']);
+const isProp = (record) => PROP_TYPES.has(record.creatureType) && Number.isInteger(record.reaction) && record.reaction >= 4
+  && !Object.keys(record.tags || {}).length;
 const usableNpc = (record) => record && record.kind === 'npc' && Number.isInteger(Number(record.npcID)) && Number(record.npcID) > 0
   && typeof record.name === 'string' && record.name !== '' && record.name !== 'Unknown' && Number.isInteger(record.mapID) && record.mapID > 0
   && Number.isFinite(record.x) && Number.isFinite(record.y) && record.x >= 0 && record.x <= 100 && record.y >= 0 && record.y <= 100
-  && !NOISE_TYPES.has(record.creatureType);
+  && !NOISE_TYPES.has(record.creatureType) && !isProp(record);
+
+// Journals written before the collector stored the unit's faction group only have UnitReaction. Friendly (5+), or
+// spoken to while neutral, means the NPC is not hostile; it serves both sides until a sighting reports its group,
+// which then replaces the inference (factionInferred stays in Discoveries; the overlay ships only the side).
+const PASSIVE_SOURCES = /UPDATE_MOUSEOVER_UNIT|PLAYER_TARGET_CHANGED|NAME_PLATE_UNIT_ADDED|^scan:/;
+function mergeFaction(entry, record) {
+  const before = entry.friendlyToFaction;
+  const side = { Alliance: 'A', Horde: 'H', Both: 'AH' }[record.faction];
+  if (side) {
+    const known = entry.factionInferred ? '' : entry.friendlyToFaction || '';
+    delete entry.factionInferred;
+    entry.friendlyToFaction = [...new Set(`${known}${side}`)].sort().join('');
+  } else if (record.faction === undefined && !entry.friendlyToFaction && Number.isInteger(record.reaction)
+    && (record.reaction >= 5 || (record.reaction === 4 && !PASSIVE_SOURCES.test(record.source || '')))) {
+    entry.friendlyToFaction = 'AH';
+    entry.factionInferred = true;
+  }
+  return entry.friendlyToFaction !== before;
+}
 
 // How a record compares with the shipped database: null when consistent, otherwise the reason to look closer.
 function compareWithDatabase(base, record) {
@@ -371,8 +395,7 @@ function mergeNpc(discoveries, record) {
   entry.spawns = normalizeSpawns(entry.spawns);
   entry.name = record.name;
   if (record.title) entry.title = record.title;
-  const side = { Alliance: 'A', Horde: 'H', Both: 'AH' }[record.faction];
-  if (side) entry.friendlyToFaction = [...new Set(`${entry.friendlyToFaction || ''}${side}`)].sort().join('');
+  mergeFaction(entry, record);
   // UnitLevel returns -1 for "??" (skull) units; that is not a level.
   if (Number.isInteger(record.level) && record.level > 0) {
     entry.minLevel = Math.min(entry.minLevel ?? record.level, record.level);
@@ -452,7 +475,7 @@ function cmdHarvest(args) {
   const ledger = fs.existsSync(harvestLedgerFile) ? JSON.parse(fs.readFileSync(harvestLedgerFile, 'utf8')) : { schemaVersion: 1, records: [] };
   if (ledger.schemaVersion !== 1 || !Array.isArray(ledger.records)) fail(`${rel(harvestLedgerFile)}: unsupported ledger`);
   const harvested = new Set(ledger.records);
-  const report = { used: 0, skipped: 0, scans: 0, tampered: 0, already: 0, titles: 0, services: 0, relations: 0, newNPCs: new Set(), newMaps: [], drift: [], held: [], points: 0 };
+  const report = { used: 0, skipped: 0, scans: 0, tampered: 0, already: 0, titles: 0, services: 0, factions: 0, relations: 0, newNPCs: new Set(), newMaps: [], drift: [], held: [], points: 0 };
   for (const file of inputs) {
     const source = fs.readFileSync(file, 'utf8');
     const account = path.basename(path.dirname(path.dirname(file)));
@@ -487,6 +510,7 @@ function cmdHarvest(args) {
           for (const tag of Object.values(record.tags || {})) flags |= TAG_FLAGS[tag] || 0;
           flags |= EVENT_FLAGS[record.source] || 0;
           if (flags !== (entry.npcFlags || 0)) { entry.npcFlags = flags; report.services++; }
+          if (mergeFaction(entry, record)) report.factions++;
         }
         continue;
       }
@@ -505,7 +529,7 @@ function cmdHarvest(args) {
   fs.writeFileSync(harvestLedgerFile, JSON.stringify({ schemaVersion: 1, records: [...harvested].sort() }, null, 1) + '\n', 'utf8');
   console.log(`Harvested ${report.used} observations from ${inputs.length} file(s), including ${report.scans} exact NPC scan sightings (${report.skipped} skipped: not NPC, `
     + `${includePending ? 'invalid' : 'pending - use --include-pending'}); ${report.already} already harvested`
-    + `${report.titles ? ` (${report.titles} gained a subtitle)` : ''}${report.services ? ` (${report.services} gained a service flag)` : ''}; ${report.points} new points.`);
+    + `${report.titles ? ` (${report.titles} gained a subtitle)` : ''}${report.services ? ` (${report.services} gained a service flag)` : ''}${report.factions ? ` (${report.factions} gained a faction)` : ''}; ${report.points} new points.`);
   if (report.tampered) console.log(`Rejected ${report.tampered} record(s) whose seal no longer matches (edited outside the game).`);
   console.log(`Discoveries now: ${Object.keys(discoveries.Npc).length} NPCs, ${Object.keys(discoveries.Quest || {}).length} quests and `
     + `${Object.keys(discoveries.Item || {}).length} items in ${rel(discoveryFile)} (${report.relations} new quest/vendor/drop relationships).`);
@@ -526,6 +550,7 @@ function cmdClean(args) {
   const base = readNative(nativeDir, 'Npc');
   const discoveries = readDiscoveries();
   const types = new Map();
+  const props = new Map();
   for (const file of inputs) {
     const obs = evalLua(fs.readFileSync(file, 'utf8'), rel(file), 'Monstrator_Observations');
     for (const [, record] of entries((obs && obs.entries) || {})) {
@@ -533,6 +558,7 @@ function cmdClean(args) {
       const id = Number(record.npcID);
       if (!types.has(id)) types.set(id, new Set());
       types.get(id).add(record.creatureType);
+      props.set(id, (props.get(id) ?? true) && isProp(record));
     }
   }
   const removed = [];
@@ -541,6 +567,7 @@ function cmdClean(args) {
     const known = base.has(id) ? decodeRow('Npc', base.get(id)) : null;
     let why;
     if (seen && [...seen].every((type) => NOISE_TYPES.has(type))) why = [...seen].join('/');
+    else if (!known && props.get(id)) why = 'world prop (untyped, not hostile, no service)';
     else if (entry.name === 'Unknown') why = 'uncached name';
     else if (known && known.name && entry.name && known.name !== entry.name) why = `named "${entry.name}", database has "${known.name}"`;
     if (!why) continue;
@@ -737,7 +764,7 @@ function buildOverlay(standalone = false) {
       if (found.title && !row.subName) row.subName = found.title;
       if (found.friendlyToFaction && found.friendlyToFaction !== row.friendlyToFaction) {
         if (!base.has(id)) row.friendlyToFaction = found.friendlyToFaction;
-        else note(`friendly to ${found.friendlyToFaction} seen, database ${row.friendlyToFaction || 'hostile/none'}`);
+        else if (!found.factionInferred) note(`friendly to ${found.friendlyToFaction} seen, database ${row.friendlyToFaction || 'hostile/none'}`);
       }
       row.npcFlags = (row.npcFlags || 0) | (found.npcFlags || 0);
       const min = found.minLevel > 0 ? found.minLevel : undefined;
@@ -1212,7 +1239,7 @@ function cmdPackage(args = []) {
 
 // ---------------------------------------------------------------- main
 module.exports = { decodeRow, encodeRow, decodeSpawns, encodeSpawns, normalizeSpawns, readNative, evalLua, LAYOUT,
-  mergeDiscoverySpawns, buildOverlay };
+  mergeDiscoverySpawns, buildOverlay, mergeFaction, isProp };
 if (require.main !== module) return;
 const [command, ...rest] = process.argv.slice(2);
 const commands = {

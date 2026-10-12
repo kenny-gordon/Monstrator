@@ -291,6 +291,15 @@ end
 -- enUS names; other locales fall back to the player-controlled check and the database novelty test.
 M.nonDirectoryTypes = { ["Critter"] = true, ["Non-combat Pet"] = true, ["Wild Pet"] = true, ["Totem"] = true,
     ["Gas Cloud"] = true }
+-- Untyped creatures that are not hostile and offer no service are world props (crates, braziers, wardrobes);
+-- hostile untyped creatures (oozes, swarms, elementals) are real encounters.
+M.propCreatureTypes = { ["Not specified"] = true }
+function M:IsPropRecord(record)
+    return record.kind == "npc" and type(record.creatureType) == "string"
+        and self.propCreatureTypes[record.creatureType] == true
+        and self:IsFinite(record.reaction) and record.reaction >= 4
+        and (type(record.tags) ~= "table" or next(record.tags) == nil)
+end
 -- Encounter positions are where the player stood, so sightings closer than this are the same placement.
 M.encounterRadius = 5
 local SERVICE_FLAGS = { vendor = "VENDOR", repair = "REPAIR", flight = "FLIGHT_MASTER", trainer = "TRAINER",
@@ -313,6 +322,7 @@ function M:IsNoiseRecord(record)
     if record.kind ~= "npc" then return false end
     if record.name == "Unknown" or record.name == UNKNOWNOBJECT then return true end
     if type(record.creatureType) == "string" and self.nonDirectoryTypes[record.creatureType] then return true end
+    if self:IsPropRecord(record) then return true end
     local lib = self.native and self:NativeProvider()
     local npc = lib and lib.Npc
     if npc and npc.Has(record.npcID) and record.creatureType ~= "Humanoid" then
@@ -414,6 +424,10 @@ function M:CaptureNPC(event, unit)
             end
         end
         record.faction = self:UnitFriendlyFaction(unit)
+        if self:IsPropRecord(record) then
+            if manual then self:Notice(L["Not a directory NPC (world prop); nothing recorded: "] .. name) end
+            return
+        end
         local title = self:UnitTitle(unit)
         self:ApplyObservedTitle(record, title)
         if title then self:BackfillTitle(npcID, title) end

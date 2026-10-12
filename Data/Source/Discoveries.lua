@@ -11,6 +11,9 @@ return {
     [1179] = {
       vendors = { 254089, 254358 },
     },
+    [1194] = {
+      vendors = { 257421 },
+    },
     [1205] = {
       vendors = { 254089 },
     },
@@ -20,27 +23,81 @@ return {
     [1708] = {
       vendors = { 254089 },
     },
+    [2130] = {
+      vendors = { 257421 },
+    },
+    [2131] = {
+      vendors = { 257421 },
+    },
+    [2132] = {
+      vendors = { 257421 },
+    },
+    [2134] = {
+      vendors = { 257421 },
+    },
+    [2139] = {
+      vendors = { 257421 },
+    },
     [2287] = {
       vendors = { 254089 },
     },
     [2320] = {
-      vendors = { 254360 },
+      vendors = { 251991, 251993, 254360 },
     },
     [2321] = {
-      vendors = { 254360 },
+      vendors = { 251991, 251993, 254360 },
     },
     [2324] = {
-      vendors = { 254360 },
+      vendors = { 251991, 254360 },
+    },
+    [2325] = {
+      vendors = { 251991, 251993 },
     },
     [2447] = {
       name = "Peacebloom",
       objectDrops = { 1618 },
     },
+    [2479] = {
+      vendors = { 257421 },
+    },
+    [2480] = {
+      vendors = { 257421 },
+    },
+    [2488] = {
+      vendors = { 257421 },
+    },
+    [2489] = {
+      vendors = { 257421 },
+    },
+    [2490] = {
+      vendors = { 257421 },
+    },
+    [2491] = {
+      vendors = { 257421 },
+    },
+    [2492] = {
+      vendors = { 257421 },
+    },
+    [2493] = {
+      vendors = { 257421 },
+    },
+    [2494] = {
+      vendors = { 257421 },
+    },
+    [2495] = {
+      vendors = { 257421 },
+    },
+    [2506] = {
+      vendors = { 257421 },
+    },
+    [2507] = {
+      vendors = { 257421 },
+    },
     [2512] = {
-      vendors = { 254358 },
+      vendors = { 254358, 257421 },
     },
     [2515] = {
-      vendors = { 254358 },
+      vendors = { 254358, 257421 },
     },
     [2516] = {
       vendors = { 254358 },
@@ -49,10 +106,10 @@ return {
       vendors = { 254358 },
     },
     [2604] = {
-      vendors = { 254360 },
+      vendors = { 251991, 251993, 254360 },
     },
     [2605] = {
-      vendors = { 254360 },
+      vendors = { 251991, 251993, 254360 },
     },
     [2678] = {
       vendors = { 254360 },
@@ -61,10 +118,10 @@ return {
       vendors = { 254360 },
     },
     [2880] = {
-      vendors = { 254360 },
+      vendors = { 251913, 254360, 257022 },
     },
     [2901] = {
-      vendors = { 254360 },
+      vendors = { 251913, 254360, 257022 },
     },
     [2946] = {
       vendors = { 254358 },
@@ -81,14 +138,32 @@ return {
     [3371] = {
       vendors = { 254360 },
     },
+    [3466] = {
+      vendors = { 251913, 257022 },
+    },
     [3770] = {
       vendors = { 254089 },
     },
     [3771] = {
       vendors = { 254089 },
     },
+    [3857] = {
+      vendors = { 251913, 257022 },
+    },
     [4289] = {
-      vendors = { 254360 },
+      vendors = { 251993, 254360 },
+    },
+    [4291] = {
+      vendors = { 251991, 251993 },
+    },
+    [4340] = {
+      vendors = { 251991, 251993 },
+    },
+    [4341] = {
+      vendors = { 251991, 251993 },
+    },
+    [4342] = {
+      vendors = { 251991, 251993 },
     },
     [4470] = {
       vendors = { 254358 },
@@ -123,17 +198,23 @@ return {
     [5042] = {
       vendors = { 254358 },
     },
+    [5439] = {
+      vendors = { 257421 },
+    },
     [5956] = {
-      vendors = { 254360 },
+      vendors = { 251913, 254360 },
     },
     [6217] = {
       vendors = { 254360 },
     },
     [6256] = {
-      vendors = { 254360 },
+      vendors = { 251992, 254360 },
     },
     [6260] = {
-      vendors = { 254360 },
+      vendors = { 251991, 251993, 254360 },
+    },
+    [6261] = {
+      vendors = { 251991, 251993 },
     },
     [6529] = {
       vendors = { 254360 },
@@ -142,7 +223,10 @@ return {
       vendors = { 254360 },
     },
     [7005] = {
-      vendors = { 254360 },
+      vendors = { 251993, 254360 },
+    },
+    [8343] = {
+      vendors = { 251991, 251993 },
     },
     [8766] = {
       vendors = { 254089 },
@@ -152,6 +236,18 @@ return {
     },
     [8952] = {
       vendors = { 254089 },
+    },
+    [10290] = {
+      vendors = { 251991, 251993 },
+    },
+    [11362] = {
+      vendors = { 257421 },
+    },
+    [14341] = {
+      vendors = { 251991, 251993 },
+    },
+    [18567] = {
+      vendors = { 251913 },
     },
     [252026] = {
       vendors = { 254089 },
@@ -167,6 +263,12 @@ return {
     },
     [252032] = {
       vendors = { 254089 },
+    },
+    [253665] = {
+      vendors = { 251991 },
+    },
+    [253668] = {
+      vendors = { 251991 },
     },
   },
   Npc = {
@@ -214,6 +316,8 @@ return {
     },
     [1064] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791375381,
       maxLevel = 55,
       minLevel = 55,
@@ -271,6 +375,8 @@ return {
     },
     [1147] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791375405,
       maxLevel = 40,
       minLevel = 40,
@@ -287,6 +393,8 @@ return {
     },
     [1149] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791375379,
       maxLevel = 40,
       minLevel = 40,
@@ -302,6 +410,8 @@ return {
     },
     [1382] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791375349,
       maxLevel = 40,
       minLevel = 40,
@@ -318,6 +428,8 @@ return {
     },
     [1385] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791375405,
       maxLevel = 35,
       minLevel = 35,
@@ -334,6 +446,8 @@ return {
     },
     [1387] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791375324,
       maxLevel = 55,
       minLevel = 55,
@@ -350,6 +464,8 @@ return {
     },
     [1404] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791375355,
       maxLevel = 40,
       minLevel = 40,
@@ -452,6 +568,8 @@ return {
     },
     [2425] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791644616,
       name = "Varimathras",
       npcFlags = 2,
@@ -464,6 +582,8 @@ return {
     },
     [2464] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791375400,
       maxLevel = 60,
       minLevel = 60,
@@ -480,6 +600,8 @@ return {
     },
     [2465] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791375383,
       maxLevel = 45,
       minLevel = 45,
@@ -525,6 +647,8 @@ return {
     },
     [2497] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791375381,
       maxLevel = 41,
       minLevel = 41,
@@ -583,6 +707,8 @@ return {
     },
     [2626] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791373371,
       maxLevel = 43,
       minLevel = 43,
@@ -598,6 +724,8 @@ return {
     },
     [2704] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791353436,
       maxLevel = 50,
       minLevel = 50,
@@ -613,6 +741,8 @@ return {
     },
     [2798] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791626819,
       maxLevel = 35,
       minLevel = 35,
@@ -630,6 +760,8 @@ return {
     },
     [2834] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791373320,
       maxLevel = 43,
       minLevel = 43,
@@ -645,6 +777,8 @@ return {
     },
     [2947] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791343566,
       maxLevel = 21,
       minLevel = 21,
@@ -659,6 +793,8 @@ return {
     },
     [2948] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791352098,
       maxLevel = 25,
       minLevel = 25,
@@ -1059,6 +1195,8 @@ return {
     },
     [2980] = {
       build = "70205",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791191160,
       maxLevel = 4,
       minLevel = 4,
@@ -1073,6 +1211,8 @@ return {
     },
     [2985] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791352102,
       maxLevel = 9,
       minLevel = 9,
@@ -1087,6 +1227,8 @@ return {
     },
     [2987] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791353768,
       maxLevel = 12,
       minLevel = 12,
@@ -1102,6 +1244,8 @@ return {
     },
     [2988] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791352171,
       maxLevel = 10,
       minLevel = 10,
@@ -1118,6 +1262,8 @@ return {
     },
     [2993] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791352104,
       maxLevel = 10,
       minLevel = 10,
@@ -1133,6 +1279,8 @@ return {
     },
     [2994] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791773022,
       maxLevel = 9,
       minLevel = 9,
@@ -1147,6 +1295,8 @@ return {
     },
     [2995] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791784137,
       maxLevel = 55,
       minLevel = 55,
@@ -1164,6 +1314,8 @@ return {
     },
     [2997] = {
       build = "70205",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791379671,
       maxLevel = 30,
       minLevel = 30,
@@ -1182,6 +1334,8 @@ return {
     },
     [2998] = {
       build = "70205",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791734027,
       maxLevel = 35,
       minLevel = 35,
@@ -1201,6 +1355,8 @@ return {
     },
     [2999] = {
       build = "70205",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791427981,
       maxLevel = 30,
       minLevel = 30,
@@ -1217,6 +1373,8 @@ return {
     },
     [3001] = {
       build = "70205",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791207200,
       maxLevel = 35,
       minLevel = 35,
@@ -1232,6 +1390,8 @@ return {
     },
     [3003] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791783964,
       maxLevel = 30,
       minLevel = 30,
@@ -1254,6 +1414,8 @@ return {
     },
     [3013] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791772848,
       maxLevel = 35,
       minLevel = 35,
@@ -1270,6 +1432,8 @@ return {
     },
     [3014] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791772846,
       maxLevel = 30,
       minLevel = 30,
@@ -1286,6 +1450,8 @@ return {
     },
     [3015] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791734339,
       maxLevel = 30,
       minLevel = 30,
@@ -1303,6 +1469,8 @@ return {
     },
     [3018] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791735721,
       maxLevel = 30,
       minLevel = 30,
@@ -1321,6 +1489,8 @@ return {
     },
     [3019] = {
       build = "70205",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791379604,
       maxLevel = 30,
       minLevel = 30,
@@ -1337,6 +1507,8 @@ return {
     },
     [3020] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791379601,
       maxLevel = 30,
       minLevel = 30,
@@ -1354,6 +1526,8 @@ return {
     },
     [3021] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791379620,
       maxLevel = 30,
       minLevel = 30,
@@ -1370,6 +1544,8 @@ return {
     },
     [3022] = {
       build = "70205",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791735732,
       maxLevel = 30,
       minLevel = 30,
@@ -1388,6 +1564,8 @@ return {
     },
     [3023] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791734491,
       maxLevel = 30,
       minLevel = 30,
@@ -1408,6 +1586,8 @@ return {
     },
     [3026] = {
       build = "70205",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791735728,
       maxLevel = 45,
       minLevel = 45,
@@ -1428,6 +1608,8 @@ return {
     },
     [3027] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791735728,
       maxLevel = 40,
       minLevel = 40,
@@ -1447,6 +1629,8 @@ return {
     },
     [3028] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791626523,
       maxLevel = 45,
       minLevel = 45,
@@ -1463,6 +1647,8 @@ return {
     },
     [3029] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791735737,
       maxLevel = 40,
       minLevel = 40,
@@ -1480,6 +1666,8 @@ return {
     },
     [3030] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791734692,
       maxLevel = 50,
       minLevel = 50,
@@ -1495,6 +1683,8 @@ return {
     },
     [3031] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791734691,
       maxLevel = 40,
       minLevel = 40,
@@ -1510,6 +1700,8 @@ return {
     },
     [3032] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791734690,
       maxLevel = 60,
       minLevel = 60,
@@ -1525,6 +1717,8 @@ return {
     },
     [3033] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791734586,
       maxLevel = 50,
       minLevel = 50,
@@ -1541,6 +1735,8 @@ return {
     },
     [3034] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791734585,
       maxLevel = 60,
       minLevel = 60,
@@ -1584,6 +1780,8 @@ return {
     },
     [3036] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791734569,
       maxLevel = 40,
       minLevel = 40,
@@ -1603,6 +1801,8 @@ return {
     },
     [3037] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791783106,
       maxLevel = 30,
       minLevel = 30,
@@ -1617,6 +1817,8 @@ return {
     },
     [3038] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791735152,
       maxLevel = 50,
       minLevel = 50,
@@ -1634,6 +1836,8 @@ return {
     },
     [3039] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791735632,
       maxLevel = 60,
       minLevel = 60,
@@ -1650,6 +1854,8 @@ return {
     },
     [3040] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791734968,
       maxLevel = 40,
       minLevel = 40,
@@ -1668,6 +1874,8 @@ return {
     },
     [3041] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791735638,
       maxLevel = 50,
       minLevel = 50,
@@ -1687,6 +1895,8 @@ return {
     },
     [3042] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791735633,
       maxLevel = 60,
       minLevel = 60,
@@ -1704,6 +1914,8 @@ return {
     },
     [3043] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791735826,
       maxLevel = 40,
       minLevel = 40,
@@ -1722,6 +1934,8 @@ return {
     },
     [3044] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791626673,
       maxLevel = 40,
       minLevel = 40,
@@ -1796,6 +2010,8 @@ return {
     },
     [3052] = {
       build = "70205",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791352106,
       maxLevel = 21,
       minLevel = 21,
@@ -1811,6 +2027,8 @@ return {
     },
     [3055] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791343644,
       maxLevel = 10,
       minLevel = 10,
@@ -1825,6 +2043,8 @@ return {
     },
     [3057] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791379556,
       name = "Cairne Bloodhoof",
       npcFlags = 2,
@@ -1856,6 +2076,8 @@ return {
     },
     [3059] = {
       build = "70205",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791191295,
       maxLevel = 10,
       minLevel = 10,
@@ -1884,6 +2106,8 @@ return {
     },
     [3063] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791352185,
       maxLevel = 14,
       minLevel = 14,
@@ -1901,6 +2125,8 @@ return {
     },
     [3064] = {
       build = "70205",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791343561,
       maxLevel = 12,
       minLevel = 12,
@@ -1916,6 +2142,8 @@ return {
     },
     [3065] = {
       build = "70205",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791203788,
       maxLevel = 11,
       minLevel = 11,
@@ -1931,6 +2159,8 @@ return {
     },
     [3066] = {
       build = "70205",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791343564,
       maxLevel = 13,
       minLevel = 13,
@@ -1946,6 +2176,8 @@ return {
     },
     [3067] = {
       build = "70205",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791213177,
       maxLevel = 12,
       minLevel = 12,
@@ -1961,6 +2193,8 @@ return {
     },
     [3069] = {
       build = "70205",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791213179,
       maxLevel = 23,
       minLevel = 23,
@@ -1976,6 +2210,8 @@ return {
     },
     [3072] = {
       build = "70205",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791191349,
       maxLevel = 8,
       minLevel = 8,
@@ -1991,6 +2227,8 @@ return {
     },
     [3073] = {
       build = "70205",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791191263,
       maxLevel = 9,
       minLevel = 9,
@@ -2006,6 +2244,8 @@ return {
     },
     [3074] = {
       build = "70205",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791191382,
       maxLevel = 7,
       minLevel = 7,
@@ -2021,6 +2261,8 @@ return {
     },
     [3075] = {
       build = "70205",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791191379,
       maxLevel = 10,
       minLevel = 10,
@@ -2036,6 +2278,8 @@ return {
     },
     [3076] = {
       build = "70205",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791213184,
       maxLevel = 12,
       minLevel = 12,
@@ -2051,6 +2295,8 @@ return {
     },
     [3077] = {
       build = "70205",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791343589,
       maxLevel = 11,
       minLevel = 11,
@@ -2067,6 +2313,8 @@ return {
     },
     [3078] = {
       build = "70205",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791213171,
       maxLevel = 10,
       minLevel = 10,
@@ -2082,6 +2330,8 @@ return {
     },
     [3079] = {
       build = "70205",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791343632,
       maxLevel = 14,
       minLevel = 14,
@@ -2097,6 +2347,8 @@ return {
     },
     [3080] = {
       build = "70205",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791343624,
       maxLevel = 13,
       minLevel = 13,
@@ -2112,6 +2364,8 @@ return {
     },
     [3081] = {
       build = "70205",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791343635,
       maxLevel = 10,
       minLevel = 10,
@@ -2127,6 +2381,8 @@ return {
     },
     [3083] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791735714,
       maxLevel = 60,
       minLevel = 60,
@@ -2145,6 +2401,8 @@ return {
     },
     [3084] = {
       build = "70205",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791803104,
       maxLevel = 55,
       minLevel = 55,
@@ -2651,6 +2909,8 @@ return {
     },
     [3139] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791389185,
       maxLevel = 10,
       minLevel = 10,
@@ -2665,6 +2925,8 @@ return {
     },
     [3140] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791384920,
       maxLevel = 7,
       minLevel = 7,
@@ -2682,6 +2944,8 @@ return {
     },
     [3142] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791389180,
       maxLevel = 18,
       minLevel = 18,
@@ -2696,6 +2960,8 @@ return {
     },
     [3145] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791385249,
       maxLevel = 12,
       minLevel = 12,
@@ -2710,6 +2976,8 @@ return {
     },
     [3149] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791375442,
       maxLevel = 45,
       minLevel = 45,
@@ -2724,6 +2992,8 @@ return {
     },
     [3153] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791385258,
       maxLevel = 11,
       minLevel = 11,
@@ -2740,6 +3010,8 @@ return {
     },
     [3154] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791385261,
       maxLevel = 8,
       minLevel = 8,
@@ -2755,6 +3027,8 @@ return {
     },
     [3157] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791385266,
       maxLevel = 10,
       minLevel = 10,
@@ -2770,6 +3044,8 @@ return {
     },
     [3158] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791385278,
       maxLevel = 10,
       minLevel = 10,
@@ -2785,6 +3061,8 @@ return {
     },
     [3164] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791386578,
       maxLevel = 14,
       minLevel = 14,
@@ -2800,6 +3078,8 @@ return {
     },
     [3169] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791387380,
       maxLevel = 43,
       minLevel = 43,
@@ -2816,6 +3096,8 @@ return {
     },
     [3170] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791387342,
       maxLevel = 14,
       minLevel = 14,
@@ -2831,6 +3113,8 @@ return {
     },
     [3171] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791386481,
       maxLevel = 16,
       minLevel = 16,
@@ -2846,6 +3130,8 @@ return {
     },
     [3173] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791387367,
       maxLevel = 15,
       minLevel = 15,
@@ -2861,6 +3147,8 @@ return {
     },
     [3184] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791385103,
       maxLevel = 25,
       minLevel = 25,
@@ -2877,6 +3165,8 @@ return {
     },
     [3185] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791385096,
       maxLevel = 14,
       minLevel = 14,
@@ -2892,6 +3182,8 @@ return {
     },
     [3186] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791385005,
       maxLevel = 11,
       minLevel = 11,
@@ -2907,6 +3199,8 @@ return {
     },
     [3187] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791385120,
       maxLevel = 12,
       minLevel = 12,
@@ -2922,6 +3216,8 @@ return {
     },
     [3188] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791385139,
       maxLevel = 12,
       minLevel = 12,
@@ -2952,6 +3248,8 @@ return {
     },
     [3194] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791384872,
       maxLevel = 7,
       minLevel = 7,
@@ -3034,6 +3332,8 @@ return {
     },
     [3212] = {
       build = "70205",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791343577,
       maxLevel = 14,
       minLevel = 14,
@@ -3048,6 +3348,8 @@ return {
     },
     [3215] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791350020,
       maxLevel = 14,
       minLevel = 14,
@@ -3062,6 +3364,8 @@ return {
     },
     [3216] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791643933,
       maxLevel = 37,
       minLevel = 37,
@@ -3077,6 +3381,8 @@ return {
     },
     [3221] = {
       build = "70205",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791203920,
       maxLevel = 14,
       minLevel = 14,
@@ -3090,6 +3396,8 @@ return {
     },
     [3222] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791352100,
       maxLevel = 14,
       minLevel = 14,
@@ -3105,6 +3413,8 @@ return {
     },
     [3224] = {
       build = "70205",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791213202,
       maxLevel = 14,
       minLevel = 14,
@@ -3170,6 +3480,8 @@ return {
     },
     [3233] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791345480,
       maxLevel = 8,
       minLevel = 8,
@@ -4287,6 +4599,8 @@ return {
     },
     [3296] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791644086,
       maxLevel = 55,
       minLevel = 55,
@@ -4318,6 +4632,8 @@ return {
     },
     [3297] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791385103,
       maxLevel = 30,
       minLevel = 26,
@@ -4335,6 +4651,8 @@ return {
     },
     [3304] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791385099,
       maxLevel = 11,
       minLevel = 11,
@@ -4351,6 +4669,8 @@ return {
     },
     [3310] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791626273,
       maxLevel = 55,
       minLevel = 55,
@@ -4367,6 +4687,8 @@ return {
     },
     [3336] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791389200,
       maxLevel = 30,
       minLevel = 30,
@@ -4381,6 +4703,8 @@ return {
     },
     [3337] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791389395,
       maxLevel = 15,
       minLevel = 15,
@@ -4397,6 +4721,8 @@ return {
     },
     [3338] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791434306,
       maxLevel = 60,
       minLevel = 60,
@@ -4427,6 +4753,8 @@ return {
     },
     [3361] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791353424,
       maxLevel = 30,
       minLevel = 30,
@@ -4597,6 +4925,8 @@ return {
     },
     [3387] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791726668,
       maxLevel = 32,
       minLevel = 32,
@@ -4612,6 +4942,8 @@ return {
     },
     [3388] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791733202,
       maxLevel = 32,
       minLevel = 32,
@@ -4671,6 +5003,8 @@ return {
     },
     [3411] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791781531,
       maxLevel = 25,
       minLevel = 25,
@@ -4718,6 +5052,8 @@ return {
     },
     [3418] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791726535,
       maxLevel = 22,
       minLevel = 22,
@@ -4811,6 +5147,8 @@ return {
     },
     [3428] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791730836,
       maxLevel = 12,
       minLevel = 12,
@@ -4826,6 +5164,8 @@ return {
     },
     [3429] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791721416,
       maxLevel = 42,
       minLevel = 42,
@@ -4840,6 +5180,8 @@ return {
     },
     [3430] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791726536,
       maxLevel = 17,
       minLevel = 17,
@@ -4855,6 +5197,8 @@ return {
     },
     [3431] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791725747,
       maxLevel = 10,
       minLevel = 10,
@@ -4871,6 +5215,8 @@ return {
     },
     [3432] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791802361,
       maxLevel = 15,
       minLevel = 15,
@@ -4886,6 +5232,8 @@ return {
     },
     [3433] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791725549,
       maxLevel = 14,
       minLevel = 14,
@@ -4915,6 +5263,8 @@ return {
     },
     [3441] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791735644,
       maxLevel = 62,
       minLevel = 62,
@@ -4936,6 +5286,8 @@ return {
     },
     [3442] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791792314,
       maxLevel = 15,
       minLevel = 15,
@@ -4951,6 +5303,8 @@ return {
     },
     [3443] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791629815,
       maxLevel = 13,
       minLevel = 13,
@@ -4979,6 +5333,8 @@ return {
     },
     [3447] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791626719,
       maxLevel = 24,
       minLevel = 24,
@@ -4993,6 +5349,8 @@ return {
     },
     [3448] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791802346,
       maxLevel = 22,
       minLevel = 22,
@@ -5007,6 +5365,8 @@ return {
     },
     [3449] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791649201,
       maxLevel = 14,
       minLevel = 14,
@@ -5118,6 +5478,8 @@ return {
     },
     [3464] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791730848,
       maxLevel = 25,
       minLevel = 25,
@@ -5133,6 +5495,8 @@ return {
     },
     [3465] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791791754,
       maxLevel = 17,
       minLevel = 17,
@@ -5235,6 +5599,8 @@ return {
     },
     [3477] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791641364,
       maxLevel = 18,
       minLevel = 18,
@@ -5251,6 +5617,8 @@ return {
     },
     [3478] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791712307,
       maxLevel = 31,
       minLevel = 31,
@@ -5267,6 +5635,8 @@ return {
     },
     [3479] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791641501,
       maxLevel = 35,
       minLevel = 35,
@@ -5284,6 +5654,8 @@ return {
     },
     [3480] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791802850,
       maxLevel = 18,
       minLevel = 18,
@@ -5301,6 +5673,8 @@ return {
     },
     [3481] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791725787,
       maxLevel = 14,
       minLevel = 14,
@@ -5318,6 +5692,8 @@ return {
     },
     [3482] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791730847,
       maxLevel = 14,
       minLevel = 14,
@@ -5335,6 +5711,8 @@ return {
     },
     [3483] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791712310,
       maxLevel = 21,
       minLevel = 21,
@@ -5351,6 +5729,8 @@ return {
     },
     [3484] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791372181,
       maxLevel = 25,
       minLevel = 25,
@@ -5366,6 +5746,8 @@ return {
     },
     [3486] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791434360,
       maxLevel = 19,
       minLevel = 19,
@@ -5381,6 +5763,8 @@ return {
     },
     [3487] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791802347,
       maxLevel = 23,
       minLevel = 23,
@@ -5396,6 +5780,8 @@ return {
     },
     [3488] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791721114,
       maxLevel = 16,
       minLevel = 16,
@@ -5412,6 +5798,8 @@ return {
     },
     [3489] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791394720,
       maxLevel = 16,
       minLevel = 16,
@@ -5427,6 +5815,8 @@ return {
     },
     [3490] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791802840,
       maxLevel = 30,
       minLevel = 30,
@@ -5518,6 +5908,8 @@ return {
     },
     [3501] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791802369,
       maxLevel = 40,
       minLevel = 40,
@@ -5586,6 +5978,8 @@ return {
     },
     [3521] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791376935,
       maxLevel = 22,
       minLevel = 22,
@@ -5640,6 +6034,8 @@ return {
     },
     [3572] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791793222,
       maxLevel = 22,
       minLevel = 22,
@@ -5655,6 +6051,8 @@ return {
     },
     [3615] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791802846,
       maxLevel = 55,
       minLevel = 55,
@@ -5673,6 +6071,8 @@ return {
     },
     [3620] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791386479,
       maxLevel = 40,
       minLevel = 40,
@@ -5688,6 +6088,8 @@ return {
     },
     [3624] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791375361,
       maxLevel = 40,
       minLevel = 40,
@@ -5813,6 +6215,8 @@ return {
     },
     [3658] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791630144,
       maxLevel = 19,
       minLevel = 19,
@@ -5878,6 +6282,8 @@ return {
     },
     [3688] = {
       build = "70205",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791350012,
       maxLevel = 40,
       minLevel = 40,
@@ -5893,6 +6299,8 @@ return {
     },
     [3703] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791352409,
       maxLevel = 42,
       minLevel = 42,
@@ -5908,6 +6316,8 @@ return {
     },
     [3704] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791352416,
       maxLevel = 31,
       minLevel = 31,
@@ -5923,6 +6333,8 @@ return {
     },
     [3705] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791726407,
       maxLevel = 25,
       minLevel = 25,
@@ -5938,6 +6350,8 @@ return {
     },
     [3706] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791387366,
       maxLevel = 18,
       minLevel = 18,
@@ -5953,6 +6367,8 @@ return {
     },
     [3707] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791385270,
       maxLevel = 10,
       minLevel = 10,
@@ -5968,6 +6384,8 @@ return {
     },
     [3882] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791385283,
       maxLevel = 9,
       minLevel = 9,
@@ -5997,6 +6415,8 @@ return {
     },
     [3934] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791730803,
       maxLevel = 30,
       minLevel = 30,
@@ -6167,6 +6587,8 @@ return {
     },
     [3995] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791781505,
       maxLevel = 25,
       minLevel = 25,
@@ -6298,6 +6720,8 @@ return {
     },
     [4043] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791353429,
       maxLevel = 8,
       minLevel = 8,
@@ -6313,6 +6737,8 @@ return {
     },
     [4046] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791783112,
       maxLevel = 62,
       minLevel = 62,
@@ -6330,6 +6756,8 @@ return {
     },
     [4049] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791781401,
       maxLevel = 26,
       minLevel = 26,
@@ -6402,6 +6830,8 @@ return {
     },
     [4082] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791781863,
       maxLevel = 32,
       minLevel = 32,
@@ -6530,6 +6960,8 @@ return {
     },
     [4197] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791781536,
       maxLevel = 20,
       minLevel = 20,
@@ -6544,6 +6976,8 @@ return {
     },
     [4198] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791782117,
       maxLevel = 30,
       minLevel = 30,
@@ -6560,6 +6994,8 @@ return {
     },
     [4201] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791780231,
       maxLevel = 20,
       minLevel = 20,
@@ -6611,6 +7047,8 @@ return {
     },
     [4309] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791783117,
       maxLevel = 62,
       minLevel = 62,
@@ -6627,6 +7065,8 @@ return {
     },
     [4310] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791783112,
       maxLevel = 62,
       minLevel = 62,
@@ -6644,6 +7084,8 @@ return {
     },
     [4311] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791375807,
       maxLevel = 30,
       minLevel = 30,
@@ -6657,6 +7099,8 @@ return {
     },
     [4312] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791782132,
       maxLevel = 55,
       minLevel = 55,
@@ -6857,6 +7301,8 @@ return {
     },
     [4500] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791729200,
       maxLevel = 45,
       minLevel = 45,
@@ -6871,6 +7317,8 @@ return {
     },
     [4501] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791729185,
       maxLevel = 40,
       minLevel = 40,
@@ -6886,6 +7334,8 @@ return {
     },
     [4502] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791729428,
       maxLevel = 44,
       minLevel = 44,
@@ -6930,6 +7380,8 @@ return {
     },
     [4600] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791640640,
       maxLevel = 30,
       minLevel = 30,
@@ -6946,6 +7398,8 @@ return {
     },
     [4601] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791640667,
       maxLevel = 30,
       minLevel = 30,
@@ -6961,6 +7415,8 @@ return {
     },
     [4602] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791640651,
       maxLevel = 30,
       minLevel = 30,
@@ -6977,6 +7433,8 @@ return {
     },
     [4604] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791640688,
       maxLevel = 30,
       minLevel = 30,
@@ -7023,6 +7481,8 @@ return {
     },
     [4615] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791644697,
       maxLevel = 30,
       minLevel = 30,
@@ -7074,6 +7534,8 @@ return {
     },
     [4721] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791735717,
       maxLevel = 25,
       minLevel = 25,
@@ -7104,6 +7566,8 @@ return {
     },
     [4791] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791729228,
       maxLevel = 48,
       minLevel = 48,
@@ -7120,6 +7584,8 @@ return {
     },
     [4879] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791729170,
       maxLevel = 40,
       minLevel = 40,
@@ -7136,6 +7602,8 @@ return {
     },
     [4883] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791729407,
       maxLevel = 43,
       minLevel = 43,
@@ -7154,6 +7622,8 @@ return {
     },
     [4884] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791729201,
       maxLevel = 43,
       minLevel = 43,
@@ -7169,6 +7639,8 @@ return {
     },
     [4926] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791729200,
       maxLevel = 40,
       minLevel = 40,
@@ -7184,6 +7656,8 @@ return {
     },
     [4943] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791734932,
       maxLevel = 30,
       minLevel = 30,
@@ -7200,6 +7674,8 @@ return {
     },
     [4949] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791361479,
       name = "Thrall",
       npcFlags = 2,
@@ -7214,6 +7690,8 @@ return {
     },
     [5054] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791342349,
       maxLevel = 50,
       minLevel = 50,
@@ -7229,6 +7707,8 @@ return {
     },
     [5087] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791729404,
       maxLevel = 30,
       minLevel = 30,
@@ -7244,6 +7724,8 @@ return {
     },
     [5189] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791342349,
       maxLevel = 25,
       minLevel = 25,
@@ -7275,6 +7757,8 @@ return {
     },
     [5599] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791734943,
       maxLevel = 25,
       minLevel = 25,
@@ -7292,6 +7776,8 @@ return {
     },
     [5603] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791353280,
       maxLevel = 38,
       minLevel = 38,
@@ -7451,6 +7937,8 @@ return {
     },
     [5698] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791644728,
       maxLevel = 40,
       minLevel = 40,
@@ -7495,6 +7983,8 @@ return {
     },
     [5765] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791385265,
       maxLevel = 10,
       minLevel = 10,
@@ -7522,6 +8012,8 @@ return {
     },
     [5767] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791802003,
       maxLevel = 14,
       minLevel = 14,
@@ -7537,6 +8029,8 @@ return {
     },
     [5768] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791802007,
       maxLevel = 14,
       minLevel = 14,
@@ -7552,6 +8046,8 @@ return {
     },
     [5769] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791734573,
       maxLevel = 62,
       minLevel = 62,
@@ -7568,6 +8064,8 @@ return {
     },
     [5770] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791803139,
       maxLevel = 55,
       minLevel = 55,
@@ -7585,6 +8083,8 @@ return {
     },
     [5774] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791641364,
       maxLevel = 2,
       minLevel = 1,
@@ -7630,6 +8130,8 @@ return {
     },
     [5783] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791802006,
       maxLevel = 27,
       minLevel = 27,
@@ -7645,6 +8147,8 @@ return {
     },
     [5784] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791801830,
       maxLevel = 28,
       minLevel = 28,
@@ -7743,6 +8247,8 @@ return {
     },
     [5810] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791389426,
       maxLevel = 20,
       minLevel = 20,
@@ -7758,6 +8264,8 @@ return {
     },
     [5814] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791375414,
       maxLevel = 30,
       minLevel = 30,
@@ -7829,6 +8337,8 @@ return {
     },
     [5870] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791781883,
       maxLevel = 27,
       minLevel = 27,
@@ -7844,6 +8354,8 @@ return {
     },
     [5871] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791634856,
       maxLevel = 18,
       minLevel = 18,
@@ -7859,6 +8371,8 @@ return {
     },
     [5878] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791730978,
       maxLevel = 29,
       minLevel = 29,
@@ -7873,6 +8387,8 @@ return {
     },
     [5880] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791384891,
       maxLevel = 14,
       minLevel = 14,
@@ -7888,6 +8404,8 @@ return {
     },
     [5884] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791385266,
       maxLevel = 10,
       minLevel = 10,
@@ -7903,6 +8421,8 @@ return {
     },
     [5901] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791733217,
       maxLevel = 37,
       minLevel = 37,
@@ -7917,6 +8437,8 @@ return {
     },
     [5906] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791734695,
       maxLevel = 15,
       minLevel = 15,
@@ -7931,6 +8453,8 @@ return {
     },
     [5907] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791394304,
       maxLevel = 15,
       minLevel = 15,
@@ -7945,6 +8469,8 @@ return {
     },
     [5911] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791725500,
       maxLevel = 20,
       minLevel = 20,
@@ -7974,6 +8500,8 @@ return {
     },
     [5938] = {
       build = "70205",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791202308,
       maxLevel = 14,
       minLevel = 14,
@@ -7989,6 +8517,8 @@ return {
     },
     [5939] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791352115,
       maxLevel = 13,
       minLevel = 13,
@@ -8004,6 +8534,8 @@ return {
     },
     [5940] = {
       build = "70205",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791198392,
       maxLevel = 9,
       minLevel = 9,
@@ -8019,6 +8551,8 @@ return {
     },
     [5941] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791380833,
       maxLevel = 14,
       minLevel = 14,
@@ -8035,6 +8569,8 @@ return {
     },
     [5942] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791384904,
       maxLevel = 14,
       minLevel = 14,
@@ -8050,6 +8586,8 @@ return {
     },
     [5944] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791352418,
       maxLevel = 25,
       minLevel = 25,
@@ -8065,6 +8603,8 @@ return {
     },
     [5952] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791385307,
       maxLevel = 55,
       minLevel = 55,
@@ -8084,6 +8624,8 @@ return {
     },
     [5953] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791389207,
       maxLevel = 32,
       minLevel = 29,
@@ -8149,6 +8691,8 @@ return {
     },
     [6290] = {
       build = "70205",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791213180,
       maxLevel = 8,
       minLevel = 8,
@@ -8164,6 +8708,8 @@ return {
     },
     [6387] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791725552,
       maxLevel = 15,
       minLevel = 15,
@@ -8179,6 +8725,8 @@ return {
     },
     [6393] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791735648,
       maxLevel = 62,
       minLevel = 62,
@@ -8198,6 +8746,8 @@ return {
     },
     [6394] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791726400,
       maxLevel = 30,
       minLevel = 30,
@@ -8212,6 +8762,8 @@ return {
     },
     [6408] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791380906,
       maxLevel = 35,
       minLevel = 35,
@@ -8226,6 +8778,8 @@ return {
     },
     [6410] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791353768,
       maxLevel = 45,
       minLevel = 45,
@@ -8253,6 +8807,8 @@ return {
     },
     [6491] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791797633,
       maxLevel = 60,
       minLevel = 60,
@@ -8306,6 +8862,8 @@ return {
     },
     [6567] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791729226,
       maxLevel = 43,
       minLevel = 43,
@@ -8322,6 +8880,8 @@ return {
     },
     [6746] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791645350,
       maxLevel = 30,
       minLevel = 30,
@@ -8337,6 +8897,8 @@ return {
     },
     [6747] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791352120,
       maxLevel = 30,
       minLevel = 30,
@@ -8352,6 +8914,8 @@ return {
     },
     [6776] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791352113,
       maxLevel = 6,
       minLevel = 6,
@@ -8366,6 +8930,8 @@ return {
     },
     [6786] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791386308,
       maxLevel = 4,
       minLevel = 4,
@@ -8396,6 +8962,8 @@ return {
     },
     [6928] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791386539,
       maxLevel = 30,
       minLevel = 30,
@@ -8411,6 +8979,8 @@ return {
     },
     [7089] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791772856,
       maxLevel = 35,
       minLevel = 35,
@@ -8426,6 +8996,8 @@ return {
     },
     [7427] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791735649,
       maxLevel = 61,
       minLevel = 61,
@@ -8446,6 +9018,8 @@ return {
     },
     [7485] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791375331,
       maxLevel = 40,
       minLevel = 40,
@@ -8461,6 +9035,8 @@ return {
     },
     [7714] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791725554,
       maxLevel = 30,
       minLevel = 30,
@@ -8476,6 +9052,8 @@ return {
     },
     [7730] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791782017,
       maxLevel = 40,
       minLevel = 40,
@@ -8498,6 +9076,8 @@ return {
     },
     [7731] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791782001,
       maxLevel = 30,
       minLevel = 30,
@@ -8513,6 +9093,8 @@ return {
     },
     [7790] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791353443,
       maxLevel = 45,
       minLevel = 45,
@@ -8527,6 +9109,8 @@ return {
     },
     [7952] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791380880,
       maxLevel = 45,
       minLevel = 45,
@@ -8541,6 +9125,8 @@ return {
     },
     [7953] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791384800,
       maxLevel = 50,
       minLevel = 50,
@@ -8557,6 +9143,8 @@ return {
     },
     [8016] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791782238,
       maxLevel = 40,
       minLevel = 40,
@@ -8585,6 +9173,8 @@ return {
     },
     [8306] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791355911,
       maxLevel = 18,
       minLevel = 18,
@@ -8600,6 +9190,8 @@ return {
     },
     [8307] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791629806,
       maxLevel = 22,
       minLevel = 22,
@@ -8615,6 +9207,8 @@ return {
     },
     [8356] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791637215,
       maxLevel = 45,
       minLevel = 45,
@@ -8630,6 +9224,8 @@ return {
     },
     [8358] = {
       build = "70205",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791215560,
       maxLevel = 30,
       minLevel = 30,
@@ -8646,6 +9242,8 @@ return {
     },
     [8359] = {
       build = "70205",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791379370,
       maxLevel = 30,
       minLevel = 30,
@@ -8663,6 +9261,8 @@ return {
     },
     [8360] = {
       build = "70205",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791379370,
       maxLevel = 30,
       minLevel = 30,
@@ -8678,6 +9278,8 @@ return {
     },
     [8361] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791622766,
       maxLevel = 30,
       minLevel = 30,
@@ -8696,6 +9298,8 @@ return {
     },
     [8362] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791379706,
       maxLevel = 30,
       minLevel = 30,
@@ -8713,6 +9317,8 @@ return {
     },
     [8363] = {
       build = "70205",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791379696,
       maxLevel = 30,
       minLevel = 30,
@@ -8730,6 +9336,8 @@ return {
     },
     [8364] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791379703,
       maxLevel = 30,
       minLevel = 30,
@@ -8746,6 +9354,8 @@ return {
     },
     [8398] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791379619,
       maxLevel = 30,
       minLevel = 30,
@@ -8762,6 +9372,8 @@ return {
     },
     [8401] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791735684,
       maxLevel = 30,
       minLevel = 30,
@@ -8777,6 +9389,8 @@ return {
     },
     [8418] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791721488,
       maxLevel = 25,
       minLevel = 25,
@@ -8806,6 +9420,8 @@ return {
     },
     [8664] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791734911,
       maxLevel = 50,
       minLevel = 50,
@@ -8822,6 +9438,8 @@ return {
     },
     [8673] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791376376,
       maxLevel = 50,
       minLevel = 50,
@@ -8836,6 +9454,8 @@ return {
     },
     [8674] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791784011,
       maxLevel = 50,
       minLevel = 50,
@@ -8856,6 +9476,8 @@ return {
     },
     [8722] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791428065,
       maxLevel = 50,
       minLevel = 50,
@@ -8871,6 +9493,8 @@ return {
     },
     [9087] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791645060,
       maxLevel = 35,
       minLevel = 35,
@@ -8884,6 +9508,8 @@ return {
     },
     [9549] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791782098,
       maxLevel = 30,
       minLevel = 30,
@@ -8900,6 +9526,8 @@ return {
     },
     [9552] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791729233,
       maxLevel = 43,
       minLevel = 43,
@@ -8916,6 +9544,8 @@ return {
     },
     [9558] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791802570,
       maxLevel = 45,
       minLevel = 45,
@@ -8931,6 +9561,8 @@ return {
     },
     [9564] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791640212,
       maxLevel = 45,
       minLevel = 45,
@@ -8945,6 +9577,8 @@ return {
     },
     [9796] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791385274,
       maxLevel = 8,
       minLevel = 8,
@@ -8959,6 +9593,8 @@ return {
     },
     [9856] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791376092,
       maxLevel = 50,
       minLevel = 50,
@@ -8973,6 +9609,8 @@ return {
     },
     [9981] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791641364,
       maxLevel = 30,
       minLevel = 30,
@@ -8989,6 +9627,8 @@ return {
     },
     [9983] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791725544,
       maxLevel = 30,
       minLevel = 30,
@@ -9004,6 +9644,8 @@ return {
     },
     [10036] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791729402,
       maxLevel = 55,
       minLevel = 55,
@@ -9022,6 +9664,8 @@ return {
     },
     [10048] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791781986,
       maxLevel = 30,
       minLevel = 30,
@@ -9038,6 +9682,8 @@ return {
     },
     [10050] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791352106,
       maxLevel = 30,
       minLevel = 30,
@@ -9053,6 +9699,8 @@ return {
     },
     [10054] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791772960,
       maxLevel = 30,
       minLevel = 30,
@@ -9104,6 +9752,8 @@ return {
     },
     [10086] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791734926,
       maxLevel = 40,
       minLevel = 40,
@@ -9121,6 +9771,8 @@ return {
     },
     [10176] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791385245,
       maxLevel = 20,
       minLevel = 20,
@@ -9135,6 +9787,8 @@ return {
     },
     [10278] = {
       build = "70205",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791734026,
       maxLevel = 24,
       minLevel = 24,
@@ -9168,6 +9822,8 @@ return {
     },
     [10369] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791385124,
       maxLevel = 12,
       minLevel = 12,
@@ -9183,6 +9839,8 @@ return {
     },
     [10378] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791726534,
       maxLevel = 55,
       minLevel = 55,
@@ -9198,6 +9856,8 @@ return {
     },
     [10380] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791725566,
       maxLevel = 15,
       minLevel = 15,
@@ -9213,6 +9873,8 @@ return {
     },
     [10578] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791385083,
       maxLevel = 8,
       minLevel = 8,
@@ -9228,6 +9890,8 @@ return {
     },
     [10600] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791352185,
       maxLevel = 11,
       minLevel = 11,
@@ -9242,6 +9906,8 @@ return {
     },
     [10636] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791648103,
       maxLevel = 30,
       minLevel = 30,
@@ -9255,6 +9921,8 @@ return {
     },
     [10668] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791634373,
       maxLevel = 16,
       minLevel = 16,
@@ -9268,6 +9936,8 @@ return {
     },
     [10676] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791386177,
       maxLevel = 35,
       minLevel = 35,
@@ -9282,6 +9952,8 @@ return {
     },
     [10682] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791386171,
       maxLevel = 35,
       minLevel = 35,
@@ -9296,6 +9968,8 @@ return {
     },
     [10721] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791352185,
       maxLevel = 6,
       minLevel = 5,
@@ -9324,6 +9998,8 @@ return {
     },
     [10880] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791644010,
       maxLevel = 3,
       minLevel = 3,
@@ -9338,6 +10014,8 @@ return {
     },
     [10881] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791734008,
       maxLevel = 3,
       minLevel = 3,
@@ -9364,6 +10042,8 @@ return {
     },
     [10993] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791347930,
       maxLevel = 25,
       minLevel = 25,
@@ -9379,6 +10059,8 @@ return {
     },
     [11748] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791373796,
       maxLevel = 40,
       minLevel = 40,
@@ -9393,6 +10075,8 @@ return {
     },
     [11814] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791385118,
       maxLevel = 12,
       minLevel = 12,
@@ -9407,6 +10091,8 @@ return {
     },
     [11821] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791781536,
       maxLevel = 30,
       minLevel = 30,
@@ -9422,6 +10108,8 @@ return {
     },
     [11833] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791783111,
       maxLevel = 20,
       minLevel = 20,
@@ -9442,6 +10130,8 @@ return {
     },
     [11856] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791432909,
       maxLevel = 15,
       minLevel = 15,
@@ -9461,6 +10151,8 @@ return {
     },
     [11857] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791781407,
       maxLevel = 25,
       minLevel = 25,
@@ -9490,6 +10182,8 @@ return {
     },
     [11860] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791781988,
       maxLevel = 30,
       minLevel = 30,
@@ -9507,6 +10201,8 @@ return {
     },
     [11861] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791781802,
       maxLevel = 25,
       minLevel = 25,
@@ -9521,6 +10217,8 @@ return {
     },
     [11862] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791773371,
       maxLevel = 25,
       minLevel = 25,
@@ -9535,6 +10233,8 @@ return {
     },
     [11864] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791781982,
       maxLevel = 25,
       minLevel = 25,
@@ -9551,6 +10251,8 @@ return {
     },
     [11868] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791353428,
       maxLevel = 50,
       minLevel = 50,
@@ -9566,6 +10268,8 @@ return {
     },
     [11869] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791379668,
       maxLevel = 50,
       minLevel = 50,
@@ -9586,6 +10290,8 @@ return {
     },
     [11870] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791644743,
       maxLevel = 50,
       minLevel = 50,
@@ -9603,6 +10309,8 @@ return {
     },
     [11871] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791353425,
       maxLevel = 48,
       minLevel = 48,
@@ -9617,6 +10325,8 @@ return {
     },
     [11899] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791729126,
       maxLevel = 55,
       minLevel = 55,
@@ -9839,6 +10549,8 @@ return {
     },
     [11943] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791385250,
       maxLevel = 5,
       minLevel = 5,
@@ -9853,6 +10565,8 @@ return {
     },
     [12034] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791721044,
       maxLevel = 60,
       minLevel = 60,
@@ -9867,6 +10581,8 @@ return {
     },
     [12043] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791782100,
       maxLevel = 32,
       minLevel = 32,
@@ -9884,6 +10600,8 @@ return {
     },
     [12136] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791640175,
       maxLevel = 45,
       minLevel = 45,
@@ -9899,6 +10617,8 @@ return {
     },
     [12137] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791375429,
       maxLevel = 45,
       minLevel = 45,
@@ -9913,6 +10633,8 @@ return {
     },
     [12198] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791626683,
       maxLevel = 61,
       minLevel = 61,
@@ -9928,6 +10650,8 @@ return {
     },
     [12430] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791387315,
       maxLevel = 7,
       minLevel = 7,
@@ -9941,6 +10665,8 @@ return {
     },
     [12816] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791781548,
       maxLevel = 25,
       minLevel = 25,
@@ -9955,6 +10681,8 @@ return {
     },
     [12919] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791730653,
       maxLevel = 45,
       minLevel = 45,
@@ -9969,6 +10697,8 @@ return {
     },
     [13476] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791729171,
       maxLevel = 43,
       minLevel = 43,
@@ -10017,6 +10747,8 @@ return {
     },
     [14242] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791728309,
       maxLevel = 20,
       minLevel = 20,
@@ -10030,6 +10762,8 @@ return {
     },
     [14304] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791361497,
       maxLevel = 60,
       minLevel = 60,
@@ -10045,6 +10779,8 @@ return {
     },
     [14375] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791376223,
       maxLevel = 60,
       minLevel = 60,
@@ -10061,6 +10797,8 @@ return {
     },
     [14392] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791376433,
       maxLevel = 60,
       minLevel = 60,
@@ -10076,6 +10814,8 @@ return {
     },
     [14440] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791783974,
       maxLevel = 60,
       minLevel = 60,
@@ -10096,6 +10836,8 @@ return {
     },
     [14441] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791783175,
       maxLevel = 60,
       minLevel = 60,
@@ -10140,6 +10882,8 @@ return {
     },
     [14781] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791648095,
       maxLevel = 55,
       minLevel = 55,
@@ -10154,6 +10898,8 @@ return {
     },
     [14850] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791629814,
       maxLevel = 1,
       minLevel = 1,
@@ -10167,6 +10913,8 @@ return {
     },
     [14859] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791355927,
       maxLevel = 40,
       minLevel = 40,
@@ -10180,6 +10928,8 @@ return {
     },
     [14873] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791394301,
       maxLevel = 1,
       minLevel = 1,
@@ -10193,6 +10943,8 @@ return {
     },
     [14893] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791354098,
       maxLevel = 40,
       minLevel = 40,
@@ -10206,6 +10958,8 @@ return {
     },
     [14901] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791726531,
       maxLevel = 4,
       minLevel = 4,
@@ -10222,6 +10976,8 @@ return {
     },
     [15076] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791373326,
       maxLevel = 55,
       minLevel = 55,
@@ -10250,6 +11006,8 @@ return {
     },
     [15350] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791734937,
       maxLevel = 60,
       minLevel = 60,
@@ -10313,6 +11071,8 @@ return {
     },
     [16094] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791375387,
       maxLevel = 30,
       minLevel = 30,
@@ -10328,6 +11088,8 @@ return {
     },
     [16096] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791640177,
       maxLevel = 55,
       minLevel = 55,
@@ -10344,6 +11106,8 @@ return {
     },
     [16227] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791802434,
       maxLevel = 55,
       minLevel = 55,
@@ -10372,6 +11136,8 @@ return {
     },
     [205729] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791379706,
       maxLevel = 30,
       minLevel = 30,
@@ -10402,6 +11168,8 @@ return {
     },
     [214954] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791373275,
       maxLevel = 45,
       minLevel = 45,
@@ -10429,6 +11197,8 @@ return {
     },
     [227853] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791373283,
       maxLevel = 60,
       minLevel = 60,
@@ -10443,6 +11213,8 @@ return {
     },
     [246344] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791626672,
       maxLevel = 30,
       minLevel = 30,
@@ -10470,11 +11242,11 @@ return {
     },
     [250868] = {
       build = "70338",
-      lastSeen = 1791809780,
+      lastSeen = 1791816577,
       maxLevel = 6,
       minLevel = 6,
       name = "Vuldren",
-      sightings = 19,
+      sightings = 21,
       spawns = {
         [2521] = {
           { 47.82, 52.98 },
@@ -10491,6 +11263,7 @@ return {
           { 38.38, 43.72 },
           { 42.13, 40.41 },
           { 43.09, 51.39 },
+          { 43.23, 45.95 },
         },
       },
     },
@@ -10758,6 +11531,8 @@ return {
     },
     [251902] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791812629,
       maxLevel = 20,
       minLevel = 20,
@@ -10770,6 +11545,7 @@ return {
           { 43.17, 43.51 },
         },
       },
+      title = "Elder Windshaper",
     },
     [251903] = {
       build = "70338",
@@ -10822,6 +11598,8 @@ return {
     },
     [251906] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791807883,
       maxLevel = 20,
       minLevel = 20,
@@ -10837,12 +11615,13 @@ return {
     },
     [251913] = {
       build = "70338",
-      lastSeen = 1791812718,
+      friendlyToFaction = "AH",
+      lastSeen = 1791817572,
       maxLevel = 20,
       minLevel = 20,
       name = "Aedi Thriceforged",
-      npcFlags = 16,
-      sightings = 15,
+      npcFlags = 16404,
+      sightings = 16,
       spawns = {
         [2521] = {
           { 44.81, 44.37 },
@@ -10850,6 +11629,7 @@ return {
           { 44.24, 44.69 },
         },
       },
+      title = "Blacksmith",
     },
     [251918] = {
       build = "70338",
@@ -10899,12 +11679,13 @@ return {
     },
     [251991] = {
       build = "70338",
-      lastSeen = 1791812717,
+      friendlyToFaction = "AH",
+      lastSeen = 1791817641,
       maxLevel = 20,
       minLevel = 20,
       name = "Taleen Shimmerthread",
-      npcFlags = 16,
-      sightings = 12,
+      npcFlags = 22,
+      sightings = 14,
       spawns = {
         [2521] = {
           { 44.73, 44.45 },
@@ -10912,9 +11693,12 @@ return {
           { 44.12, 45.32 },
         },
       },
+      title = "Tailor",
     },
     [251992] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791809308,
       maxLevel = 5,
       minLevel = 5,
@@ -10927,14 +11711,17 @@ return {
           { 44.41, 46.87 },
         },
       },
+      title = "Fisherman",
     },
     [251993] = {
       build = "70338",
-      lastSeen = 1791813167,
+      friendlyToFaction = "AH",
+      lastSeen = 1791817603,
       maxLevel = 5,
       minLevel = 5,
       name = "Indari Sunseam",
-      sightings = 9,
+      npcFlags = 16404,
+      sightings = 11,
       spawns = {
         [2521] = {
           { 44.84, 44.32 },
@@ -10943,6 +11730,7 @@ return {
           { 44.24, 44.68 },
         },
       },
+      title = "Leatherworker",
     },
     [252068] = {
       build = "70338",
@@ -11015,6 +11803,8 @@ return {
     },
     [252377] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791803909,
       maxLevel = 10,
       minLevel = 10,
@@ -11029,6 +11819,8 @@ return {
     },
     [252379] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791803903,
       maxLevel = 10,
       minLevel = 10,
@@ -11042,6 +11834,8 @@ return {
     },
     [252389] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791803918,
       maxLevel = 10,
       minLevel = 10,
@@ -11055,6 +11849,8 @@ return {
     },
     [252392] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791803828,
       maxLevel = 10,
       minLevel = 10,
@@ -11068,6 +11864,8 @@ return {
     },
     [252449] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791803774,
       maxLevel = 10,
       minLevel = 10,
@@ -11092,6 +11890,20 @@ return {
           { 46.76, 39.19 },
           { 46.9, 38.67 },
           { 46.65, 37.89 },
+        },
+      },
+    },
+    [253474] = {
+      build = "70338",
+      friendlyToFaction = "AH",
+      lastSeen = 1791816568,
+      maxLevel = 10,
+      minLevel = 10,
+      name = "Peacekeeper",
+      sightings = 2,
+      spawns = {
+        [2521] = {
+          { 43.14, 46.35 },
         },
       },
     },
@@ -11184,12 +11996,12 @@ return {
     [254088] = {
       build = "70338",
       friendlyToFaction = "AH",
-      lastSeen = 1791816382,
+      lastSeen = 1791816664,
       maxLevel = 10,
       minLevel = 10,
       name = "Corsan Earthrazer",
       npcFlags = 16,
-      sightings = 50,
+      sightings = 51,
       spawns = {
         [2521] = {
           { 45.27, 45.41 },
@@ -11233,19 +12045,6 @@ return {
         },
       },
     },
-    [254128] = {
-      build = "70338",
-      lastSeen = 1791808921,
-      maxLevel = 1,
-      minLevel = 1,
-      name = "Wardrobe",
-      sightings = 2,
-      spawns = {
-        [2521] = {
-          { 48.97, 53.87 },
-        },
-      },
-    },
     [254344] = {
       build = "70338",
       lastSeen = 1791803548,
@@ -11261,6 +12060,8 @@ return {
     },
     [254345] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791803762,
       maxLevel = 10,
       minLevel = 10,
@@ -11307,6 +12108,8 @@ return {
     },
     [254411] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791803915,
       maxLevel = 10,
       minLevel = 10,
@@ -11361,6 +12164,8 @@ return {
     },
     [256076] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791803927,
       maxLevel = 10,
       minLevel = 10,
@@ -11375,6 +12180,8 @@ return {
     },
     [256083] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791803928,
       maxLevel = 12,
       minLevel = 12,
@@ -11415,6 +12222,8 @@ return {
     },
     [256392] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791721085,
       maxLevel = 60,
       minLevel = 60,
@@ -11429,6 +12238,8 @@ return {
     },
     [256398] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791721068,
       maxLevel = 60,
       minLevel = 60,
@@ -11455,6 +12266,8 @@ return {
     },
     [256518] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791803917,
       maxLevel = 5,
       minLevel = 5,
@@ -11466,16 +12279,17 @@ return {
         },
       },
     },
-    [256571] = {
-      build = "70245",
-      lastSeen = 1791392662,
-      maxLevel = 60,
-      minLevel = 60,
-      name = "Crate of Blacksmithing Goods",
-      sightings = 1,
+    [256930] = {
+      build = "70338",
+      friendlyToFaction = "AH",
+      lastSeen = 1791816564,
+      maxLevel = 10,
+      minLevel = 10,
+      name = "Captured Bandit",
+      sightings = 8,
       spawns = {
-        [1413] = {
-          { 49.87, 29.13 },
+        [2521] = {
+          { 43.17, 45.98 },
         },
       },
     },
@@ -11508,6 +12322,8 @@ return {
     },
     [257003] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791803836,
       maxLevel = 10,
       minLevel = 10,
@@ -11521,6 +12337,8 @@ return {
     },
     [257004] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791803860,
       maxLevel = 10,
       minLevel = 10,
@@ -11534,6 +12352,8 @@ return {
     },
     [257005] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791803801,
       maxLevel = 10,
       minLevel = 10,
@@ -11545,8 +12365,26 @@ return {
         },
       },
     },
+    [257018] = {
+      build = "70338",
+      friendlyToFaction = "AH",
+      lastSeen = 1791816571,
+      maxLevel = 10,
+      minLevel = 10,
+      name = "Naleeia Tattermend",
+      npcFlags = 16,
+      sightings = 4,
+      spawns = {
+        [2521] = {
+          { 43.28, 45.9 },
+        },
+      },
+      title = "Medic",
+    },
     [257019] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791804614,
       maxLevel = 10,
       minLevel = 10,
@@ -11561,12 +12399,12 @@ return {
     [257020] = {
       build = "70338",
       friendlyToFaction = "AH",
-      lastSeen = 1791816432,
+      lastSeen = 1791816614,
       maxLevel = 10,
       minLevel = 10,
       name = "Nasalanna Windsinger",
       npcFlags = 16,
-      sightings = 8,
+      sightings = 9,
       spawns = {
         [2521] = {
           { 43.22, 43.25 },
@@ -11593,28 +12431,30 @@ return {
     },
     [257022] = {
       build = "70338",
-      lastSeen = 1791813170,
+      friendlyToFaction = "AH",
+      lastSeen = 1791817594,
       maxLevel = 10,
       minLevel = 10,
       name = "Messana Crestwind",
-      npcFlags = 16,
-      sightings = 13,
+      npcFlags = 20,
+      sightings = 14,
       spawns = {
         [2521] = {
           { 44.67, 44.45 },
           { 44.28, 45.15 },
         },
       },
+      title = "Miner",
     },
     [257024] = {
       build = "70338",
       friendlyToFaction = "AH",
-      lastSeen = 1791816428,
+      lastSeen = 1791816615,
       maxLevel = 10,
       minLevel = 10,
       name = "Mendalass Tattermend",
       npcFlags = 16,
-      sightings = 10,
+      sightings = 11,
       spawns = {
         [2521] = {
           { 43.09, 43.28 },
@@ -11625,6 +12465,8 @@ return {
     },
     [257036] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791803639,
       maxLevel = 10,
       minLevel = 10,
@@ -11638,6 +12480,8 @@ return {
     },
     [257037] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791803719,
       maxLevel = 10,
       minLevel = 10,
@@ -11664,6 +12508,8 @@ return {
     },
     [257421] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791812674,
       maxLevel = 7,
       minLevel = 7,
@@ -11677,9 +12523,12 @@ return {
           { 44.25, 45.2 },
         },
       },
+      title = "Weapon Merchant",
     },
     [257422] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791803780,
       maxLevel = 10,
       minLevel = 10,
@@ -11713,6 +12562,8 @@ return {
     },
     [257532] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791805304,
       maxLevel = 6,
       minLevel = 5,
@@ -11724,19 +12575,6 @@ return {
           { 39.76, 47.06 },
           { 39.79, 45.7 },
           { 38.36, 47.56 },
-        },
-      },
-    },
-    [258880] = {
-      build = "70245",
-      lastSeen = 1791392662,
-      maxLevel = 60,
-      minLevel = 60,
-      name = "Uninspected Shipment",
-      sightings = 1,
-      spawns = {
-        [1413] = {
-          { 49.87, 29.12 },
         },
       },
     },
@@ -11755,6 +12593,8 @@ return {
     },
     [259118] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791803372,
       name = "Muln Earthfury",
       sightings = 3,
@@ -11780,6 +12620,8 @@ return {
     },
     [259818] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791803944,
       maxLevel = 2,
       minLevel = 2,
@@ -11793,6 +12635,8 @@ return {
     },
     [261366] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791647980,
       maxLevel = 20,
       minLevel = 20,
@@ -11833,6 +12677,8 @@ return {
     },
     [261371] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791624222,
       maxLevel = 35,
       minLevel = 35,
@@ -11877,6 +12723,8 @@ return {
     },
     [262523] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791803424,
       maxLevel = 10,
       minLevel = 10,
@@ -11890,6 +12738,8 @@ return {
     },
     [262558] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791803364,
       maxLevel = 55,
       minLevel = 55,
@@ -11918,6 +12768,8 @@ return {
     },
     [263664] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791810920,
       maxLevel = 12,
       minLevel = 12,
@@ -11931,6 +12783,8 @@ return {
     },
     [264078] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791803334,
       maxLevel = 30,
       minLevel = 30,
@@ -11959,6 +12813,8 @@ return {
     },
     [264850] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791732037,
       maxLevel = 23,
       minLevel = 23,
@@ -11986,6 +12842,8 @@ return {
     },
     [265809] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791387314,
       maxLevel = 12,
       minLevel = 12,
@@ -11999,6 +12857,8 @@ return {
     },
     [265810] = {
       build = "70205",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791212986,
       maxLevel = 12,
       minLevel = 12,
@@ -12084,6 +12944,8 @@ return {
     },
     [266881] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791384907,
       maxLevel = 25,
       minLevel = 25,
@@ -12097,6 +12959,8 @@ return {
     },
     [266940] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791387376,
       maxLevel = 10,
       minLevel = 10,
@@ -12110,6 +12974,8 @@ return {
     },
     [267291] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791384796,
       maxLevel = 1,
       minLevel = 1,
@@ -12123,6 +12989,8 @@ return {
     },
     [267297] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791385085,
       maxLevel = 1,
       minLevel = 1,
@@ -12137,6 +13005,8 @@ return {
     },
     [267298] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791384796,
       maxLevel = 1,
       minLevel = 1,
@@ -12192,6 +13062,8 @@ return {
     },
     [267310] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791639803,
       maxLevel = 40,
       minLevel = 40,
@@ -12223,6 +13095,8 @@ return {
     },
     [267321] = {
       build = "70205",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791191399,
       maxLevel = 8,
       minLevel = 8,
@@ -12236,6 +13110,8 @@ return {
     },
     [267322] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791385241,
       maxLevel = 6,
       minLevel = 6,
@@ -12249,6 +13125,8 @@ return {
     },
     [267329] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791385279,
       maxLevel = 8,
       minLevel = 8,
@@ -12263,6 +13141,8 @@ return {
     },
     [267330] = {
       build = "70205",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791191342,
       maxLevel = 8,
       minLevel = 8,
@@ -12289,6 +13169,8 @@ return {
     },
     [267332] = {
       build = "70205",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791191363,
       maxLevel = 8,
       minLevel = 8,
@@ -12303,6 +13185,8 @@ return {
     },
     [268048] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791803074,
       maxLevel = 30,
       minLevel = 30,
@@ -12354,6 +13238,8 @@ return {
     },
     [268557] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791803416,
       maxLevel = 55,
       minLevel = 55,
@@ -12423,21 +13309,10 @@ return {
         },
       },
     },
-    [268679] = {
-      build = "70338",
-      lastSeen = 1791803542,
-      maxLevel = 1,
-      minLevel = 1,
-      name = "Brazier of Eternal Flame",
-      sightings = 1,
-      spawns = {
-        [2521] = {
-          { 58.09, 79.8 },
-        },
-      },
-    },
     [269068] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791353768,
       maxLevel = 55,
       minLevel = 55,
@@ -12452,6 +13327,8 @@ return {
     },
     [269138] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791782067,
       maxLevel = 1,
       minLevel = 1,
@@ -12467,6 +13344,8 @@ return {
     },
     [269139] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791782106,
       maxLevel = 1,
       minLevel = 1,
@@ -12482,6 +13361,8 @@ return {
     },
     [269140] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791781970,
       maxLevel = 1,
       minLevel = 1,
@@ -12495,6 +13376,8 @@ return {
     },
     [269141] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791781970,
       maxLevel = 1,
       minLevel = 1,
@@ -12509,6 +13392,8 @@ return {
     },
     [269152] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791782106,
       maxLevel = 30,
       minLevel = 30,
@@ -12539,6 +13424,8 @@ return {
     },
     [271465] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791803832,
       maxLevel = 5,
       minLevel = 5,
@@ -12553,6 +13440,8 @@ return {
     },
     [271478] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791803847,
       maxLevel = 5,
       minLevel = 5,
@@ -12567,6 +13456,8 @@ return {
     },
     [271480] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791803803,
       maxLevel = 5,
       minLevel = 5,
@@ -12581,6 +13472,8 @@ return {
     },
     [271483] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791803842,
       maxLevel = 5,
       minLevel = 5,
@@ -12626,6 +13519,8 @@ return {
     },
     [272633] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791803367,
       maxLevel = 60,
       minLevel = 60,
@@ -12640,6 +13535,8 @@ return {
     },
     [274833] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791375980,
       maxLevel = 55,
       minLevel = 55,
@@ -12653,6 +13550,8 @@ return {
     },
     [274834] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791375980,
       maxLevel = 55,
       minLevel = 55,
@@ -12680,6 +13579,8 @@ return {
     },
     [274864] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791735809,
       maxLevel = 55,
       minLevel = 55,
@@ -12724,6 +13625,8 @@ return {
     },
     [275270] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791803538,
       maxLevel = 10,
       minLevel = 10,
@@ -12737,6 +13640,8 @@ return {
     },
     [275657] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791387940,
       maxLevel = 9,
       minLevel = 9,
@@ -12750,6 +13655,8 @@ return {
     },
     [275811] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791384761,
       maxLevel = 7,
       minLevel = 7,
@@ -12783,6 +13690,8 @@ return {
     },
     [276171] = {
       build = "70338",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791803349,
       maxLevel = 35,
       minLevel = 35,
@@ -12809,6 +13718,8 @@ return {
     },
     [276800] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791385085,
       maxLevel = 2,
       minLevel = 2,
@@ -12823,6 +13734,8 @@ return {
     },
     [276801] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791384800,
       maxLevel = 2,
       minLevel = 2,
@@ -12837,6 +13750,8 @@ return {
     },
     [276803] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791385085,
       maxLevel = 1,
       minLevel = 1,
@@ -12862,6 +13777,8 @@ return {
     },
     [277154] = {
       build = "70245",
+      factionInferred = true,
+      friendlyToFaction = "AH",
       lastSeen = 1791352093,
       maxLevel = 12,
       minLevel = 12,
@@ -12875,5 +13792,10 @@ return {
       },
     },
   },
-  Quest = {},
+  Quest = {
+    [93951] = {
+      name = "A Little Beauty",
+      starterNpcs = { 251991 },
+    },
+  },
 }

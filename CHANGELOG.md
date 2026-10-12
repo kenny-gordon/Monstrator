@@ -2,6 +2,12 @@
 
 ## 1.0.0
 
+- **Database polish and fact-check**: friendly Forever NPCs are no longer filed as Combat, and world props are gone.
+  - **Friendliness:** journal records made before the collector stored faction carry only a reaction. `harvest` now marks those NPCs friendly to both factions (`AH`), but only when they were friendly (reaction 5 or more) or interacted with at neutral reaction. A real faction seen later replaces the guess. 409 discoveries gained a faction, so Zephras Isle citizens move from Combat to Unclassified.
+  - **World props:** untyped (`Not specified`), non-hostile NPCs with no service, such as *Wardrobe*, *Crate of Blacksmithing Goods* or *Brazier of Eternal Flame*, are no longer recorded or submitted. `clean` removed 4 of them. Hostile untyped creatures (oozes, elementals, swarms) stay.
+  - **Fact-check:** wow-professions.com and warcraft.wiki.gg confirm the Zephras Isle trainers: Blacksmithing, Tailoring, Fishing, Mining, Herbalism and Seena Skybreaker (Warrior). They also confirm that these trainers are neutral. Results are recorded in `DatabaseReview.json`. Wowhead has no Forever NPC data.
+  - **Audit:** 0 errors. The 4 remaining warnings are the item→quest links that were already reviewed and kept on purpose.
+
 - **One identity per NPC**: the directory no longer shows the same NPC twice under different categories.
   - **Shared identity:** journal rows and database rows of an NPC are filed from the same evidence. That is the database flags plus every service the journal saw, and the subtitle from either source. A journal-seen *Cook* or trainer window now also files the database row under Trainers → Cooking.
   - **Grouping:** journal and database placements of an NPC on a map form a single row.

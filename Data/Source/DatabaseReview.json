@@ -96,5 +96,22 @@
       "url": "https://www.wowhead.com/classic/item=14145/cursed-felblade",
       "result": "Fetched page exposed only generic client information; loot relationship was not verified from Wowhead."
     }
-  ]
+  ],
+  "foreverReferenceChecks": {
+    "checkedAt": "2026-10-13",
+    "sources": [
+      "https://www.wow-professions.com/forever/npc/<name>",
+      "https://warcraft.wiki.gg/wiki/<name> (category tags only)"
+    ],
+    "policy": "Forever-only NPCs are absent from Wowhead; these community references corroborate in-game journal evidence and are never imported as data. Subtitles ship only as the client shows them.",
+    "zephrasIsleTrainers": [
+      { "npcID": 251913, "name": "Aedi Thriceforged", "reference": "Blacksmithing trainer, Shen'dar Village, neutral", "journal": "<Blacksmith>, trainer/vendor/repair", "agrees": true },
+      { "npcID": 251991, "name": "Taleen Shimmerthread", "reference": "Tailoring trainer, Shen'dar Village, neutral", "journal": "<Tailor>, trainer/vendor", "agrees": true },
+      { "npcID": 251992, "name": "Fenn Fairweather", "reference": "Fishing trainer, Shen'dar Village, neutral", "journal": "<Fisherman>, trainer/vendor/repair", "agrees": true },
+      { "npcID": 257022, "name": "Messana Crestwind", "reference": "Mining trainer, Shen'dar Village, neutral", "journal": "<Miner>, trainer/vendor", "agrees": true },
+      { "npcID": 254345, "name": "Syriel Nightrain", "reference": "Herbalism trainer, Valanaar, neutral", "journal": "trainer, no subtitle seen", "agrees": true, "note": "Files under Herbalism once a trainer window snapshot is captured." },
+      { "npcID": 252377, "name": "Seena Skybreaker", "reference": "warcraft.wiki.gg categories: Warrior trainers, Quest givers, Zephras Isle NPCs (Hall of Arms, Valanaar)", "journal": "trainer, no subtitle seen", "agrees": true, "note": "Class trainer without a client subtitle; listed under Trainers / Other trainers (class is not inferred without a subtitle)." }
+    ],
+    "friendliness": "References describe Zephras Isle trainers as neutral (usable by both factions), matching the friendlyToFaction AH that harvest infers from journal reactions."
+  }
 }

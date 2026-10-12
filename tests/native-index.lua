@@ -301,6 +301,12 @@ assert(not M:IsNoiseRecord(sighting(11, "Harn Longcast", 20, 30, { creatureType 
 assert(not M:IsNoiseRecord(sighting(11, "Harn the Renamed", 20, 30, { creatureType = "Humanoid" })),
     "humanoid renames are reviewed, not discarded")
 assert(M:IsNoiseRecord(sighting(99999, "Unknown", 1, 1)))
+assert(M:IsNoiseRecord(sighting(99998, "Wardrobe", 1, 1, { creatureType = "Not specified", reaction = 5 })),
+    "an untyped, non-hostile unit with no service is a world prop")
+assert(not M:IsNoiseRecord(sighting(99998, "Living Lightning", 1, 1, { creatureType = "Not specified", reaction = 2 })),
+    "hostile untyped creatures are real encounters")
+assert(not M:IsNoiseRecord(sighting(99998, "Wardrobe", 1, 1, { creatureType = "Not specified", reaction = 5,
+    tags = { "vendor" } })), "a prop that offers a service is kept")
 
 -- One identity per NPC: database rows and journal rows agree on category, sub-group and title, and group together.
 N[19] = "Zephras Citizen\t\t0\t10\t10\tAH\t2:80,80"

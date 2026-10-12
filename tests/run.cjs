@@ -413,6 +413,22 @@ try {
     const probe = fs.readFileSync(path.join(source, 'Discoveries.lua'), 'utf8');
     assert.match(probe, /name = "Harvest Probe",\r?\n\s+npcFlags = 256,\r?\n\s+sightings = 3,/, 'sightings are counted once');
     assert.match(probe, /friendlyToFaction = "AH"/, 'an NPC serving both factions is recorded as such');
+    // Journals older than the faction field only carry UnitReaction; a later faction group replaces the inference.
+    const inferred = {};
+    assert.equal(db.mergeFaction(inferred, { reaction: 5, source: 'local:UPDATE_MOUSEOVER_UNIT' }), true);
+    assert.deepEqual(inferred, { friendlyToFaction: 'AH', factionInferred: true }, 'friendly reaction implies a non-hostile NPC');
+    db.mergeFaction(inferred, { reaction: 5, faction: 'Horde' });
+    assert.deepEqual(inferred, { friendlyToFaction: 'H' }, 'the reported faction group replaces the inference');
+    db.mergeFaction(inferred, { reaction: 5, faction: 'Alliance' });
+    assert.equal(inferred.friendlyToFaction, 'AH', 'reported groups accumulate');
+    const neutral = {};
+    assert.equal(db.mergeFaction(neutral, { reaction: 4, source: 'local:UPDATE_MOUSEOVER_UNIT' }), false,
+      'a neutral unit only moused over may be attackable');
+    db.mergeFaction(neutral, { reaction: 4, source: 'local:GOSSIP_SHOW' });
+    assert.equal(neutral.friendlyToFaction, 'AH', 'a neutral unit that talks to the player is not hostile');
+    assert.equal(db.mergeFaction({}, { reaction: 2 }), false, 'hostile units gain no faction');
+    assert.equal(db.isProp({ creatureType: 'Not specified', reaction: 5, tags: {} }), true, 'untyped friendly props');
+    assert.equal(db.isProp({ creatureType: 'Not specified', reaction: 2 }), false, 'hostile untyped creatures are real');
     // The overlay turns the harvest into database rows; references to unknown NPCs are dropped.
     const overlay = spawnSync(process.execPath, ['--stack-size=65500', '-e',
       `process.stdout.write(require(${JSON.stringify(path.join(root, 'tools', 'monstrator-db.cjs'))}).buildOverlay(false).text)`],
