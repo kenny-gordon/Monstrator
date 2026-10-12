@@ -131,6 +131,7 @@ require('./package.cjs');
 const { generate } = require('../tools/import-data.cjs');
 const { generate: generateCatalog } = require('../tools/client-map-csv.cjs');
 const { generate: generateObjects } = require('../tools/object-csv.cjs');
+const { createCandidates } = require('../tools/client-candidates.cjs');
 const objectFixture = 'ID,Name_lang,OwnerID,Pos[0],Pos[1],Pos[2],TypeID,PhaseID,PhaseGroupID,PhaseUseFlags\n' +
   '1,Synthetic sign,0,75,150,0,5,0,0,0\n2,Phased,0,75,150,0,5,1,0,0\n' +
   '3,Unknown type,0,75,150,0,19,0,0,0\n4,Off map,0,10000,150,0,5,0,0,0\n';
@@ -220,6 +221,43 @@ try {
   fs.writeFileSync(inputPath, objectFixture.replace('75,150', 'bad,150'));
   assert.equal(makeObjects().status, 1);
   assert.equal(fs.existsSync(outputPath), false);
+  const buildInfoPath = path.join(temporary, 'build.info');
+  const candidateDirectory = path.join(temporary, 'client-candidate');
+  fs.writeFileSync(buildInfoPath,
+    'Active!DEC:1|Version!STRING:0|Product!STRING:0\n1|1.60.1.70338|wow_classic_beta\n');
+  fs.writeFileSync(path.join(temporary, 'UiMap.csv'), objectMaps);
+  fs.writeFileSync(path.join(temporary, 'UiMapAssignment.csv'), objectAssignments);
+  fs.writeFileSync(path.join(temporary, 'GameObjects.csv'), objectFixture);
+  const manifest = createCandidates({
+    buildInfo: buildInfoPath, exportsDirectory: temporary, outputDirectory: candidateDirectory,
+  });
+  assert.equal(manifest.client.version, '1.60.1.70338', 'candidate build must come from active client metadata');
+  assert.equal(manifest.candidates.zoneMaps, 2);
+  assert.equal(manifest.candidates.objects, 1);
+  assert.equal(manifest.status, 'candidate-review-required');
+  assert.equal(manifest.automaticPromotion, false, 'client candidates must never promote themselves');
+  assert.equal(manifest.comparisons['ClientMapCatalog.lua'].changed, true);
+  assert.equal(manifest.comparisons['ExtractedObjectData.lua'].changed, true);
+  assert.match(fs.readFileSync(path.join(candidateDirectory, 'ExtractedObjectData.lua'), 'utf8'),
+    /build = "1\.60\.1\.70338"/);
+  assert.equal(fs.readFileSync(path.join(candidateDirectory, 'manifest.json'), 'utf8')
+    .includes(manifest.inputs['GameObjects.csv'].sha256), true, 'manifest must preserve source CSV hashes');
+  assert.throws(() => createCandidates({
+    buildInfo: buildInfoPath, exportsDirectory: temporary, outputDirectory: candidateDirectory,
+  }), /already exists/, 'candidate runs must not overwrite previous output');
+  fs.writeFileSync(buildInfoPath,
+    'Active!DEC:1|Version!STRING:0|Product!STRING:0\n1|1.60.1.70338|wow_retail\n');
+  assert.throws(() => createCandidates({
+    buildInfo: buildInfoPath, exportsDirectory: temporary,
+    outputDirectory: path.join(temporary, 'wrong-product'),
+  }), /active Forever beta build/);
+  for (const name of ['ClientMapCatalog.lua', 'ExtractedObjectData.lua', 'manifest.json']) {
+    fs.unlinkSync(path.join(candidateDirectory, name));
+  }
+  fs.rmdirSync(candidateDirectory);
+  for (const name of ['build.info', 'UiMap.csv', 'UiMapAssignment.csv', 'GameObjects.csv']) {
+    fs.unlinkSync(path.join(temporary, name));
+  }
   if (process.env.MONSTRATOR_DBC2CSV) {
     const binary = path.join(temporary, 'Creature.db2');
     const converted = path.join(temporary, 'converted');

@@ -3,7 +3,7 @@ local nativeData = M.clientData
 M.clientData = { maps = {}, errors = {}, generation = 0 }
 local candidateCount = 0
 for _, records in pairs(data.maps) do candidateCount = candidateCount + #records end
-assert(candidateCount == 663, "real generated object candidate count must stay explicit")
+assert(candidateCount == 662, "real generated object candidate count must stay explicit")
 M.extractedObjects = { build = "1.60.1.70205", locale = "enUS", maps = { [1] = {
     { 1, "Synthetic sign [Sign]", 20, 30, 0, 200, 300, 5 },
     { 2, "Synthetic meeting stone", 30, 40, 0, 300, 400, 48 },

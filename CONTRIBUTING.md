@@ -235,23 +235,41 @@ need a manual check before `--accept-held`. Commit `Data\Source\Discoveries.lua`
 | `tools\import-data.cjs input.json output.lua` | Validate a permitted curated dataset (see DATA_SCHEMA.md); refuses rejected input and never overwrites output |
 | `tools\client-map-csv.cjs UiMap.csv out.lua BUILD` | Generate `ClientMapCatalog.lua` (world-zone UI map IDs for the world scan) |
 | `tools\object-csv.cjs GameObjects.csv UiMap.csv UiMapAssignment.csv out.lua BUILD` | Generate `ExtractedObjectData.lua` |
+| `tools\client-candidates.cjs .build.info <CSV exports> <new candidate directory>` | Generate build-labelled client candidates and a provenance manifest without promoting them |
 | `tools\convert-db2.ps1 -Converter <DBC2CSV.exe> -InputFile <table.db2> -OutputDirectory <dir>` | Safely convert one extracted DB2 table to CSV |
 
 ## Client data
 
 `ClientMapCatalog.lua` and `ExtractedObjectData.lua` are generated from tables
-extracted from the Forever client (build 1.60.1.70205) and converted with
+extracted from the Forever client (build 1.60.1.70338) and converted with
 [DBC2CSV](https://github.com/Marlamin/DBC2CSV) using current
 [WoWDBDefs](https://github.com/wowdev/WoWDBDefs) definitions.
 
 1. Extract `UiMap`, `UiMapAssignment` and `GameObjects` from your own client
    installation with a CASC tool, without mixing builds or hotfix caches.
+   The 1.60.1.70338 refresh used CASCConsole from
+   [CASCExplorer](https://github.com/WoW-Tools/CASCExplorer) (built from
+   source, run read-only against local storage) in listfile mode with the
+   [community listfile](https://github.com/wowdev/wow-listfile) FileDataIDs
+   841620 (`gameobjects.db2`), 1957206 (`uimap.db2`) and 1957219
+   (`uimapassignment.db2`):
+   `CASCConsole -m Listfile -e wanted.txt -d <out> -l enUS -p wow_classic_beta -s "<WoW folder>"`.
+   Keep extraction tools and outputs outside the addon folder.
 2. Convert each table:
    `.\tools\convert-db2.ps1 -Converter <DBC2CSV.exe> -InputFile <table.db2> -OutputDirectory <csv folder>`.
    The wrapper stages a copy, refuses to overwrite, and treats empty output or a
    reported conversion failure as an error (DBC2CSV can exit 0 on failure).
-3. Generate the Lua files with `client-map-csv.cjs` and `object-csv.cjs` into a
-   new path, compare, then replace the shipped files.
+3. Stage both supported outputs together, using the `.build.info` from the same
+   client installation and a new output directory:
+   `node .\tools\client-candidates.cjs <client .build.info> <CSV exports> <new candidate directory>`.
+   It accepts only one active `wow_classic_beta` build, records each CSV's
+   SHA-256 and parsed row count, compares candidate and shipped-file hashes, and
+   reports candidate counts and filtered rows. Ensure the CSVs came from that
+   same client build; hashes record the exact inputs but cannot prove their
+   extraction origin. It refuses to overwrite an existing candidate directory.
+   Inspect the generated files and manifest, review textual differences, and
+   promote only after review. This command does not extract CASC archives or
+   update the shipped addon/database automatically.
 
 Notes:
 
@@ -265,6 +283,12 @@ Notes:
   only from the database and reviewed discoveries.
 - Quest POI points, taxi paths and area triggers are not NPC placements and are
   not imported as such.
+- This client stage covers map IDs and supported world-object candidates only.
+  Other source lanes remain separate: installed database importers record their
+  source/version/licence, player discoveries require review, and targeted
+  external-reference facts are compared with `monstrator-db.cjs audit
+  --wowhead`. Keep each lane's build/source provenance and investigate conflicts;
+  no cross-source disagreement is an automatic correction.
 
 ## Translations
 

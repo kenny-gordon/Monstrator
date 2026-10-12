@@ -127,7 +127,7 @@ assert(M:Review(record, "reject"))
 assert(M:ObservationCount() == 0 and M.index.byKey[record.key] == nil)
 
 local catalog, buildInfo, mapInfo = M.clientMapCatalog, GetBuildInfo, C_Map.GetMapInfo
-assert(#catalog.maps == 50 and catalog.build == "1.60.1.70205")
+assert(#catalog.maps == 50 and catalog.build == "1.60.1.70338")
 local messagesBeforeMismatch = #messages
 assert(not M:StartClientWorldSync(), "an extracted catalog must not run on an unmatched build")
 assert(#messages == messagesBeforeMismatch, "routine beta mismatch must not emit a broken-addon error")
