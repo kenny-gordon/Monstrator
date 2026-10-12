@@ -144,6 +144,43 @@ end
 assert(questObservation and questObservation.category == "Services"
     and questObservation.tags[1] == "quest_giver", "quest interaction should assign an observed quest-giver role")
 M:Review(questObservation, "reject")
+
+-- The <Warrior Trainer> subtitle is read from the unit tooltip and classifies the NPC the way the database does.
+local savedTooltipInfo = C_TooltipInfo
+local tooltipLines = { { leftText = "Corsan Earthrazer" }, { leftText = "Warrior Trainer" }, { leftText = "Level 10 Humanoid" } }
+C_TooltipInfo = { GetUnit = function() return { lines = tooltipLines } end }
+UnitGUID = function() return "Creature-0-0-0-0-254088-0001" end
+UnitName = function() return "Corsan Earthrazer" end
+local confirmedCorsan = M:NewObservation("Corsan Earthrazer", "npc", "Unclassified", {}, "NAME_PLATE_UNIT_ADDED")
+confirmedCorsan.npcID, confirmedCorsan.verification = 254088, "user-confirmed"
+confirmedCorsan.x = confirmedCorsan.x > 50 and 10 or 90
+confirmedCorsan = M:AddObservation(confirmedCorsan)
+assert(confirmedCorsan and M:RecordSealValid(confirmedCorsan) and confirmedCorsan.title == nil)
+M:CaptureNPC("manual-target")
+local titledCorsan
+for _, r in pairs(M.observations.entries) do
+    if r.npcID == 254088 and r.verification == "pending" then titledCorsan = r end
+end
+assert(titledCorsan and titledCorsan.title == "Warrior Trainer" and titledCorsan.category == "Trainers",
+    "a captured subtitle must classify the NPC")
+assert(M:RecordSubgroups(titledCorsan)[1] == "trainer:warrior", "Warrior Trainer belongs to the warrior trainer group")
+assert(confirmedCorsan.title == "Warrior Trainer" and confirmedCorsan.category == "Trainers",
+    "earlier records of the same NPC gain the subtitle")
+assert(M:RecordSealValid(confirmedCorsan), "an intact confirmed record stays sealed after the backfill")
+local parsed = M.ParseSubmission(M:SubmissionText())
+local sharedCorsan
+for _, r in ipairs(parsed.records) do if r.npcID == 254088 then sharedCorsan = r end end
+assert(sharedCorsan and sharedCorsan.title == "Warrior Trainer" and sharedCorsan.status == "sealed",
+    "subtitles survive a sealed submission")
+tooltipLines[2] = { leftText = "Level 10 Humanoid" }
+assert(M:UnitTitle("target") == nil, "the level line is not a subtitle")
+local savedControlled = UnitPlayerControlled
+UnitPlayerControlled = function() return true end
+tooltipLines[2] = { leftText = "Abaloz's Minion" }
+assert(M:UnitTitle("target") == nil, "pets do not carry NPC subtitles")
+UnitPlayerControlled = savedControlled
+C_TooltipInfo = savedTooltipInfo
+M:Review(titledCorsan, "reject"); M:Review(confirmedCorsan, "reject")
 M.settings.discovering = false
 UnitGUID, UnitName, UnitCanAttack = originalUnitGUID, originalUnitName, savedUnitCanAttack
 

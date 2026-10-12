@@ -5,6 +5,90 @@ local function readable(value)
     return not issecretvalue or not issecretvalue(value)
 end
 
+-- The <Warrior Trainer> style subtitle is only exposed through the unit tooltip: it is the line after the name,
+-- unless that line is already the level line ("Level 10 Humanoid") or the unit belongs to a player.
+local scanTooltip
+local function levelPrefix()
+    local template = type(TOOLTIP_UNIT_LEVEL) == "string" and TOOLTIP_UNIT_LEVEL or "Level %s"
+    local prefix = template:match("^(.-)%%")
+    return prefix and prefix:match("^%s*(.-)%s*$") or ""
+end
+
+local function tooltipLine(unit)
+    if C_TooltipInfo and C_TooltipInfo.GetUnit then
+        local ok, data = pcall(C_TooltipInfo.GetUnit, unit)
+        local line = ok and type(data) == "table" and type(data.lines) == "table" and data.lines[2]
+        return line and line.leftText
+    end
+    if not CreateFrame then return end
+    local ok, text = pcall(function()
+        scanTooltip = scanTooltip or CreateFrame("GameTooltip", "MonstratorUnitScanTooltip", UIParent, "GameTooltipTemplate")
+        scanTooltip:SetOwner(UIParent, "ANCHOR_NONE")
+        scanTooltip:ClearLines()
+        scanTooltip:SetUnit(unit)
+        local line = _G["MonstratorUnitScanTooltipTextLeft2"]
+        local value = line and line:GetText()
+        scanTooltip:Hide()
+        return value
+    end)
+    return ok and text or nil
+end
+
+function M:UnitTitle(unit)
+    if UnitIsPlayer and UnitIsPlayer(unit) == true then return end
+    local controlled = UnitPlayerControlled and UnitPlayerControlled(unit)
+    if readable(controlled) and controlled == true then return end
+    local text = tooltipLine(unit)
+    if not readable(text) or type(text) ~= "string" then return end
+    text = text:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", ""):match("^%s*<?%s*(.-)%s*>?%s*$")
+    if text == "" or #text > 64 then return end
+    local prefix = levelPrefix()
+    if prefix ~= "" and text:sub(1, #prefix) == prefix then return end
+    if type(LEVEL) == "string" and LEVEL ~= "" and text:find(LEVEL, 1, true) then return end
+    if text:find("^%d") or text:find("??", 1, true) then return end
+    return text
+end
+
+-- Applies a subtitle the client showed for this NPC: the database derives categories and sub-groups (class or
+-- profession trainer, food vendor, flight master) from the same text, so journal entries group the same way.
+function M:ApplyObservedTitle(record, title)
+    if type(title) ~= "string" or title == "" then return false end
+    local changed = record.title ~= title
+    record.title = title
+    -- The tooltip shows no NPC flags, so a "<... Trainer>" subtitle stands in for the trainer flag.
+    local inferred = title:lower():find("trainer", 1, true) and self.npcFlags and self.npcFlags.TRAINER or 0
+    local category, tags = self:NPCIdentity(inferred, title)
+    if category ~= "Combat" and (record.category == "Unclassified" or record.category == "Combat") then
+        changed = changed or record.category ~= category
+        record.category = category
+    end
+    for _, tag in ipairs(tags) do
+        local found = false
+        for _, saved in ipairs(record.tags) do if saved == tag then found = true end end
+        if not found then table.insert(record.tags, tag); changed = true end
+    end
+    return changed
+end
+
+-- Gives every journal record of this NPC the subtitle seen now. Confirmed records keep a valid seal only if
+-- they were intact beforehand, so an edited record stays detectably broken.
+function M:BackfillTitle(npcID, title, onlyMissing)
+    if not npcID or type(title) ~= "string" then return 0 end
+    local count = 0
+    for _, existing in pairs(self.observations.entries) do
+        if existing.kind == "npc" and existing.npcID == npcID and existing.title ~= title
+            and (not onlyMissing or existing.title == nil) and type(existing.tags) == "table" then
+            local intact = self:RecordSealValid(existing)
+            if self:ApplyObservedTitle(existing, title) then
+                count = count + 1
+                if intact then self:SealRecord(existing) end
+            end
+        end
+    end
+    if count > 0 then self:RefreshIfVisible() end
+    return count
+end
+
 function M:AddObservation(record)
     local valid, reason = self:ValidateRecord(record)
     if not valid then self:Error(reason); return nil end
@@ -24,7 +108,7 @@ function M:AddObservation(record)
                 and record.category ~= "Unclassified" and record.category ~= "Combat" then
                 existing.category = record.category
             end
-            for _, key in ipairs({ "level", "reaction", "creatureType", "classification" }) do
+            for _, key in ipairs({ "level", "reaction", "creatureType", "classification", "title" }) do
                 if record[key] ~= nil then existing[key] = record[key] end
             end
             for _, tag in ipairs(record.tags) do
@@ -65,6 +149,23 @@ function M:NewObservation(name, kind, category, tags, evidence)
         build = tostring(build), locale = GetLocale(), source = "local:" .. evidence,
         verification = "pending", precision = "encounter", lastSeen = time(), sightings = 1,
     }
+end
+
+-- Journal records captured before subtitles were recorded take the database's subtitle for the same NPC ID.
+function M:BackfillTitlesFromDatabase()
+    local lib = self.native and self:NativeProvider()
+    local provider = lib and lib.Npc
+    if not provider or type(provider.subName) ~= "function" then return 0 end
+    local titles, count = {}, 0
+    for _, record in pairs(self.observations.entries) do
+        if record.kind == "npc" and record.title == nil and self:IsFinite(record.npcID) then
+            titles[record.npcID] = titles[record.npcID] or self.ReadNativeField(provider.subName, record.npcID) or false
+        end
+    end
+    for npcID, title in pairs(titles) do
+        if type(title) == "string" and title ~= "" then count = count + self:BackfillTitle(npcID, title, true) end
+    end
+    return count
 end
 
 function M:CaptureNPC(event, unit)
@@ -127,7 +228,10 @@ function M:CaptureNPC(event, unit)
                 record[key] = value
             end
         end
+        local title = self:UnitTitle(unit)
+        self:ApplyObservedTitle(record, title)
         local saved = self:AddObservation(record)
+        if title then self:BackfillTitle(npcID, title) end
         if saved and discovery then self.discoverySeen[guid] = true end
         if saved and manual then self:Notice(L["NPC target saved for review: "] .. name .. " (player encounter position).") end
     end

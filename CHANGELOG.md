@@ -2,6 +2,8 @@
 
 ## 1.0.0
 
+- **NPC subtitles in the journal**: captured NPCs now keep their `<Warrior Trainer>`-style subtitle from the unit tooltip and are grouped like database NPCs (e.g. Trainers → Warrior trainers rather than "Other trainers"). Earlier journal records of the same NPC are updated (intact seals stay valid), known NPCs are backfilled from the database on login, and `harvest` carries subtitles into discoveries.
+
 - **Native waypoint compatibility**: accept plain `x`/`y` vectors as well as `GetXY` vectors when verifying the client's map pin. Missing/invalid/mismatched readback coordinates still reject explicitly and offer manual copying rather than raising a nil-method error.
 
 - **Lookup quality of life**: added session-only Back history across item/quest/container navigation, restoring searches, filters, selections, tabs and paging. Added full-context filter tooltips, explicit 500-result truncation notices, quest-versus-source counts and duplicate relation normalization. Added passive foreground/background directory expansion counters and optional CPU timing to diagnostics; cache warmup behavior is unchanged.

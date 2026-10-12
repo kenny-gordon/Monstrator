@@ -216,8 +216,8 @@ function M:Initialize()
     self:InitializeScanner()
     self.ready = true
     self:CreateLauncher()
-    if C_Timer and C_Timer.After then C_Timer.After(1, function() self:StartDatabaseIndex() end)
-    else self:StartDatabaseIndex() end
+    if C_Timer and C_Timer.After then C_Timer.After(1, function() self:BackfillTitlesFromDatabase(); self:StartDatabaseIndex() end)
+    else self:BackfillTitlesFromDatabase(); self:StartDatabaseIndex() end
 end
 
 SLASH_MONSTRATOR1 = "/monstrator"

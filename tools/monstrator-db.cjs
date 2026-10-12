@@ -419,7 +419,7 @@ function cmdHarvest(args) {
   const ledger = fs.existsSync(harvestLedgerFile) ? JSON.parse(fs.readFileSync(harvestLedgerFile, 'utf8')) : { schemaVersion: 1, records: [] };
   if (ledger.schemaVersion !== 1 || !Array.isArray(ledger.records)) fail(`${rel(harvestLedgerFile)}: unsupported ledger`);
   const harvested = new Set(ledger.records);
-  const report = { used: 0, skipped: 0, scans: 0, tampered: 0, already: 0, newNPCs: new Set(), newMaps: [], drift: [], points: 0 };
+  const report = { used: 0, skipped: 0, scans: 0, tampered: 0, already: 0, titles: 0, newNPCs: new Set(), newMaps: [], drift: [], points: 0 };
   for (const file of inputs) {
     const source = fs.readFileSync(file, 'utf8');
     const account = path.basename(path.dirname(path.dirname(file)));
@@ -443,7 +443,13 @@ function cmdHarvest(args) {
       report.used++;
       const identity = sha256([account, record.key || record.source, record.npcID, record.mapID, record.x, record.y,
         record.lastSeen, record.sightings].join('|'));
-      if (harvested.has(identity)) { report.already++; continue; }
+      if (harvested.has(identity)) {
+        report.already++;
+        // A subtitle backfilled after the record was harvested is still welcome; sightings are not recounted.
+        const entry = discoveries.Npc[Number(record.npcID)];
+        if (entry && typeof record.title === 'string' && record.title && !entry.title) { entry.title = record.title; report.titles++; }
+        continue;
+      }
       harvested.add(identity);
       if (mergeNpc(discoveries, record)) report.points++;
       const issue = compareWithDatabase(base, record);
@@ -456,7 +462,8 @@ function cmdHarvest(args) {
   writeDiscoveries(discoveries, 'harvest');
   fs.writeFileSync(harvestLedgerFile, JSON.stringify({ schemaVersion: 1, records: [...harvested].sort() }, null, 1) + '\n', 'utf8');
   console.log(`Harvested ${report.used} observations from ${inputs.length} file(s), including ${report.scans} exact NPC scan sightings (${report.skipped} skipped: not NPC, `
-    + `${includePending ? 'invalid' : 'pending - use --include-pending'}); ${report.already} already harvested; ${report.points} new points.`);
+    + `${includePending ? 'invalid' : 'pending - use --include-pending'}); ${report.already} already harvested`
+    + `${report.titles ? ` (${report.titles} gained a subtitle)` : ''}; ${report.points} new points.`);
   if (report.tampered) console.log(`Rejected ${report.tampered} record(s) whose seal no longer matches (edited outside the game).`);
   console.log(`Discoveries now: ${Object.keys(discoveries.Npc).length} NPCs in ${rel(discoveryFile)}`);
   section('NPCs not in the database (Forever-only)', [...report.newNPCs]);

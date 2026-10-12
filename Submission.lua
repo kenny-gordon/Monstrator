@@ -16,6 +16,8 @@ local LANES = {
 -- Field order is part of the format; append only.
 local FIELDS = { "key", "kind", "npcID", "name", "category", "mapID", "x", "y", "tags", "source", "build",
     "locale", "verification", "precision", "sightings", "lastSeen", "level", "classification", "edited" }
+-- Optional fields join the canonical text only when present, so records sealed before they existed stay valid.
+local OPTIONAL = { "title" }
 local INTEGER = { npcID = true, mapID = true, sightings = true, lastSeen = true, level = true }
 local HUNDREDTHS = { x = true, y = true }
 
@@ -70,6 +72,9 @@ end
 function M.CanonicalRecord(record)
     local parts = {}
     for i, field in ipairs(FIELDS) do parts[i] = fieldText(record, field) end
+    for _, field in ipairs(OPTIONAL) do
+        if record[field] ~= nil then parts[#parts + 1] = field .. "=" .. fieldText(record, field) end
+    end
     return table.concat(parts, "|")
 end
 
@@ -202,8 +207,19 @@ function M.ParseSubmission(text)
         local parts = {}
         for part in (line:sub(3) .. "|"):gmatch("([^|]*)|") do parts[#parts + 1] = part end
         local seal = table.remove(parts)
+        local signed = table.concat(parts, "|")
+        local optional = {}
+        while #parts > #FIELDS do
+            local field, value = parts[#parts]:match("^(%a+)=(.*)$")
+            local known = false
+            for _, name in ipairs(OPTIONAL) do if name == field then known = true end end
+            if not known or optional[field] then break end
+            optional[field] = unescape(value)
+            table.remove(parts)
+        end
         if #parts ~= #FIELDS then return nil, "record " .. index .. " has " .. #parts .. " fields, expected " .. #FIELDS end
         local record = {}
+        for field, value in pairs(optional) do record[field] = value end
         for i, field in ipairs(FIELDS) do
             local value = parts[i]
             if field == "tags" then
@@ -218,7 +234,7 @@ function M.ParseSubmission(text)
             end
         end
         if seal == "-" then record.status = "unsealed"
-        elseif seal == M.SealHash(table.concat(parts, "|") .. "|" .. header.submitter) then record.status = "sealed"
+        elseif seal == M.SealHash(signed .. "|" .. header.submitter) then record.status = "sealed"
         else record.status = "tampered" end
         result.records[index] = record
     end

@@ -236,7 +236,17 @@ It includes confirmed placements, pending NPC sightings (always held for
 review) and exact scan sightings. The canonical fields are key, kind, npcID, name,
 category, mapID, x, y, tags, source, build, locale, verification, precision,
 sightings, lastSeen, level, classification and edited. Coordinates are written
-in hundredths, and `% | ; CR LF` are percent-escaped.
+in hundredths, and `% | ; CR LF` are percent-escaped. NPC records may append an
+optional `title=<subtitle>` field (for example `title=Warrior Trainer`) after the
+canonical fields. It is part of the record seal only when present, so records
+captured before subtitles were recorded keep their seals.
+
+Subtitles come from the unit tooltip line under the name. Level lines and
+player-controlled units are ignored. The subtitle classifies the NPC the same
+way as the database's `subName` (for example `Trainers` / `trainer:warrior`). On
+login, journal NPCs without a subtitle are backfilled from the database.
+`harvest` copies the subtitle into `Discoveries.lua`, including for records it
+harvested earlier.
 
 **Seals.** Every record is sealed when the addon captures it, using the
 submitter ID. Merging a repeat sighting reseals it only if the seal was still
